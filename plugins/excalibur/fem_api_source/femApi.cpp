@@ -1,21 +1,17 @@
 #include <iostream>
-#include <string>
-#include <sstream>
 
 #include "femApi.h"
+#include "FemApiError.h"
 #include "ExcaliburFemClient.h"
-
-static std::string error_string;
-static FemErrorCode error_code = 0;
 
 const char* femErrorMsg(void)
 {
-    return error_string.c_str();
+    return FemApiError::get_string();
 }
 
 int femErrorCode(void)
 {
-    return (int)error_code;
+    return FemApiError::get_code();
 }
 
 void* femInitialise(int id)
@@ -26,10 +22,7 @@ void* femInitialise(int id)
     }
     catch (FemClientException& e)
     {
-        error_code = e.which();
-        std::stringstream ss;
-        ss << "Error trying to initialise FEM id " << id << ": " << e.what();
-        error_string = ss.str();
+        FemApiError().Set(e.which()) << "Error trying to initialise FEM id " << id << ": " << e.what();
     }
 
     return (void*)theFem;
@@ -43,6 +36,32 @@ int femGetInt(void* femHandle, int chipId, int id, size_t size, int* value)
 
     for (int i = 0; i < size; i++) {
         value[i] = id + i;
+    }
+
+    return rc;
+}
+
+int femCmd(void* femHandler, int chipId, int id)
+{
+    int rc = FEM_RTN_OK;
+
+    //ExcaliburFemClient* theFem = reinterpret_cast<ExcaliburFemClient*>(femHandle);
+
+    switch (id)
+    {
+        case FEM_OP_STARTACQUISITION:
+        case FEM_OP_STOPACQUISITION:
+        case FEM_OP_LOADPIXELCONFIG:
+        case FEM_OP_FREEALLFRAMES:
+        case FEM_OP_LOADDACCONFIG:
+        case FEM_OP_FEINIT:
+        case FEM_OP_REBOOT:
+            // Do nothing for now
+            break;
+
+        default:
+            rc = FEM_RTN_UNKNOWNOPID;
+            FemApiError().Set() << "femCmd: illegal command ID: " << id;
     }
 
     return rc;

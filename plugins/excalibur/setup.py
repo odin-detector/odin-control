@@ -1,7 +1,7 @@
 from setuptools import setup, Extension
 
 # define the extension module
-fem_api = Extension('fem_api', sources=['fem_api_source/fem_api_wrapper.c', 'fem_api_source/femApi.cpp', 'fem_api_source/ExcaliburFemClient.cpp'])
+fem_api = Extension('fem_api', sources=['fem_api_source/fem_api_wrapper.c', 'fem_api_source/femApi.cpp', 'fem_api_source/ExcaliburFemClient.cpp', 'fem_api_source/FemApiError.cpp'])
 
 setup(
     name="excalibur",

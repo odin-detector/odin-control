@@ -122,6 +122,25 @@ static PyObject* _get_int(PyObject* self, PyObject* args)
     return Py_BuildValue("iO", rc, values);
 }
 
+static PyObject* _cmd(PyObject* self, PyObject* args)
+{
+    PyObject* _handle;
+    FemPtr fem_ptr;
+    int chipId, cmdId;
+    int rc;
+
+    if (!PyArg_ParseTuple(args, "Oii", &_handle, &chipId, &cmdId)) {
+        return NULL;
+    }
+
+    fem_ptr = (FemPtr) PyCapsule_GetPointer(_handle, "FemPtr");
+    _validate_ptr_and_handle(fem_ptr, "_cmd");
+
+    rc = femCmd(fem_ptr->handle, chipId, cmdId);
+
+    return Py_BuildValue("i", rc);
+}
+
 static PyObject* _close(PyObject* self, PyObject* args)
 {
     PyObject* _handle;
@@ -158,6 +177,7 @@ static PyMethodDef FemApiMethods[] =
      {"initialise", _initialise, METH_VARARGS, "initialise a module"},
      {"get_id",     _get_id,     METH_VARARGS, "get a module ID"},
      {"get_int",    _get_int,    METH_VARARGS, "get one or more integer parameters"},
+     {"cmd",        _cmd,        METH_VARARGS, "issue a command to a module"},
      {"close",      _close,      METH_VARARGS, "close a module"},
      {NULL, NULL, 0, NULL}
 };

@@ -3,17 +3,20 @@ from nose.tools import *
 
 class TestExcaliburFem:
 
+    @classmethod
+    def setup_class(cls):
+        cls.fem_id = 1234
+        cls.the_fem = ExcaliburFem(cls.fem_id)
+
     def test_legal_fem_id(self):
 
-        id = 1234
-        the_fem = ExcaliburFem(id)
-        assert_equal(id, the_fem.get_id())
+        assert_equal(self.fem_id, self.the_fem.get_id())
 
     def test_illegal_fem_id(self):
 
         id = -1
         with assert_raises(ExcaliburFemError) as cm:
-            the_fem = ExcaliburFem(id)
+            bad_fem = ExcaliburFem(id)
         assert_equal(cm.exception.value, 'Error trying to initialise FEM id -1: Illegal ID specified')
 
     def test_double_close(self):
@@ -23,3 +26,17 @@ class TestExcaliburFem:
         with assert_raises(ExcaliburFemError) as cm:
             the_fem.close()
         assert_equal(cm.exception.value, '_close: FEM object pointer has null FEM handle')
+
+    def test_legal_cmd(self):
+
+        chip_id = 0
+        cmd_id = 1
+        rc = self.the_fem.cmd(chip_id, cmd_id)
+        assert_equal(rc, ExcaliburFem.FEM_RTN_OK)
+
+    def test_illegal_cmd(self):
+
+        chip_id  = 0;
+        cmd_id = -1
+        rc = self.the_fem.cmd(chip_id, cmd_id)
+        assert_equal(rc, ExcaliburFem.FEM_RTN_UNKNOWNOPID)
