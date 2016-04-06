@@ -36,7 +36,7 @@ class TestExcaliburFem:
 
         assert_equal(rc, ExcaliburFem.FEM_RTN_OK)
         assert_equal(len(values), param_len)
-        assert_equal(values, tuple(range(param_id, param_id+param_len)))
+        assert_equal(values, range(param_id, param_id+param_len))
 
     def test_legal_cmd(self):
 

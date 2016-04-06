@@ -110,11 +110,11 @@ static PyObject* _get_int(PyObject* self, PyObject* args)
 
     rc = femGetInt(fem_ptr->handle, chip_id, param_id, size, value_ptr);
 
-    values = PyTuple_New(size);
+    values = PyList_New(size);
     if (rc == FEM_RTN_OK) {
         int ival;
         for (ival = 0; ival < size; ival++) {
-            PyTuple_SetItem(values, ival, PyInt_FromLong(value_ptr[ival]));
+            PyList_SetItem(values, ival, PyInt_FromLong(value_ptr[ival]));
         }
     }
     free(value_ptr);
