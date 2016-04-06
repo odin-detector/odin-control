@@ -1,5 +1,6 @@
 from fem.client import ExcaliburFem, ExcaliburFemError
 from nose.tools import *
+import random
 
 class TestExcaliburFem:
 
@@ -25,9 +26,9 @@ class TestExcaliburFem:
         the_fem.close()
         with assert_raises(ExcaliburFemError) as cm:
             the_fem.close()
-        assert_equal(cm.exception.value, '_close: FEM object pointer has null FEM handle')
+        assert_equal(cm.exception.value, 'close: FEM object pointer has null FEM handle')
 
-    def test_legal_get_int(self):
+    def test_legal_get_ints(self):
 
         chip_id = 0
         param_id = 1001
@@ -37,6 +38,51 @@ class TestExcaliburFem:
         assert_equal(rc, ExcaliburFem.FEM_RTN_OK)
         assert_equal(len(values), param_len)
         assert_equal(values, range(param_id, param_id+param_len))
+
+    def test_legal_set_single_int(self):
+
+        chip_id = 0
+        param_id = 1001
+        value = 1234
+
+        rc = self.the_fem.set_int(chip_id, param_id, value)
+
+        assert_equal(rc, ExcaliburFem.FEM_RTN_OK)
+
+    def test_legal_set_ints(self):
+
+        chip_id = 0
+        param_id = 1001
+        param_len = 10
+        values = range(param_id, param_id + param_len)
+
+        rc = self.the_fem.set_int(chip_id, param_id, values)
+
+        assert_equal(rc, ExcaliburFem.FEM_RTN_OK)
+
+    def test_illegal_set_int(self):
+
+        chip_id = 0
+        param_id = 10001
+        values = [3.14]*10
+
+        with assert_raises(ExcaliburFemError) as cm:
+            rc = self.the_fem.set_int(chip_id, param_id, values)
+        assert_equal(cm.exception.value, 'set_int: non-integer value specified')
+
+    def test_legal_set_and_get_int(self):
+
+        chip_id = 0
+        param_id = 10002
+        param_len = 100
+        values_in = [random.randint(0, 1000000) for x in xrange(param_len)]
+
+        rc = self.the_fem.set_int(chip_id, param_id, values_in)
+        assert_equal(rc, ExcaliburFem.FEM_RTN_OK)
+
+        (rc, values_out) = self.the_fem.get_int(chip_id, param_id, param_len)
+        assert_equal(rc, ExcaliburFem.FEM_RTN_OK)
+        assert_equal(values_in, values_out)
 
     def test_legal_cmd(self):
 

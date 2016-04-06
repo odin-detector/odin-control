@@ -1,8 +1,12 @@
 #include <iostream>
+#include <map>
+#include <vector>
 
 #include "femApi.h"
 #include "FemApiError.h"
 #include "ExcaliburFemClient.h"
+
+std::map<int, std::vector<int> > int_params;
 
 const char* femErrorMsg(void)
 {
@@ -34,9 +38,24 @@ int femGetInt(void* femHandle, int chipId, int id, size_t size, int* value)
 
     //ExcaliburFemClient* theFem = reinterpret_cast<ExcaliburFemClient*>(femHandle);
 
-    for (int i = 0; i < size; i++) {
-        value[i] = id + i;
+    if (int_params.count(id) > 0) {
+        for (int i = 0; i < size; i++) {
+            value[i] = int_params[id][i];
+        }
+    } else {
+        for (int i = 0; i < size; i++) {
+            value[i] = id + i;
+        }
     }
+
+    return rc;
+}
+
+int femSetInt(void* femHandle, int chipId, int id, size_t size, int* value)
+{
+    int rc = FEM_RTN_OK;
+
+    int_params[id] = std::vector<int>(value, value + size);
 
     return rc;
 }

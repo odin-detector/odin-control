@@ -33,15 +33,33 @@ class ExcaliburFem(object):
 
     def get_id(self):
 
-        return fem_api.get_id(self.fem_handle)
+        try:
+            id =  fem_api.get_id(self.fem_handle)
+        except fem_api.error as e:
+            raise ExcaliburFemError(str(e))
+
+        return id
 
     def get_int(self, chip_id, param_id, size):
 
-        return fem_api.get_int(self.fem_handle, chip_id, param_id, size)
+        try:
+            rc =  fem_api.get_int(self.fem_handle, chip_id, param_id, size)
+        except fem_api.error as e:
+            raise ExcaliburFemError(str(e))
+
+        return rc
+
+    def set_int(self, chip_id, param_id, values):
+
+        try:
+            rc = fem_api.set_int(self.fem_handle, chip_id, param_id, values)
+        except fem_api.error as e:
+            raise ExcaliburFemError(str(e))
+
+        return rc
 
     def cmd(self, chip_id, cmd_id):
 
-        rc = ExcaliburFem.FEM_RTN_OK
         try:
             rc = fem_api.cmd(self.fem_handle, chip_id, cmd_id)
         except fem_api.error as e:

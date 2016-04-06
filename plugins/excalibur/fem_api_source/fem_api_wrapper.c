@@ -78,7 +78,7 @@ static PyObject* _get_id(PyObject* self, PyObject* args)
     }
 
     fem_ptr = (FemPtr) PyCapsule_GetPointer(_handle, "FemPtr");
-    _validate_ptr_and_handle(fem_ptr, "_get_id");
+    _validate_ptr_and_handle(fem_ptr, "get_id");
 
     id = femGetId(fem_ptr->handle);
     return Py_BuildValue("i", id);
@@ -100,11 +100,11 @@ static PyObject* _get_int(PyObject* self, PyObject* args)
     //printf("_get_int: chip_id %d param_id %d size %d\n", chip_id, param_id, size);
 
     fem_ptr = (FemPtr) PyCapsule_GetPointer(_handle, "FemPtr");
-    _validate_ptr_and_handle(fem_ptr, "_get_int");
+    _validate_ptr_and_handle(fem_ptr, "get_int");
 
     value_ptr = (int *)malloc(size * sizeof(int));
     if (value_ptr == NULL) {
-        _set_api_error_string("get_int: unable to allocate space for %d integer values in get_int", size);
+        _set_api_error_string("get_int: unable to allocate space for %d integer values", size);
         return NULL;
     }
 
@@ -122,6 +122,63 @@ static PyObject* _get_int(PyObject* self, PyObject* args)
     return Py_BuildValue("iO", rc, values);
 }
 
+static PyObject* _set_int(PyObject* self, PyObject* args)
+{
+    int rc;
+    PyObject* _handle;
+    int chip_id, param_id, size;
+    PyObject* values_obj;
+    FemPtr fem_ptr;
+
+    int* value_ptr = NULL;
+
+    if (!PyArg_ParseTuple(args, "OiiO", &_handle, &chip_id, &param_id, &values_obj)) {
+        return NULL;
+    }
+
+    fem_ptr = (FemPtr) PyCapsule_GetPointer(_handle, "FemPtr");
+    _validate_ptr_and_handle(fem_ptr, "set_int");
+
+    if (PyInt_Check(values_obj)) {
+        size = 1;
+    }
+    else if(PyList_Check(values_obj)) {
+        size = PyList_Size(values_obj);
+    } else {
+        _set_api_error_string("set_int: specified value(s) not int or list");
+        return NULL;
+    }
+
+    value_ptr = (int *)malloc(size * sizeof(int));
+    if (value_ptr == NULL) {
+        _set_api_error_string("set_int: unable to allocate space for %d integer values", size);
+        return NULL;
+    }
+
+    if (size == 1) {
+        *value_ptr = PyInt_AsLong(values_obj);
+    } else {
+        int ival;
+        for (ival = 0; ival < size; ival++) {
+            PyObject* value_obj = PyList_GetItem(values_obj, ival);
+            if (!PyInt_Check(value_obj)) {
+                _set_api_error_string("set_int: non-integer value specified");
+                free(value_ptr);
+                return NULL;
+            }
+            value_ptr[ival] = PyInt_AsLong(PyList_GetItem(values_obj, ival));
+        }
+    }
+
+    rc = femSetInt(fem_ptr->handle, chip_id, param_id, size, value_ptr);
+
+    if (value_ptr != NULL) {
+        free(value_ptr);
+    }
+
+    return Py_BuildValue("i", rc);
+}
+
 static PyObject* _cmd(PyObject* self, PyObject* args)
 {
     PyObject* _handle;
@@ -134,7 +191,7 @@ static PyObject* _cmd(PyObject* self, PyObject* args)
     }
 
     fem_ptr = (FemPtr) PyCapsule_GetPointer(_handle, "FemPtr");
-    _validate_ptr_and_handle(fem_ptr, "_cmd");
+    _validate_ptr_and_handle(fem_ptr, "cmd");
 
     rc = femCmd(fem_ptr->handle, chipId, cmdId);
 
@@ -151,7 +208,7 @@ static PyObject* _close(PyObject* self, PyObject* args)
     }
 
     fem_ptr = (FemPtr) PyCapsule_GetPointer(_handle, "FemPtr");
-    _validate_ptr_and_handle(fem_ptr, "_close");
+    _validate_ptr_and_handle(fem_ptr, "close");
 
     femClose(fem_ptr->handle);
     fem_ptr->handle = NULL;
@@ -172,11 +229,12 @@ static void _del(PyObject* obj)
 }
 
 /*  define functions in module */
-static PyMethodDef FemApiMethods[] =
+static PyMethodDef fem_api_methods[] =
 {
      {"initialise", _initialise, METH_VARARGS, "initialise a module"},
      {"get_id",     _get_id,     METH_VARARGS, "get a module ID"},
      {"get_int",    _get_int,    METH_VARARGS, "get one or more integer parameters"},
+     {"set_int",    _set_int,    METH_VARARGS, "set one or more integer parameters"},
      {"cmd",        _cmd,        METH_VARARGS, "issue a command to a module"},
      {"close",      _close,      METH_VARARGS, "close a module"},
      {NULL, NULL, 0, NULL}
@@ -187,7 +245,7 @@ PyMODINIT_FUNC
 initfem_api(void)
 {
     PyObject* m;
-    m = Py_InitModule("fem_api", FemApiMethods);
+    m = Py_InitModule("fem_api", fem_api_methods);
     if (m == NULL) {
         return;
     }
