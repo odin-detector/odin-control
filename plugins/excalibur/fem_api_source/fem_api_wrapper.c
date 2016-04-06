@@ -97,7 +97,7 @@ static PyObject* _get_int(PyObject* self, PyObject* args)
     if (!PyArg_ParseTuple(args, "Oiii", &_handle, &chip_id, &param_id, &size)) {
         return NULL;
     }
-    printf("_get_int: chip_id %d param_id %d size %d\n", chip_id, param_id, size);
+    //printf("_get_int: chip_id %d param_id %d size %d\n", chip_id, param_id, size);
 
     fem_ptr = (FemPtr) PyCapsule_GetPointer(_handle, "FemPtr");
     _validate_ptr_and_handle(fem_ptr, "_get_int");

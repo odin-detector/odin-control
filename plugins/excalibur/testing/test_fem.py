@@ -27,6 +27,17 @@ class TestExcaliburFem:
             the_fem.close()
         assert_equal(cm.exception.value, '_close: FEM object pointer has null FEM handle')
 
+    def test_legal_get_int(self):
+
+        chip_id = 0
+        param_id = 1001
+        param_len = 10
+        (rc, values) = self.the_fem.get_int(chip_id, param_id, param_len)
+
+        assert_equal(rc, ExcaliburFem.FEM_RTN_OK)
+        assert_equal(len(values), param_len)
+        assert_equal(values, tuple(range(param_id, param_id+param_len)))
+
     def test_legal_cmd(self):
 
         chip_id = 0
