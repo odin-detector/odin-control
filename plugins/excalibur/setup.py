@@ -6,8 +6,8 @@ fem_api = Extension('fem_api', sources=['fem_api_source/fem_api_wrapper.c', 'fem
 setup(
     name="excalibur",
     version='0.1',
-    description='PERCIVAL Detector Frame Receiver',
-    url='https//github.com/percival-detector/framereceiver',
+    description='EXCALIBUR detector plugin for ODIN framework',
+    url='https://github.com/timcnicholls/odin',
     author='Tim Nicholls',
     author_email='tim.nicholls@stfc.ac.uk',
     setup_requires=['nose>=1.0'],
