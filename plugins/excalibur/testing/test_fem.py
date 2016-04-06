@@ -17,7 +17,7 @@ class TestExcaliburFem:
         id = -1
         with assert_raises(ExcaliburFemError) as cm:
             bad_fem = ExcaliburFem(id)
-        assert_equal(cm.exception.value, 'Error trying to initialise FEM id -1: Illegal ID specified')
+        assert_equal(cm.exception.value, 'Error trying to initialise FEM id {}: Illegal ID specified'.format(id))
 
     def test_double_close(self):
 
