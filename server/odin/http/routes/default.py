@@ -1,10 +1,11 @@
+import os
+
 import tornado.web
 
 class DefaultHandler(tornado.web.RequestHandler):
 
-    def get(self, path):
-        self.write("Hello, world!\n")
-        self.write("Requested path: {}\n".format(path))
+    def get(self):
+        self.redirect("/static/index.html")
 
 
-DefaultRoute = (r"/(.*)", DefaultHandler)
+DefaultRoute = (r"/", DefaultHandler)

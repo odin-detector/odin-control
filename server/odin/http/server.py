@@ -19,6 +19,8 @@ class HttpServer(object):
             "debug" : debug_mode,
             }
 
+        logging.debug("static_path is {}".format(settings['static_path']))
+        
         self.application = tornado.web.Application([
             ApiRoute,
             DefaultRoute,
@@ -26,7 +28,7 @@ class HttpServer(object):
 
         dispatcher = ApiDispatcher()
         dispatcher.register_adapter("dummy", "odin.adapters.dummy.DummyAdapter")
-        
+
     def listen(self, port, host=''):
 
         self.application.listen(port, host)
