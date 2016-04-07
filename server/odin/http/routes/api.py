@@ -60,11 +60,18 @@ class ApiHandler(tornado.web.RequestHandler):
 
     @validate_api_request(_api_version)
     def get(self, subsystem, path):
-        self.write("API GET for subsystem {} on path {}\n".format(subsystem, path))
+        (data, code) = self.dispatcher.adapter(subsystem).get(path)
+        self.respond(data, code)
 
     @validate_api_request(_api_version)
-    def post(self, subsystem, path):
-        self.write("API POST for subsystem {} on path {}\n".format(subsystem, path))
+    def put(self, subsystem, path):
+        (data, code) = self.dispatcher.adapter(subsystem).put(path)
+        self.respond(data, code)
+
+    @validate_api_request(_api_version)
+    def delete(self, subsystem, path):
+        (data, code) = self.dispatcher.adapter(subsystem).delete(path)
+        self.respond(data, code)
 
     def respond(self, data, code=200):
         self.set_status(code)

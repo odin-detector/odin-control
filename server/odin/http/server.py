@@ -26,7 +26,6 @@ class HttpServer(object):
 
         dispatcher = ApiDispatcher()
         dispatcher.register_adapter("dummy", "odin.adapters.dummy.DummyAdapter")
-        dispatcher.register_adapter("dummy2", "ond.one.TWO")
         
     def listen(self, port, host=''):
 
