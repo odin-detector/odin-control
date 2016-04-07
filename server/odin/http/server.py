@@ -7,7 +7,7 @@ import tornado.gen
 import tornado.web
 import tornado.ioloop
 
-from odin.http.routes.api import ApiDispatcher, ApiRoute
+from odin.http.routes.api import ApiDispatcher, ApiHandler, ApiRoute
 from odin.http.routes.default import DefaultRoute
 
 class HttpServer(object):
@@ -24,8 +24,9 @@ class HttpServer(object):
             DefaultRoute,
         ], **settings)
 
-        self.application.dispatcher = ApiDispatcher()
-        self.application.dispatcher.register_adapter("dummy", "odin.adapters.dummy.DummyAdapter")
+        dispatcher = ApiDispatcher()
+        dispatcher.register_adapter("dummy", "odin.adapters.dummy.DummyAdapter")
+        dispatcher.register_adapter("dummy2", "ond.one.TWO")
         
     def listen(self, port, host=''):
 
