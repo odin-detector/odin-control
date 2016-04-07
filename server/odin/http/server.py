@@ -1,24 +1,16 @@
 import os
 import time
 import json
+import logging
 
 import tornado.gen
 import tornado.web
 import tornado.ioloop
 
-import logging
+from odin.http.routes.api import ApiDispatcher, ApiRoute
+from odin.http.routes.default import DefaultRoute
 
-class MainHandler(tornado.web.RequestHandler):
-
-    def get(self):
-        self.write("Hello, world!")
-
-class ApiHandler(tornado.web.RequestHandler):
-
-    def get(self, path):
-        self.write("API GET on path {}\n".format(path))
-
-class ApiServer(object):
+class HttpServer(object):
 
     def __init__(self, debug_mode=False):
 
@@ -28,10 +20,13 @@ class ApiServer(object):
             }
 
         self.application = tornado.web.Application([
-            (r"/", MainHandler),
-            (r"/api/(.*)", ApiHandler),
+            ApiRoute,
+            DefaultRoute,
         ], **settings)
 
+        self.application.dispatcher = ApiDispatcher()
+        self.application.dispatcher.register_adapter("dummy", "odin.adapters.dummy.DummyAdapter")
+        
     def listen(self, port, host=''):
 
         self.application.listen(port, host)

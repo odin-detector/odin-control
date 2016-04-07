@@ -7,15 +7,12 @@ setup(
     url='https://github.com/timcnicholls/odin',
     author='Tim Nicholls',
     author_email='tim.nicholls@stfc.ac.uk',
-    scripts=[
-        'server.py',
-    ],
     packages=[
-        'app',
+        'odin',
     ],
     entry_points={
         'console_scripts' : [
-            'odin_server = server:main',
+            'odin_server = odin.server:main',
         ],
     },
     setup_requires=[

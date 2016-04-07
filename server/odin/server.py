@@ -1,4 +1,4 @@
-import app.api_server
+from odin.http.server import HttpServer
 
 import logging
 import signal
@@ -21,11 +21,11 @@ def main():
     # Parse the command line options
     tornado.options.parse_command_line()
 
-    # Launch the API server app
-    api_server = app.api_server.ApiServer(options.debug_mode)
-    api_server.listen(options.http_port, options.http_addr)
+    # Launch the HTTP server
+    http_server = HttpServer(options.debug_mode)
+    http_server.listen(options.http_port, options.http_addr)
 
-    logging.info("API HTTP server listening on {}:{}" .format(options.http_addr, options.http_port))
+    logging.info("HTTP server listening on {}:{}" .format(options.http_addr, options.http_port))
 
     # Register a SIGINT signal handler
     signal.signal(signal.SIGINT, sigint_handler)
