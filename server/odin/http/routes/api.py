@@ -18,17 +18,6 @@ class ApiVersionHandler(Handler):
         logging.debug("Response content-type: {}".format(self.response_type))
         self.respond({'api_version' : _api_version})
 
-    # def respond(self, data, code=200):
-    #     self.set_status(code)
-    #     if self.response_type == 'application/json':
-    #         if not isinstance(data, dict):
-    #             data = json.dumps(data)
-    #
-    #     self.write(data)
-    #     if self.response_type != None:
-    #         self.set_header('Content-Type', self.response_type)
-
-
 class ApiHandler(Handler):
 
     def initialize(self, route):
