@@ -2,6 +2,8 @@ import tornado.web
 import importlib
 import logging
 
+_api_version = 0.1
+
 def validate_api_request(required_version):
     """
     Checks API version is correct and that the subsystem is registered with the
@@ -52,7 +54,7 @@ class ApiError(Exception):
 
 class ApiHandler(tornado.web.RequestHandler):
 
-    _api_version = 0.1
+    # _api_version = 0.1
 
     @classmethod
     def register_dispatcher(cls, dispatcher):

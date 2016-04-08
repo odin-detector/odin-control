@@ -16,7 +16,8 @@ setup(
         ],
     },
     setup_requires=[
-        'nose>=1.0'
+        'nose>=1.0',
+        'requests>=2.9'
     ],
     install_requires=[
         'tornado>=4.3',

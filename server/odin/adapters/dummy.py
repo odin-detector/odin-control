@@ -17,12 +17,12 @@ class DummyAdapter(ApiAdapter):
 
         return(response, code)
 
-    # def put(self, path):
-    #
-    #     response = "DummyAdapter: PUT on path {}".format(path)
-    #     code = 200
-    #
-    #     logging.debug(response)
+    def put(self, path):
+
+        response = "DummyAdapter: PUT on path {}".format(path)
+        code = 200
+
+        logging.debug(response)
 
         return(response, code)
 
