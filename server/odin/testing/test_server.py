@@ -38,7 +38,9 @@ class TestOdinServer():
         assert_equal(result.status_code, 200)
 
     def test_api_version(self):
-        results = requests.put("http://{}:{}/api")
+        result = requests.get("http://{}:{}/api".format(
+            self.server_host, self.server_port
+        ))
 
 
 

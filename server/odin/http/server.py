@@ -7,7 +7,7 @@ import tornado.gen
 import tornado.web
 import tornado.ioloop
 
-from odin.http.routes.api import ApiDispatcher, ApiHandler, ApiRoute
+from odin.http.routes.api import ApiRoute
 from odin.http.routes.default import DefaultRoute
 
 class HttpServer(object):
@@ -20,14 +20,22 @@ class HttpServer(object):
             }
 
         logging.debug("static_path is {}".format(settings['static_path']))
-        
-        self.application = tornado.web.Application([
-            ApiRoute,
-            DefaultRoute,
-        ], **settings)
 
-        dispatcher = ApiDispatcher()
-        dispatcher.register_adapter("dummy", "odin.adapters.dummy.DummyAdapter")
+        routes = []
+
+        api_route = ApiRoute()
+        api_route.register_adapter("dummy", "odin.adapters.dummy.DummyAdapter")
+        routes = api_route.add_to(routes)
+
+        default_route = DefaultRoute()
+        routes = default_route.add_to(routes)
+        print routes
+
+        self.application = tornado.web.Application(routes, **settings)
+
+#        self.application.add_handlers(r"/api/(.*?)/(.*?)/(.*)", ApiHandler)
+#        ApiRoute().add(self.application)
+#        self.application.add_handlers(*DefaultRoute)
 
     def listen(self, port, host=''):
 
