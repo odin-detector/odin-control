@@ -1,56 +1,65 @@
 import tornado.web
 import importlib
 import logging
+import json
 
 from odin.http.routes.route import Route
+from odin.http.routes.handler import Handler, request_types, response_types
 
 _api_version = 0.1
-
-def validate_api_request(required_version):
-    """
-    Checks API version is correct and that the subsystem is registered with the
-    application dispatcher; responds with a 400 error if not
-    """
-    def decorator(func):
-        def wrapper(_self, *args, **kwargs):
-            # Extract version as first argument
-            version = args[0]
-            subsystem = args[1]
-            rem_args = args[2:]
-            if version != unicode(required_version):
-                _self.respond("API version {} is not supported\n".format(version), 400)
-            elif not _self.route.has_adapter(subsystem):
-                _self.respond("No API adapter registered for subsystem {}\n".format(subsystem), 400)
-            else:
-                func(_self, subsystem, *rem_args, **kwargs)
-        return wrapper
-    return decorator
-
 
 class ApiError(Exception):
     pass
 
-class ApiVersionHandler(tornado.web.RequestHandler):
+class ApiVersionHandler(Handler):
 
+    @response_types("application/json", default="application/json")
     def get(self):
-        self.write(str(_api_version))
+        logging.debug("Response content-type: {}".format(self.response_type))
+        self.respond({'api_version' : _api_version})
 
-class ApiHandler(tornado.web.RequestHandler):
+    def respond(self, data, code=200):
+        self.set_status(code)
+        if self.response_type == 'application/json':
+            if not isinstance(data, dict):
+                data = json.dumps(data)
 
-    # _api_version = 0.1
+        self.write(data)
+        if self.response_type != None:
+            self.set_header('Content-Type', self.response_type)
+
+
+class ApiHandler(Handler):
 
     def initialize(self, route):
         self.route = route
 
-    @classmethod
-    def register_dispatcher(cls, dispatcher):
-        cls.dispatcher = dispatcher
+    def validate_api_request(required_version):
+        """
+        Checks API version is correct and that the subsystem is registered with the
+        application dispatcher; responds with a 400 error if not
+        """
+        def decorator(func):
+            def wrapper(_self, *args, **kwargs):
+                # Extract version as first argument
+                version = args[0]
+                subsystem = args[1]
+                rem_args = args[2:]
+                if version != unicode(required_version):
+                    _self.respond("API version {} is not supported\n".format(version), 400)
+                elif not _self.route.has_adapter(subsystem):
+                    _self.respond("No API adapter registered for subsystem {}\n".format(subsystem), 400)
+                else:
+                    func(_self, subsystem, *rem_args, **kwargs)
+            return wrapper
+        return decorator
 
     @validate_api_request(_api_version)
     def get(self, subsystem, path):
         (data, code) = self.route.adapter(subsystem).get(path)
         self.respond(data, code)
 
+    @request_types("application/json")
     @validate_api_request(_api_version)
     def put(self, subsystem, path):
         (data, code) = self.route.adapter(subsystem).put(path)
@@ -61,30 +70,22 @@ class ApiHandler(tornado.web.RequestHandler):
         (data, code) = self.route.adapter(subsystem).delete(path)
         self.respond(data, code)
 
-    def respond(self, data, code=200):
-        self.set_status(code)
-        self.write(data)
-
-"""
-ApiRoute  - defines a URLspec for the API handler to be passed to the Tornado application.
-
-The expected URL syntax, which is enforced by the validate_api_request decorator, is
-the following:
-
-   /api/<version>/<subsystem>/<action>....
-
-"""
-#ApiRoute = (r"/api/(.*?)/(.*?)/(.*)", ApiHandler)
 
 class ApiRoute(Route):
 
     def __init__(self):
 
-        self.add_handler((r"/api/?",                ApiVersionHandler))
+        # Define a default handler which can return the support API version
+        self.add_handler((r"/api/?", ApiVersionHandler))
+
+        # Define the handler for API calls. The expected URI syntax, which is
+        # enforced by the validate_api_request decorator, is the following:
+        #
+        #    /api/<version>/<subsystem>/<action>....
+
         self.add_handler((r"/api/(.*?)/(.*?)/(.*)", ApiHandler, dict(route=self)))
 
         self.adapters = {}
-        #ApiHandler.register_dispatcher(self)
 
     def register_adapter(self, path, adapter_name, fail_ok=True):
 

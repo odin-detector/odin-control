@@ -34,15 +34,29 @@ class TestOdinServer():
             self.server_api_version, resource)
 
     def test_simple_client(self):
-        result = requests.put(self.build_url("dummy/command/execute"))
+        headers = {'Content-Type' : 'application/json'}
+        payload = {'some': 'data'}
+        result = requests.put(self.build_url("dummy/command/execute"),
+            data=json.dumps(payload),
+            headers=headers)
         assert_equal(result.status_code, 200)
 
     def test_api_version(self):
-        result = requests.get("http://{}:{}/api".format(
-            self.server_host, self.server_port
-        ))
+        headers = {'Accept' : 'application/json'}
+        result = requests.get(
+            "http://{}:{}/api".format(self.server_host, self.server_port),
+            headers=headers
+        )
+        assert_equal(result.status_code, 200)
+        assert_equal(result.json()['api_version'], 0.1)
 
-
+    def test_api_version_bad_accept(self):
+        headers = {'Accept' : 'text/plain'}
+        result = requests.get(
+            "http://{}:{}/api".format(self.server_host, self.server_port),
+            headers=headers
+        )
+        assert_equal(result.status_code, 406)
 
 if __name__ == '__main__':
 
