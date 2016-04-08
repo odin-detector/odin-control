@@ -80,10 +80,8 @@ class ApiRoute(Route):
 
     def __init__(self):
 
-        self.routes = [
-            (r"/api/?",                ApiVersionHandler),
-            (r"/api/(.*?)/(.*?)/(.*)", ApiHandler, dict(route=self)),
-        ]
+        self.add_handler((r"/api/?",                ApiVersionHandler))
+        self.add_handler((r"/api/(.*?)/(.*?)/(.*)", ApiHandler, dict(route=self)))
 
         self.adapters = {}
         #ApiHandler.register_dispatcher(self)

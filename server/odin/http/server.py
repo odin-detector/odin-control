@@ -21,21 +21,19 @@ class HttpServer(object):
 
         logging.debug("static_path is {}".format(settings['static_path']))
 
-        routes = []
-
+        # Create an API route
         api_route = ApiRoute()
+
+        # Register adapters with the API route and get handlers
         api_route.register_adapter("dummy", "odin.adapters.dummy.DummyAdapter")
-        routes = api_route.add_to(routes)
+        handlers = api_route.get_handlers()
 
+        # Craete a default route for static content and get handlers
         default_route = DefaultRoute()
-        routes = default_route.add_to(routes)
-        print routes
+        handlers += default_route.get_handlers()
 
-        self.application = tornado.web.Application(routes, **settings)
-
-#        self.application.add_handlers(r"/api/(.*?)/(.*?)/(.*)", ApiHandler)
-#        ApiRoute().add(self.application)
-#        self.application.add_handlers(*DefaultRoute)
+        # Create the Tornado web application for these handlers
+        self.application = tornado.web.Application(handlers, **settings)
 
     def listen(self, port, host=''):
 

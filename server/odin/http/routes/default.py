@@ -12,6 +12,4 @@ class DefaultRoute(Route):
 
     def __init__(self):
 
-        self.routes = [
-            (r"/", DefaultHandler),
-        ]
+        self.add_handler((r"/", DefaultHandler))
