@@ -4,9 +4,15 @@ import logging
 import signal
 import threading
 
+try:
+    from zmq.eventloop import ioloop
+    ioloop.install()
+    using_zmq_loop = True
+except ImportError:
+    using_zmq_loop = False
+
 import tornado.ioloop
 import tornado.options
-from tornado.options import options
 
 def sigint_handler(signum, frame):
     logging.info("Interrupt signal received, shutting down")
@@ -22,11 +28,14 @@ def main():
     # Parse the command line options
     tornado.options.parse_command_line()
 
-    # Launch the HTTP server
-    http_server = HttpServer(options.debug_mode)
-    http_server.listen(options.http_port, options.http_addr)
+    logging.info("Using the {} IOLoop instance".format("0MQ" if using_zmq_loop else "tornado"))
 
-    logging.info("HTTP server listening on {}:{}" .format(options.http_addr, options.http_port))
+    # Launch the HTTP server
+    http_server = HttpServer(tornado.options.debug_mode)
+    http_server.listen(tornado.options.http_port, tornado.options.http_addr)
+
+    logging.info("HTTP server listening on {}:{}" .format(
+        tornado.options.http_addr, tornado.options.http_port))
 
     # Register a SIGINT signal handler only if this is the main thread
     if isinstance(threading.current_thread(), threading._MainThread):
