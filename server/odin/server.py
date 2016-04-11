@@ -1,8 +1,11 @@
 from odin.http.server import HttpServer
+from odin.config.parser import ConfigParser
 
 import logging
 import signal
 import threading
+import argparse
+
 
 try:
     from zmq.eventloop import ioloop
@@ -21,22 +24,29 @@ def sigint_handler(signum, frame):
 
 def main():
 
-    # Define configuration options and add to tornado option parser
-    options.define("http_addr", default="0.0.0.0", help="Set HTTP server address")
-    options.define("http_port", default=8888, help="Set HTTP server port")
-    options.define("debug_mode", default=False, help="Enable tornado debug mode")
+    config = ConfigParser()
 
-    # Parse the command line options
-    tornado.options.parse_command_line()
+    # Define configuration options and add to the configuration parser
+    config.define("http_addr", default="0.0.0.0", help="Set HTTP server address")
+    config.define("http_port", default=8888, help="Set HTTP server port")
+    config.define("debug_mode", default=False, help="Enable tornado debug mode")
+
+    # Parse configuration options and any configuration file specified
+    config.parse()
+
+    print tornado.options.options.groups()
+
+    print config.http_port
+    print config.items()
 
     logging.info("Using the {} IOLoop instance".format("0MQ" if using_zmq_loop else "tornado"))
 
     # Launch the HTTP server
-    http_server = HttpServer(options.debug_mode)
-    http_server.listen(options.http_port, options.http_addr)
+    http_server = HttpServer(config.debug_mode)
+    http_server.listen(config.http_port, config.http_addr)
 
     logging.info("HTTP server listening on {}:{}" .format(
-        options.http_addr, options.http_port))
+        config.http_addr, config.http_port))
 
     # Register a SIGINT signal handler only if this is the main thread
     if isinstance(threading.current_thread(), threading._MainThread):
