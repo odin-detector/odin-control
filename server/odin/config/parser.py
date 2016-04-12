@@ -9,97 +9,107 @@ class ConfigParser(object):
 
     def __init__(self):
 
-        self.option_type = {}
+        self.allowed_options = {}
+        self.allowed_options['server'] = {}
 
         self.arg_parser = argparse.ArgumentParser()
 
         self.define("config", default=None, metavar="FILE",
                     help="Specify a configuration file to parse")
 
-        self.file_options = {
-
-            'server' : {
-                'debug_mode' : (bool, False),
-                'http_addr'  : (str, '0.0.0.0'),
-                'http_port'  : (int, 8888)
-            },
-        }
 
     def define(self, name, **kwargs):
 
-        print "define: name={} kwargs={}".format(name, kwargs)
-        # option_type = kwargs['type'] if 'type' in kwargs else None
-        # option_default = kwargs['default'] if 'default' in kwargs else None
-        #
-        # if option_type is None:
-        #     if option_default != None:
-        #         option_type = option_default.__class__
-        #     else:
-        #         option_type = str
-        #
-        # kwargs[option_type] = type
+        option_type = kwargs['type'] if 'type' in kwargs else None
+        option_default = kwargs['default'] if 'default' in kwargs else None
+
+        if option_type is None:
+            if option_default != None:
+                option_type = option_default.__class__
+            else:
+                option_type = str
+
+        self.allowed_options['server'][name] = (option_type, option_default)
 
         opt_switch = "--{}".format(name)
+        kwargs['type'] = option_type
+        kwargs['default'] = None
         self.arg_parser.add_argument(opt_switch, **kwargs)
 
     def parse(self):
 
         tornado_opts = tornado.options.options._options
-        self.file_options['logging'] = {}
+        self.allowed_options['logging'] = {}
         for opt in sorted(tornado_opts):
             if opt != "help":
-                print opt, tornado_opts[opt].name, tornado_opts[opt].type
                 opt_switch = "--{}".format(tornado_opts[opt].name)
                 self.arg_parser.add_argument(opt_switch, type=tornado_opts[opt].type,
-                                             default=tornado_opts[opt].default,
+                                             #default=tornado_opts[opt].default,
                                              help=tornado_opts[opt].help,
                                              metavar=tornado_opts[opt].metavar)
-                self.file_options['logging'][tornado_opts[opt].name] = (
+                self.allowed_options['logging'][tornado_opts[opt].name] = (
                     tornado_opts[opt].type, tornado_opts[opt].default
                 )
 
-        print self.file_options
-        print tornado_opts
-
-        # Intercept the config command line option
+        # Parse command-line arguments
         (arg_config, unused) = self.arg_parser.parse_known_args()
 
-        print arg_config
+        file_config = {}
+        for section in self.allowed_options:
+            file_config[section] = {}
 
         if arg_config.config:
-            file_config = SafeConfigParser()
-            file_config.read(arg_config.config)
+            file_parser = SafeConfigParser()
+            file_parser.read(arg_config.config)
 
-            allowed_sections = ['server', 'logging']
+            parser_get_map = {
+                int   : file_parser.getint,
+                float : file_parser.getfloat,
+                bool  : file_parser.getboolean,
+                str   : file_parser.get,
+            }
 
-            for section in allowed_sections:
-                if file_config.has_section(section):
-                    for option in file_config.options(section):
-                        print section, option
-                        if option in tornado.options.options:
-                            opt_present = "yes"
-                            opt_type = "???" # self.option_type[option]
+            for section in self.allowed_options:
+                file_config[section] = {}
+                if file_parser.has_section(section):
+                    for option in self.allowed_options[section]:
+                        if file_parser.has_option(section, option):
+                            file_config[section][option] = file_parser.get(section, option)
+                            option_type = self.allowed_options[section][option][0]
+                            if option_type in parser_get_map:
+                                value = parser_get_map[option_type](section, option)
+                            else:
+                                value = file_parser.get(section, option)
                         else:
-                            opt_present = "no"
-                            opt_type = str
-                        print "{} : {} present {} type {}".format(option, file_config.get(section, option),
-                                                                  opt_present, opt_type)
-                        #setattr(tornado.options.options, option, value)
+                            value = None
 
-        #tornado.options.parse_command_line()
+                        file_config[section][option] = value
 
-    # def __getattr__(self, name):
-    #
-    #     return getattr(tornado.options.options, name)
-    #
-    # def __setattr__(self, name, value):
-    #
-    #     return setattr(tornado.options.options, name, value)
-    #
-    # def __contains__(self, name):
-    #
-    #     return name in tornado.options.options
+        arg_config_vars = vars(arg_config)
+        for section in self.allowed_options:
+            for option in self.allowed_options[section]:
+                option_val = None
+                if option in file_config[section] and file_config[section][option] != None:
+                    option_val = file_config[section][option]
+                    source = "F"
+                if option in arg_config_vars and arg_config_vars[option] != None:
+                    option_val = vars(arg_config)[option]
+                    source = "A"
+                if option_val == None:
+                    option_val = self.allowed_options[section][option][1]
+                    source = "D"
 
-    def items(self):
+                setattr(self, option, option_val)
 
-        return tornado.options.options.items()
+                if option in tornado.options.options:
+                    setattr(tornado.options.options, option, option_val)
+
+        tornado.options.options.run_parse_callbacks()
+
+class ConfigOption(object):
+
+    def __init__(self, opt_name, opt_type=None, opt_default=None):
+
+        self.name = opt_name
+        self.type = opt_type
+        self.default = opt_default

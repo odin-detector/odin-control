@@ -34,11 +34,6 @@ def main():
     # Parse configuration options and any configuration file specified
     config.parse()
 
-    print tornado.options.options.groups()
-
-    print config.http_port
-    print config.items()
-
     logging.info("Using the {} IOLoop instance".format("0MQ" if using_zmq_loop else "tornado"))
 
     # Launch the HTTP server
