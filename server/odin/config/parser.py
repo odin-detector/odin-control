@@ -5,6 +5,9 @@ import sys
 
 import tornado.options
 
+class ConfigError(Exception):
+    pass
+
 class ConfigParser(object):
 
     def __init__(self):
@@ -17,26 +20,23 @@ class ConfigParser(object):
         self.define("config", default=None, metavar="FILE",
                     help="Specify a configuration file to parse")
 
+    def define(self, name, default=None, type=None, help=None, metavar=None,
+           multiple=False):
 
-    def define(self, name, **kwargs):
-
-        option_type = kwargs['type'] if 'type' in kwargs else None
-        option_default = kwargs['default'] if 'default' in kwargs else None
-
-        if option_type is None:
-            if option_default != None:
-                option_type = option_default.__class__
-            else:
-                option_type = str
-
-        self.allowed_options['server'][name] = (option_type, option_default)
+        self.allowed_options['server'][name] = ConfigOption(
+            name, type=type, default=default)
 
         opt_switch = "--{}".format(name)
-        kwargs['type'] = option_type
-        kwargs['default'] = None
-        self.arg_parser.add_argument(opt_switch, **kwargs)
+        type = self.allowed_options['server'][name].type
+        default = None
 
-    def parse(self):
+        self.arg_parser.add_argument(opt_switch, type=type, default=default,
+                                     help=help, metavar=metavar)
+
+    def parse(self, args=None):
+
+        if args == None:
+            args = sys.argv
 
         tornado_opts = tornado.options.options._options
         self.allowed_options['logging'] = {}
@@ -47,12 +47,12 @@ class ConfigParser(object):
                                              #default=tornado_opts[opt].default,
                                              help=tornado_opts[opt].help,
                                              metavar=tornado_opts[opt].metavar)
-                self.allowed_options['logging'][tornado_opts[opt].name] = (
-                    tornado_opts[opt].type, tornado_opts[opt].default
+                self.allowed_options['logging'][tornado_opts[opt].name] = ConfigOption(
+                    tornado_opts[opt].name, tornado_opts[opt].type, tornado_opts[opt].default
                 )
 
         # Parse command-line arguments
-        (arg_config, unused) = self.arg_parser.parse_known_args()
+        (arg_config, unused) = self.arg_parser.parse_known_args(args)
 
         file_config = {}
         for section in self.allowed_options:
@@ -75,7 +75,7 @@ class ConfigParser(object):
                     for option in self.allowed_options[section]:
                         if file_parser.has_option(section, option):
                             file_config[section][option] = file_parser.get(section, option)
-                            option_type = self.allowed_options[section][option][0]
+                            option_type = self.allowed_options[section][option].type
                             if option_type in parser_get_map:
                                 value = parser_get_map[option_type](section, option)
                             else:
@@ -91,13 +91,10 @@ class ConfigParser(object):
                 option_val = None
                 if option in file_config[section] and file_config[section][option] != None:
                     option_val = file_config[section][option]
-                    source = "F"
                 if option in arg_config_vars and arg_config_vars[option] != None:
                     option_val = vars(arg_config)[option]
-                    source = "A"
                 if option_val == None:
-                    option_val = self.allowed_options[section][option][1]
-                    source = "D"
+                    option_val = self.allowed_options[section][option].default
 
                 setattr(self, option, option_val)
 
@@ -106,10 +103,42 @@ class ConfigParser(object):
 
         tornado.options.options.run_parse_callbacks()
 
+    def __contains__(self, item):
+
+        for section in self.allowed_options:
+            if item in self.allowed_options[section]:
+                return True
+
+        return False
+
+    def __iter__(self):
+
+        return (name for section in self.allowed_options for name in self.allowed_options[section])
+
 class ConfigOption(object):
 
-    def __init__(self, opt_name, opt_type=None, opt_default=None):
+    """
+    Simple container class to define a configuration option, its type and default
+    value
+    """
 
-        self.name = opt_name
-        self.type = opt_type
-        self.default = opt_default
+    def __init__(self, name, type=None, default=None):
+
+        self.name = name
+        self.type = type
+        self.default = default
+
+        # Raise an error if type and defaultare inconsistent
+        if self.type != None and self.default != None:
+            if self.default.__class__ != self.type:
+                raise ConfigError("Default value {} for option {} does not have correct type ({})".format(
+                    self.default, self.name, self.type
+                ))
+
+        # If absent, infer type from any default value given. Otherwise fall back
+        # to string type to allow simple parsing from configuration input
+        if self.type == None:
+            if self.default != None:
+                self.type = self.default.__class__
+            else:
+                self.type = str
