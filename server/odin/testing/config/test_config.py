@@ -76,7 +76,8 @@ class TestConfigParser():
     @classmethod
     def setup_class(cls):
 
-        cls.test_config_file = NamedTemporaryFile(delete=False)
+        # Create a test config in a temporary file for use in tests
+        cls.test_config_file = NamedTemporaryFile()
         cls.test_config = SafeConfigParser()
 
         cls.test_config.add_section('server')
@@ -96,8 +97,8 @@ class TestConfigParser():
         cls.test_config.set('adapter.dummy2', 'module', 'odin.adapters.dummy.DummyAdapter')
         cls.test_config.set('adapter.dummy2', 'other_param', 'wibble')
 
-        print cls.test_config_file.name
         cls.test_config.write(cls.test_config_file)
+        cls.test_config_file.file.flush()
 
     @classmethod
     def teardown_class(cls):
@@ -165,12 +166,9 @@ class TestConfigParser():
 
     def test_parse_file(self):
 
-        config_file = 'test.cfg'
-        config_path = os.path.join(os.path.dirname(__file__), config_file)
-
         self.cp.define('debug_mode', default=False, type=bool, help='Enable tornado debug mode')
 
-        test_args = ['prog_name', '--config', config_path]
+        test_args = ['prog_name', '--config', self.test_config_file.name]
 
         self.cp.parse(test_args)
 
@@ -258,10 +256,7 @@ class TestConfigParser():
 
         self.cp.define('adapters', type=str, multiple=True, help='Comma-separated list of adapters to load')
 
-        config_file = 'test.cfg'
-        config_path = os.path.join(os.path.dirname(__file__), config_file)
-
-        test_args = ['prog_name', '--config', config_path]
+        test_args = ['prog_name', '--config', self.test_config_file.name]
 
         self.cp.parse(test_args)
 
@@ -282,9 +277,6 @@ class TestConfigParser():
             self.cp.resolve_adapters(adapter_list=['dummy', 'dummy2'])
 
     def test_resolve_adapters(self):
-
-        config_file = 'test.cfg'
-        config_path = os.path.join(os.path.dirname(__file__), config_file)
 
         self.cp.define('adapters', type=str, multiple=True, help="Comma-separated list of adapters to load")
 
