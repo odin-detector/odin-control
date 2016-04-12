@@ -1,7 +1,7 @@
+import sys
 import argparse
 from ConfigParser import SafeConfigParser
-import logging
-import sys
+from functools import partial
 
 import tornado.options
 
@@ -12,22 +12,28 @@ class ConfigParser(object):
 
     def __init__(self):
 
-        self.allowed_options = {}
-        self.allowed_options['server'] = {}
+        self.allowed_options = {
+            'server'  : {},
+            'logging' : {}
+        }
 
         self.arg_parser = argparse.ArgumentParser()
+        self.file_parser = SafeConfigParser()
 
-        self.define("config", default=None, metavar="FILE",
-                    help="Specify a configuration file to parse")
+        self.define('config', default=None, metavar='FILE',
+                    help='Specify a configuration file to parse')
 
-    def define(self, name, default=None, type=None, help=None, metavar=None,
-           multiple=False):
+    def define(self, name, default=None, type=None, help=None, metavar=None, multiple=False):
 
         self.allowed_options['server'][name] = ConfigOption(
-            name, type=type, default=default)
+            name, type=type, default=default, multiple=multiple)
 
-        opt_switch = "--{}".format(name)
+        opt_switch = '--{}'.format(name)
+
         type = self.allowed_options['server'][name].type
+        if multiple:
+            type = partial(self.parse_multiple_arg, arg_type=type)
+
         default = None
 
         self.arg_parser.add_argument(opt_switch, type=type, default=default,
@@ -41,8 +47,8 @@ class ConfigParser(object):
         tornado_opts = tornado.options.options._options
         self.allowed_options['logging'] = {}
         for opt in sorted(tornado_opts):
-            if opt != "help":
-                opt_switch = "--{}".format(tornado_opts[opt].name)
+            if opt != 'help':
+                opt_switch = '--{}'.format(tornado_opts[opt].name)
                 self.arg_parser.add_argument(opt_switch, type=tornado_opts[opt].type,
                                              #default=tornado_opts[opt].default,
                                              help=tornado_opts[opt].help,
@@ -59,38 +65,48 @@ class ConfigParser(object):
             file_config[section] = {}
 
         if arg_config.config:
-            file_parser = SafeConfigParser()
+            self.file_parser = SafeConfigParser()
 
             try:
                 with open(arg_config.config) as fp:
-                    file_parser.readfp(fp)
-            # except IOError as e:
-            #     raise ConfigError("Failed to parse configuration file: {}".format(e))
+                    self.file_parser.readfp(fp)
             except Exception as e:
-                raise ConfigError("Failed to parse configuration file: {}".format(e))
+                raise ConfigError('Failed to parse configuration file: {}'.format(e))
 
             parser_get_map = {
-                int   : file_parser.getint,
-                float : file_parser.getfloat,
-                bool  : file_parser.getboolean,
-                str   : file_parser.get,
+                int   : self.file_parser.getint,
+                float : self.file_parser.getfloat,
+                bool  : self.file_parser.getboolean,
+                str   : self.file_parser.get,
             }
+
+            # Iterate over the allowed options from all sections and extract from the file configuration
+            # if present
 
             for section in self.allowed_options:
                 file_config[section] = {}
-                if file_parser.has_section(section):
+                if self.file_parser.has_section(section):
                     for option in self.allowed_options[section]:
-                        if file_parser.has_option(section, option):
-                            file_config[section][option] = file_parser.get(section, option)
+                        if self.file_parser.has_option(section, option):
+
                             option_type = self.allowed_options[section][option].type
-                            if option_type in parser_get_map:
-                                value = parser_get_map[option_type](section, option)
+
+                            # Handle multiple values
+                            if self.allowed_options[section][option].multiple:
+                                option_str = self.file_parser.get(section, option)
+                                value = self.parse_multiple_arg(option_str, arg_type=option_type)
                             else:
-                                value = file_parser.get(section, option)
+                                if option_type in parser_get_map:
+                                    value = parser_get_map[option_type](section, option)
+                                else:
+                                    value = self.file_parser.get(section, option)
                         else:
                             value = None
 
                         file_config[section][option] = value
+
+        # Now iterate over the allowed options and set attributes in the current parser for each, using,
+        # in order of priority, the command-line argument, the config file or the default value.
 
         arg_config_vars = vars(arg_config)
         for section in self.allowed_options:
@@ -105,10 +121,20 @@ class ConfigParser(object):
 
                 setattr(self, option, option_val)
 
+                # If this option is in the tornado options, update its value
                 if option in tornado.options.options:
                     setattr(tornado.options.options, option, option_val)
 
+        # Run the tornado parser callbacks to replicate the tornado parser behaviour
         tornado.options.options.run_parse_callbacks()
+
+    def parse_multiple_arg(self, arg, arg_type=str, splitchar=','):
+
+        try:
+            return [arg_type(arg) for arg in arg.split(splitchar)]
+        except ValueError:
+            raise ConfigError('Multiple-valued argument contained element of incorrect type')
+
 
     def __contains__(self, item):
 
@@ -129,16 +155,17 @@ class ConfigOption(object):
     value
     """
 
-    def __init__(self, name, type=None, default=None):
+    def __init__(self, name, type=None, default=None, multiple=False):
 
         self.name = name
         self.type = type
         self.default = default
+        self.multiple = multiple
 
         # Raise an error if type and defaultare inconsistent
         if self.type != None and self.default != None:
             if self.default.__class__ != self.type:
-                raise ConfigError("Default value {} for option {} does not have correct type ({})".format(
+                raise ConfigError('Default value {} for option {} does not have correct type ({})'.format(
                     self.default, self.name, self.type
                 ))
 

@@ -166,3 +166,74 @@ class TestConfigParser():
         with assert_raises_regexp(ConfigError,
                   "Failed to parse configuration file: File contains no section headers") as cm:
             self.cp.parse(test_args)
+
+    def test_multiple_arg_parse(self):
+
+        multiarg_list = ['dummy1', 'dummy2', 'dummy3']
+        multiarg_str = ','.join(multiarg_list)
+
+        split_args = self.cp.parse_multiple_arg(multiarg_str, arg_type=str, splitchar=',')
+
+        assert_equal(len(multiarg_list), len(split_args))
+        for (elem_in, elem_out) in zip(multiarg_list, split_args):
+            assert_equal(elem_in, elem_out)
+
+    def test_mismatched_multiple_arg_parse(self):
+
+        multiarg_list = ['123', 'dummy2', 'dummy3']
+        multiarg_str = ','.join(multiarg_list)
+
+        with assert_raises_regexp(ConfigError,
+                  'Multiple-valued argument contained element of incorrect type') as cm:
+            self.cp.parse_multiple_arg(multiarg_str, arg_type=int, splitchar=',')
+
+    def test_multiple_option(self):
+
+        self.cp.define('adapters', type=str, multiple=True, help='Comma-separated list of adapters to load')
+        self.cp.define('intvals', type=int, multiple=True, help='Integer list')
+
+        adapter_list = ['dummy', 'dummy2 ', 'dummy3']
+        adapter_str = ','.join(adapter_list)
+
+        int_list = ['123', '456']
+        int_str = ','.join(int_list)
+
+        test_args = ['prog_name', '--adapters', adapter_str, '--intvals', int_str]
+
+        self.cp.parse(test_args)
+
+        assert_true('adapters' in self.cp)
+        assert_equal(type(self.cp.adapters), type(adapter_list))
+        assert_equal(len(self.cp.adapters), len(adapter_list))
+
+        assert_true('intvals' in self.cp)
+        assert_equal(type(self.cp.intvals), type(int_list))
+        assert_equal(len(self.cp.intvals), len(int_list))
+
+    def test_bad_multiple_option(self):
+
+        self.cp.define('intvals', type=int, multiple=True, help='Integer list')
+
+        bad_list = ['123', '456', 'oops']
+        bad_str = '.'.join(bad_list)
+
+        test_args = ['prog_name', '--intvals', bad_str]
+
+        with assert_raises_regexp(ConfigError,
+                  'Multiple-valued argument contained element of incorrect type') as cm:
+            self.cp.parse(test_args)
+
+    def test_multiple_option_in_file(self):
+
+        self.cp.define('adapters', type=str, multiple=True, help='Comma-separated list of adapters to load')
+
+        config_file = 'test.cfg'
+        config_path = os.path.join(os.path.dirname(__file__), config_file)
+
+        test_args = ['prog_name', '--config', config_path]
+
+        self.cp.parse(test_args)
+
+        assert_true('adapters' in self.cp)
+        assert_equal(type(self.cp.adapters), list)
+        print(len(self.cp.adapters))
