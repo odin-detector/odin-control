@@ -60,7 +60,14 @@ class ConfigParser(object):
 
         if arg_config.config:
             file_parser = SafeConfigParser()
-            file_parser.read(arg_config.config)
+
+            try:
+                with open(arg_config.config) as fp:
+                    file_parser.readfp(fp)
+            # except IOError as e:
+            #     raise ConfigError("Failed to parse configuration file: {}".format(e))
+            except Exception as e:
+                raise ConfigError("Failed to parse configuration file: {}".format(e))
 
             parser_get_map = {
                 int   : file_parser.getint,

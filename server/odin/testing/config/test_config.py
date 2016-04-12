@@ -1,6 +1,11 @@
 from nose.tools import *
 import tornado.options
 
+import sys
+import os
+from contextlib import contextmanager
+from StringIO import StringIO
+
 from odin.config.parser import ConfigParser, ConfigOption, ConfigError
 
 
@@ -56,12 +61,24 @@ class TestConfigOption():
 
 class TestConfigParser():
 
+    @contextmanager
+    def capture_sys_output(self):
+        capture_out, capture_err = StringIO(), StringIO()
+        current_out, current_err = sys.stdout, sys.stderr
+        try:
+            sys.stdout, sys.stderr = capture_out, capture_err
+            yield capture_out, capture_err
+        finally:
+            sys.stdout, sys.stderr = current_out, current_err
+
+    def setup(self):
+
+        self.cp = ConfigParser()
+
     def test_default_parser(self):
 
-        cp = ConfigParser()
-
         # A default config parser should have at least a config option
-        assert('config' in cp)
+        assert('config' in self.cp)
 
     def test_supplied_args(self):
 
@@ -69,43 +86,83 @@ class TestConfigParser():
         addr = '127.0.0.1'
         default_opt_val = False
 
-        cp = ConfigParser()
-        cp.define('http_addr', default='0.0.0.0', help='Set HTTP server address')
-        cp.define('http_port', default=8888, help='Set HTTP server port')
-        cp.define('default_opt', default=default_opt_val, help='Default option')
+        self.cp.define('http_addr', default='0.0.0.0', help='Set HTTP server address')
+        self.cp.define('http_port', default=8888, help='Set HTTP server port')
+        self.cp.define('default_opt', default=default_opt_val, help='Default option')
 
         test_args=['prog_name', '--http_port', str(port), '--http_addr', str(addr)]
 
-        cp.parse(test_args)
+        self.cp.parse(test_args)
 
-        assert_equal(cp.http_port, port)
-        assert_equal(cp.http_addr, addr)
-        assert_equal(cp.default_opt, default_opt_val)
+        assert_equal(self.cp.http_port, port)
+        assert_equal(self.cp.http_addr, addr)
+        assert_equal(self.cp.default_opt, default_opt_val)
 
     def test_imports_tornado_opts(self):
 
-        cp = ConfigParser()
-
         test_args=['prog_name']
 
-        cp.parse(test_args)
+        self.cp.parse(test_args)
 
         tornado_opts = tornado.options.options._options
 
         for opt in tornado_opts:
             if tornado_opts[opt].name != 'help':
-                assert_true(tornado_opts[opt].name in cp)
+                assert_true(tornado_opts[opt].name in self.cp)
 
     def test_ignores_undefined_arg(self):
 
-        cp = ConfigParser()
-
         test_args = ['prog_name', '--ignored', '1234']
 
-        cp.parse(test_args)
+        self.cp.parse(test_args)
 
-        assert_false('ignored' in cp)
+        assert_false('ignored' in self.cp)
 
-    def test_mistmached_arg_type(self):
-        pass
+    def test_mismatched_arg_type(self):
 
+        self.cp.define('intopt', default=1234, type=int, help="This is an integer option")
+        test_args = ['prog_name', '--intopt', 'wibble']
+
+        with assert_raises(SystemExit) as cm:
+            with self.capture_sys_output() as (stdout, stderr):
+                self.cp.parse(test_args)
+
+        assert_true(cm.exception.code, 2)
+
+    def test_parse_file(self):
+
+        config_file = 'test.cfg'
+        config_path = os.path.join(os.path.dirname(__file__), config_file)
+
+        self.cp.define('debug_mode', default=False, type=bool, help='Enable tornado debug mode')
+
+        test_args = ['prog_name', '--config', config_path]
+
+        self.cp.parse(test_args)
+
+        assert_equal(self.cp.debug_mode, True)
+
+    def test_parse_missing_file(self):
+
+        config_file = 'missing.cfg'
+        config_path = os.path.join(os.path.dirname(__file__), config_file)
+
+        test_args = ['prog_name', '--config', config_path]
+
+        with assert_raises(ConfigError) as cm:
+            self.cp.parse(test_args)
+        assert_equals(str(cm.exception),
+              'Failed to parse configuration file: [Errno 2] No such file or directory: \'{}\''.format(
+                  config_path
+              ))
+
+    def test_parse_bad_file(self):
+
+        config_file = 'bad.cfg'
+        config_path = os.path.join(os.path.dirname(__file__), config_file)
+
+        test_args = ['prog_name', '--config', config_path]
+
+        with assert_raises_regexp(ConfigError,
+                  "Failed to parse configuration file: File contains no section headers") as cm:
+            self.cp.parse(test_args)
