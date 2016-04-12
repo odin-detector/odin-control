@@ -5,8 +5,10 @@ import sys
 import os
 from contextlib import contextmanager
 from StringIO import StringIO
+from tempfile import NamedTemporaryFile
+from ConfigParser import SafeConfigParser
 
-from odin.config.parser import ConfigParser, ConfigOption, ConfigError
+from odin.config.parser import ConfigParser, ConfigOption, ConfigError, AdapterConfig
 
 
 class TestConfigOption():
@@ -70,6 +72,38 @@ class TestConfigParser():
             yield capture_out, capture_err
         finally:
             sys.stdout, sys.stderr = current_out, current_err
+
+    @classmethod
+    def setup_class(cls):
+
+        cls.test_config_file = NamedTemporaryFile(delete=False)
+        cls.test_config = SafeConfigParser()
+
+        cls.test_config.add_section('server')
+        cls.test_config.set('server', 'debug_mode', '1')
+        cls.test_config.set('server', 'http_port', '8888')
+        cls.test_config.set('server', 'http_addr', '0.0.0.0')
+        cls.test_config.set('server', 'adapters', 'dummy, dummy2')
+
+        cls.test_config.add_section('logging')
+        cls.test_config.set('logging', 'logging', 'debug')
+
+        cls.test_config.add_section('adapter.dummy')
+        cls.test_config.set('adapter.dummy', 'module', 'odin.adapters.dummy.DummyAdapter')
+        cls.test_config.set('adapter.dummy', 'test_param', '13.46')
+
+        cls.test_config.add_section('adapter.dummy2')
+        cls.test_config.set('adapter.dummy2', 'module', 'odin.adapters.dummy.DummyAdapter')
+        cls.test_config.set('adapter.dummy2', 'other_param', 'wibble')
+
+        print cls.test_config_file.name
+        cls.test_config.write(cls.test_config_file)
+
+    @classmethod
+    def teardown_class(cls):
+
+        cls.test_config_file.close()
+
 
     def setup(self):
 
@@ -149,12 +183,9 @@ class TestConfigParser():
 
         test_args = ['prog_name', '--config', config_path]
 
-        with assert_raises(ConfigError) as cm:
+        with assert_raises_regexp(ConfigError,
+                'Failed to parse configuration file: \[Errno 2\] No such file or directory'):
             self.cp.parse(test_args)
-        assert_equals(str(cm.exception),
-              'Failed to parse configuration file: [Errno 2] No such file or directory: \'{}\''.format(
-                  config_path
-              ))
 
     def test_parse_bad_file(self):
 
@@ -164,7 +195,7 @@ class TestConfigParser():
         test_args = ['prog_name', '--config', config_path]
 
         with assert_raises_regexp(ConfigError,
-                  "Failed to parse configuration file: File contains no section headers") as cm:
+                  "Failed to parse configuration file: File contains no section headers"):
             self.cp.parse(test_args)
 
     def test_multiple_arg_parse(self):
@@ -184,7 +215,7 @@ class TestConfigParser():
         multiarg_str = ','.join(multiarg_list)
 
         with assert_raises_regexp(ConfigError,
-                  'Multiple-valued argument contained element of incorrect type') as cm:
+                  'Multiple-valued argument contained element of incorrect type'):
             self.cp.parse_multiple_arg(multiarg_str, arg_type=int, splitchar=',')
 
     def test_multiple_option(self):
@@ -220,7 +251,7 @@ class TestConfigParser():
         test_args = ['prog_name', '--intvals', bad_str]
 
         with assert_raises_regexp(ConfigError,
-                  'Multiple-valued argument contained element of incorrect type') as cm:
+                  'Multiple-valued argument contained element of incorrect type'):
             self.cp.parse(test_args)
 
     def test_multiple_option_in_file(self):
@@ -236,4 +267,37 @@ class TestConfigParser():
 
         assert_true('adapters' in self.cp)
         assert_equal(type(self.cp.adapters), list)
-        print(len(self.cp.adapters))
+
+    def test_parser_with_no_adapters(self):
+
+        self.cp.parse()
+
+        with assert_raises_regexp(
+                ConfigError,
+                'Configuration parser has no adapter option set'):
+            self.cp.resolve_adapters()
+
+        with assert_raises_regexp(ConfigError,
+                'No configuration file parsed, unable to parse adapters'):
+            self.cp.resolve_adapters(adapter_list=['dummy', 'dummy2'])
+
+    def test_resolve_adapters(self):
+
+        config_file = 'test.cfg'
+        config_path = os.path.join(os.path.dirname(__file__), config_file)
+
+        self.cp.define('adapters', type=str, multiple=True, help="Comma-separated list of adapters to load")
+
+        test_args = ['prog_name', '--config', self.test_config_file.name]
+
+        self.cp.parse(test_args)
+
+        print "ADAPTERS", self.cp.adapters
+        with assert_raises_regexp(ConfigError,
+                  'Configuration file has no section for adapter '):
+            self.cp.resolve_adapters(adapter_list=['dummy', 'missing'])
+
+        adapters = self.cp.resolve_adapters()
+
+        for adapter in adapters:
+            assert_equal(type(adapters[adapter]), AdapterConfig)

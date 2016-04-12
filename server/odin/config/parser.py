@@ -19,6 +19,7 @@ class ConfigParser(object):
 
         self.arg_parser = argparse.ArgumentParser()
         self.file_parser = SafeConfigParser()
+        self.file_parsed = False
 
         self.define('config', default=None, metavar='FILE',
                     help='Specify a configuration file to parse')
@@ -65,13 +66,14 @@ class ConfigParser(object):
             file_config[section] = {}
 
         if arg_config.config:
-            self.file_parser = SafeConfigParser()
 
             try:
                 with open(arg_config.config) as fp:
                     self.file_parser.readfp(fp)
             except Exception as e:
                 raise ConfigError('Failed to parse configuration file: {}'.format(e))
+
+            self.file_parsed = True
 
             parser_get_map = {
                 int   : self.file_parser.getint,
@@ -128,10 +130,54 @@ class ConfigParser(object):
         # Run the tornado parser callbacks to replicate the tornado parser behaviour
         tornado.options.options.run_parse_callbacks()
 
+    def resolve_adapters(self, adapter_list=None):
+
+        """
+        Resolves any adapter sections present in the configuration file into a usable
+        list of adapters to be loaded and configured by the server.
+
+        :param adapter_list: a list of adapter names to resolve. If not set, the
+        parsers adapters attribute will be substituted
+
+        :return: list of AdapterConfig objects from the configuration file
+        """
+
+        resolved_adapters = {}
+        if adapter_list == None:
+            try:
+                adapter_list = getattr(self, 'adapters')
+            except AttributeError as e:
+                raise ConfigError('Configuration parser has no adapter option set')
+
+        if not self.file_parsed:
+            raise ConfigError('No configuration file parsed, unable to parse adapters')
+
+        for adapter in adapter_list:
+
+            section_name = 'adapter.{}'.format(adapter)
+
+            if not self.file_parser.has_section(section_name):
+                raise ConfigError('Configuration file has no section for adapter {}'.format(adapter))
+
+            if not self.file_parser.has_option(section_name, 'module'):
+                raise ConfigError('Configuration file has no module paramter for adapter {}',format(adapter))
+
+            module = self.file_parser.get(section_name, 'module')
+            resolved_adapters[adapter] = AdapterConfig(adapter, module)
+            print "ADAPTER", adapter, "SECTION", section_name, "MODULE", module
+
+            for (name, value) in self.file_parser.items(section_name):
+                if name == 'module':
+                    continue
+                print name, ':', value
+
+
+        return resolved_adapters
+
     def parse_multiple_arg(self, arg, arg_type=str, splitchar=','):
 
         try:
-            return [arg_type(arg) for arg in arg.split(splitchar)]
+            return [arg_type(arg.strip()) for arg in arg.split(splitchar)]
         except ValueError:
             raise ConfigError('Multiple-valued argument contained element of incorrect type')
 
@@ -176,3 +222,11 @@ class ConfigOption(object):
                 self.type = self.default.__class__
             else:
                 self.type = str
+
+class AdapterConfig(object):
+
+    def __init__(self, name, module):
+
+        self.name = name
+        self.module = module
+
