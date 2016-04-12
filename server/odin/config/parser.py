@@ -160,17 +160,15 @@ class ConfigParser(object):
                 raise ConfigError('Configuration file has no section for adapter {}'.format(adapter))
 
             if not self.file_parser.has_option(section_name, 'module'):
-                raise ConfigError('Configuration file has no module paramter for adapter {}',format(adapter))
+                raise ConfigError('Configuration file has no module parameter for adapter {}'.format(adapter))
 
             module = self.file_parser.get(section_name, 'module')
             resolved_adapters[adapter] = AdapterConfig(adapter, module)
-            print "ADAPTER", adapter, "SECTION", section_name, "MODULE", module
 
             for (name, value) in self.file_parser.items(section_name):
                 if name == 'module':
                     continue
-                print name, ':', value
-
+                resolved_adapters[adapter].set(name, value)
 
         return resolved_adapters
 
@@ -229,4 +227,8 @@ class AdapterConfig(object):
 
         self.name = name
         self.module = module
+
+    def set(self, option, value):
+
+        setattr(self, option, value)
 

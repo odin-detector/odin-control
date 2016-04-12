@@ -60,6 +60,34 @@ class TestConfigOption():
                  opt_default, opt_name, opt_type
              ))
 
+class TestAdapterConfig():
+
+    def test_basic_adapter_config(self):
+
+        name = 'test_adapter'
+        module = 'path.to.module'
+
+        ac = AdapterConfig(name, module)
+
+        assert_equal(ac.name, name)
+        assert_equal(ac.module, module)
+
+    def test_adapter_config_set(self):
+
+        ac = AdapterConfig('test_adapter', 'path.to.module')
+
+        option1_name = 'option1'
+        option1_val  = 'value1'
+
+        option2_name = 'option2'
+        option2_val  = 'value2'
+
+        ac.set(option1_name, option1_val)
+        ac.set(option2_name, option2_val)
+
+        assert_equal(ac.option1, option1_val)
+        assert_equal(ac.option2, option2_val)
+
 
 class TestConfigParser():
 
@@ -76,26 +104,46 @@ class TestConfigParser():
     @classmethod
     def setup_class(cls):
 
+        cls.test_config_adapter_list = ['dummy', 'dummy2']
+        cls.test_config_adapter_options = {
+            'dummy' : {
+                'module'     : 'odin.adapters.dummy.DummyAdapter',
+                'test_param' : '13.46',
+            },
+            'dummy2' : {
+                'module'     : 'odin.adapters.dummy.DummyAdapter',
+                'other_param' : 'wibble',
+            },
+        }
+
+        cls.test_config_server_options = {
+            'debug_mode' : '1',
+            'http_port'  : '8888',
+            'http_addr'  : '0.0.0.0',
+            'adapters'   : ','.join(cls.test_config_adapter_list),
+        }
+
         # Create a test config in a temporary file for use in tests
         cls.test_config_file = NamedTemporaryFile()
         cls.test_config = SafeConfigParser()
 
         cls.test_config.add_section('server')
-        cls.test_config.set('server', 'debug_mode', '1')
-        cls.test_config.set('server', 'http_port', '8888')
-        cls.test_config.set('server', 'http_addr', '0.0.0.0')
-        cls.test_config.set('server', 'adapters', 'dummy, dummy2')
+        for option in cls.test_config_server_options:
+            cls.test_config.set('server', option,
+                cls.test_config_server_options[option])
 
         cls.test_config.add_section('logging')
         cls.test_config.set('logging', 'logging', 'debug')
 
-        cls.test_config.add_section('adapter.dummy')
-        cls.test_config.set('adapter.dummy', 'module', 'odin.adapters.dummy.DummyAdapter')
-        cls.test_config.set('adapter.dummy', 'test_param', '13.46')
+        for adapter in cls.test_config_adapter_options:
 
-        cls.test_config.add_section('adapter.dummy2')
-        cls.test_config.set('adapter.dummy2', 'module', 'odin.adapters.dummy.DummyAdapter')
-        cls.test_config.set('adapter.dummy2', 'other_param', 'wibble')
+            section_name = 'adapter.{}'.format(adapter)
+            cls.test_config.add_section(section_name)
+
+            for option in cls.test_config_adapter_options[adapter]:
+                cls.test_config.set(section_name, option,
+                        cls.test_config_adapter_options[adapter][option])
+
 
         cls.test_config.write(cls.test_config_file)
         cls.test_config_file.file.flush()
@@ -155,7 +203,7 @@ class TestConfigParser():
 
     def test_mismatched_arg_type(self):
 
-        self.cp.define('intopt', default=1234, type=int, help="This is an integer option")
+        self.cp.define('intopt', default=1234, type=int, help='This is an integer option')
         test_args = ['prog_name', '--intopt', 'wibble']
 
         with assert_raises(SystemExit) as cm:
@@ -193,7 +241,7 @@ class TestConfigParser():
         test_args = ['prog_name', '--config', config_path]
 
         with assert_raises_regexp(ConfigError,
-                  "Failed to parse configuration file: File contains no section headers"):
+                  'Failed to parse configuration file: File contains no section headers'):
             self.cp.parse(test_args)
 
     def test_multiple_arg_parse(self):
@@ -278,13 +326,14 @@ class TestConfigParser():
 
     def test_resolve_adapters(self):
 
-        self.cp.define('adapters', type=str, multiple=True, help="Comma-separated list of adapters to load")
+        self.cp.define('adapters', type=str, multiple=True, help='Comma-separated list of adapters to load')
 
         test_args = ['prog_name', '--config', self.test_config_file.name]
 
         self.cp.parse(test_args)
 
-        print "ADAPTERS", self.cp.adapters
+        assert_equal(self.cp.adapters, self.test_config_adapter_list)
+
         with assert_raises_regexp(ConfigError,
                   'Configuration file has no section for adapter '):
             self.cp.resolve_adapters(adapter_list=['dummy', 'missing'])
@@ -293,3 +342,9 @@ class TestConfigParser():
 
         for adapter in adapters:
             assert_equal(type(adapters[adapter]), AdapterConfig)
+
+            for option in self.test_config_adapter_options[adapter]:
+                print option, self.test_config_adapter_options[adapter][option], \
+                    getattr(adapters[adapter], option)
+
+
