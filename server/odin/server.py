@@ -1,5 +1,5 @@
 from odin.http.server import HttpServer
-from odin.config.parser import ConfigParser
+from odin.config.parser import ConfigParser, ConfigError
 
 import logging
 import signal
@@ -34,10 +34,17 @@ def main():
     # Parse configuration options and any configuration file specified
     config.parse()
 
+    # Resolve the list of adapters specified
+    try:
+        adapters = config.resolve_adapters()
+    except ConfigError as e:
+        logging.error("Failed to resolve API adapters: {}".format(e))
+        adapters = []
+
     logging.info("Using the {} IOLoop instance".format("0MQ" if using_zmq_loop else "tornado"))
 
     # Launch the HTTP server
-    http_server = HttpServer(config.debug_mode)
+    http_server = HttpServer(config.debug_mode, adapters)
     http_server.listen(config.http_port, config.http_addr)
 
     logging.info("HTTP server listening on {}:{}" .format(

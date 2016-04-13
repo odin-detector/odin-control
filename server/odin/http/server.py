@@ -12,7 +12,7 @@ from odin.http.routes.default import DefaultRoute
 
 class HttpServer(object):
 
-    def __init__(self, debug_mode=False):
+    def __init__(self, debug_mode=False, adapters=None):
 
         settings = {
             "static_path": os.path.abspath(os.path.join(os.path.dirname(__file__), "../static")),
@@ -25,7 +25,9 @@ class HttpServer(object):
         api_route = ApiRoute()
 
         # Register adapters with the API route and get handlers
-        api_route.register_adapter("dummy", "odin.adapters.dummy.DummyAdapter")
+        for adapter in adapters:
+            api_route.register_adapter(adapters[adapter].name, adapters[adapter].module)
+
         handlers = api_route.get_handlers()
 
         # Craete a default route for static content and get handlers

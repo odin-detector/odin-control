@@ -248,6 +248,8 @@ class ConfigParser(object):
                 adapter_list = getattr(self, 'adapters')
             except AttributeError as e:
                 raise ConfigError('Configuration parser has no adapter option set')
+            if adapter_list == None:
+                raise ConfigError("No adapters specified in configuration")
 
         # If a configuration file wasn't parsed, it won't be possible to resolve adapter-specific
         # sections so raise an error
