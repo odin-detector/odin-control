@@ -132,8 +132,8 @@ class TestConfigParser():
             cls.test_config.set('server', option,
                 cls.test_config_server_options[option])
 
-        cls.test_config.add_section('logging')
-        cls.test_config.set('logging', 'logging', 'debug')
+        cls.test_config.add_section('tornado')
+        cls.test_config.set('tornado', 'logging', 'debug')
 
         for adapter in cls.test_config_adapter_options:
 
@@ -148,10 +148,16 @@ class TestConfigParser():
         cls.test_config.write(cls.test_config_file)
         cls.test_config_file.file.flush()
 
+        # Create a bad configuration with the wrong syntax for use in tests
+        cls.bad_config_file = NamedTemporaryFile()
+        cls.bad_config_file.write('amo, amas, amat, amamum, amatis, amant\n')
+        cls.bad_config_file.file.flush()
+
     @classmethod
     def teardown_class(cls):
 
         cls.test_config_file.close()
+        cls.bad_config_file.close()
 
 
     def setup(self):
@@ -235,10 +241,7 @@ class TestConfigParser():
 
     def test_parse_bad_file(self):
 
-        config_file = 'bad.cfg'
-        config_path = os.path.join(os.path.dirname(__file__), config_file)
-
-        test_args = ['prog_name', '--config', config_path]
+        test_args = ['prog_name', '--config', self.bad_config_file.name]
 
         with assert_raises_regexp(ConfigError,
                   'Failed to parse configuration file: File contains no section headers'):
@@ -249,7 +252,7 @@ class TestConfigParser():
         multiarg_list = ['dummy1', 'dummy2', 'dummy3']
         multiarg_str = ','.join(multiarg_list)
 
-        split_args = self.cp.parse_multiple_arg(multiarg_str, arg_type=str, splitchar=',')
+        split_args = self.cp._parse_multiple_arg(multiarg_str, arg_type=str, splitchar=',')
 
         assert_equal(len(multiarg_list), len(split_args))
         for (elem_in, elem_out) in zip(multiarg_list, split_args):
@@ -262,11 +265,10 @@ class TestConfigParser():
 
         with assert_raises_regexp(ConfigError,
                   'Multiple-valued argument contained element of incorrect type'):
-            self.cp.parse_multiple_arg(multiarg_str, arg_type=int, splitchar=',')
+            self.cp._parse_multiple_arg(multiarg_str, arg_type=int, splitchar=',')
 
     def test_multiple_option(self):
 
-        self.cp.define('adapters', type=str, multiple=True, help='Comma-separated list of adapters to load')
         self.cp.define('intvals', type=int, multiple=True, help='Integer list')
 
         adapter_list = ['dummy', 'dummy2 ', 'dummy3']
@@ -302,8 +304,6 @@ class TestConfigParser():
 
     def test_multiple_option_in_file(self):
 
-        self.cp.define('adapters', type=str, multiple=True, help='Comma-separated list of adapters to load')
-
         test_args = ['prog_name', '--config', self.test_config_file.name]
 
         self.cp.parse(test_args)
@@ -315,18 +315,21 @@ class TestConfigParser():
 
         self.cp.parse()
 
+        with assert_raises_regexp(ConfigError,
+                'No configuration file parsed, unable to resolve adapters'):
+            self.cp.resolve_adapters(adapter_list=['dummy', 'dummy2'])
+
+    def test_parser_with_adapters_disabled(self):
+
+        noadapter_cp = ConfigParser(has_adapters=False)
+        noadapter_cp.parse()
+
         with assert_raises_regexp(
                 ConfigError,
                 'Configuration parser has no adapter option set'):
-            self.cp.resolve_adapters()
-
-        with assert_raises_regexp(ConfigError,
-                'No configuration file parsed, unable to parse adapters'):
-            self.cp.resolve_adapters(adapter_list=['dummy', 'dummy2'])
+            noadapter_cp.resolve_adapters()
 
     def test_resolve_adapters(self):
-
-        self.cp.define('adapters', type=str, multiple=True, help='Comma-separated list of adapters to load')
 
         test_args = ['prog_name', '--config', self.test_config_file.name]
 
@@ -344,7 +347,6 @@ class TestConfigParser():
             assert_equal(type(adapters[adapter]), AdapterConfig)
 
             for option in self.test_config_adapter_options[adapter]:
-                print option, self.test_config_adapter_options[adapter][option], \
-                    getattr(adapters[adapter], option)
-
+                assert_equal(self.test_config_adapter_options[adapter][option],
+                             getattr(adapters[adapter], option))
 
