@@ -4,8 +4,6 @@ from odin.config.parser import ConfigParser, ConfigError
 import logging
 import signal
 import threading
-import argparse
-
 
 try:
     from zmq.eventloop import ioloop
@@ -15,12 +13,12 @@ except ImportError:
     using_zmq_loop = False
 
 import tornado.ioloop
-import tornado.options
-from tornado.options import options
+
 
 def sigint_handler(signum, frame):
     logging.info("Interrupt signal received, shutting down")
     tornado.ioloop.IOLoop.instance().stop()
+
 
 def main(argv=None):
 
@@ -32,13 +30,17 @@ def main(argv=None):
     config.define("debug_mode", default=False, help="Enable tornado debug mode")
 
     # Parse configuration options and any configuration file specified
-    config.parse(argv)
+    try:
+        config.parse(argv)
+    except ConfigError as e:
+        logging.error("Failed to parse configuration: {}".format(e))
+        return 2
 
     # Resolve the list of adapters specified
     try:
         adapters = config.resolve_adapters()
     except ConfigError as e:
-        logging.error("Failed to resolve API adapters: {}".format(e))
+        logging.warning("Failed to resolve API adapters: {}".format(e))
         adapters = []
 
     logging.info("Using the {} IOLoop instance".format("0MQ" if using_zmq_loop else "tornado"))
