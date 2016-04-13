@@ -1,5 +1,5 @@
 from setuptools import setup
-
+import os
 setup(
     name="odin",
     version='0.1',
@@ -15,12 +15,8 @@ setup(
             'odin_server = odin.server:main',
         ],
     },
-    setup_requires=[
-        'nose>=1.0',
-        'requests>=2.9'
-    ],
-    install_requires=[
-        'tornado>=4.3',
-    ],
-
+    install_requires=
+        open(os.path.join(os.path.dirname(__file__),
+          'requirements.txt'
+        ), 'rb').readlines(),
 )
