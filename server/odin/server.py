@@ -22,7 +22,7 @@ def sigint_handler(signum, frame):
     logging.info("Interrupt signal received, shutting down")
     tornado.ioloop.IOLoop.instance().stop()
 
-def main():
+def main(argv=None):
 
     config = ConfigParser()
 
@@ -32,7 +32,7 @@ def main():
     config.define("debug_mode", default=False, help="Enable tornado debug mode")
 
     # Parse configuration options and any configuration file specified
-    config.parse()
+    config.parse(argv)
 
     # Resolve the list of adapters specified
     try:
@@ -59,5 +59,7 @@ def main():
 
     logging.info("ODIN server shutdown")
 
+    return 0
+
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

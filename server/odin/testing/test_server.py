@@ -1,8 +1,12 @@
 from nose.tools import *
 
+import time
 import threading
 import requests
 import json
+from tempfile import NamedTemporaryFile
+from ConfigParser import SafeConfigParser
+
 from tornado.ioloop import IOLoop
 
 from odin import server
@@ -18,8 +22,30 @@ class TestOdinServer():
     @classmethod
     def setup_class(cls):
         if cls.launch_server:
-            cls.server_thread = threading.Thread(target=server.main)
+
+            cls.server_conf_file = NamedTemporaryFile()
+            parser = SafeConfigParser()
+
+            parser.add_section('server')
+            parser.set('server', 'debug_mode', '1')
+            parser.set('server', 'http_port', '8888')
+            parser.set('server', 'http_addr', '127.0.0.1')
+            parser.set('server', 'adapters', 'dummy')
+
+            parser.add_section('tornado')
+            parser.set('tornado', 'logging', 'debug')
+
+            parser.add_section('adapter.dummy')
+            parser.set('adapter.dummy', 'module', 'odin.adapters.dummy.DummyAdapter')
+
+            parser.write(cls.server_conf_file)
+            cls.server_conf_file.file.flush()
+
+
+            server_args=['--config={}'.format(cls.server_conf_file.name)]
+            cls.server_thread = threading.Thread(target=server.main, args=(server_args,))
             cls.server_thread.start()
+            time.sleep(0.2)
 
     @classmethod
     def teardown_class(cls):
@@ -27,6 +53,7 @@ class TestOdinServer():
             ioloop = IOLoop.instance()
             ioloop.add_callback(ioloop.stop)
             cls.server_thread.join()
+        cls.server_conf_file.close()
 
     def build_url(self, resource):
         return "http://{}:{}/api/{}/{}".format(
