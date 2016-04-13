@@ -1,13 +1,23 @@
 language: python
 sudo: false
+
 python:
-- 2.7
+  - 2.7
+
+addons:
+  apt:
+    packages:
+    - libzmq3-dev
+
 install:
-- cd server
-- python setup.py install
+  - cd server
+  - python setup.py install
+  - cd ..
+
 script:
-- cd server
-- nosetests -sv
+  - cd server
+  - nosetests -sv
+
 notifications:
   slack:
     secure: GZc6KhzmZqtSuWZ0gTqkboucf0f4bVcjQ+yRO5DjXkmy1cwtSx53NsXaGp/WZQz0ctzIwWRG8OMNb27cT+lczVI9HKPxlU+xE13MHzmaySOKK4y+DwFsJ3PMLlDoKYR2VSRQ4sHk6oHf/G81ieNTWDQcXZTLwKG9R2gUSSe+R7yPuQ6soaLYsI0rgGhqO+M8/EfdGlEejqA4w7yh4S/pRYZRpyCJLJhLEZ1hnrL1997xtx3IDG7wum+TB4uWZZMJ412YHpYIwmBNQG9KBVihK+6ZsbMUhfwKnKFMkW4IfAG7A40II7k1W8rp+DT4HnEOMJ0TggdUePkf4FCJAAr8cDfKo+5VO3qPYoaTzwlaydSqXDioZNNgpIXTr7Ccjy3kQl528R6SdJhu4CFAqne5vzU+f7Pv3sm7HYWi5PbIUqjW8+X2tG8PgWDfX2xk/F+lq+zt7Ff1H6dHc9QH+hQ5TeYMb9t3Qm7idLc/ayXA9/kFgFe4qjpO0cgi/RQu+9UlU+998MCfkAsDmhKgzesUsVnbZl5lN7vBx7slHvKpXk4DZxG2woEV84UryzeLGQKWAKaUHOrIw8U4UV8gryOQnvPhh3luvRqQmiP/CKDeEXlc+67CQyamNRD64AxQdhDRoWU3Lu32OCGDVkty8c9LFCRdAKRshZbIfoSa22MMukE=
