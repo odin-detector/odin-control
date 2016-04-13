@@ -13,10 +13,14 @@ install:
   - cd server
   - python setup.py install
   - cd ..
+  - pip install coveralls
 
 script:
   - cd server
-  - nosetests -sv
+  - nosetests -sv --with-coverage --cover-package=odin
+
+after_success:
+  - coveralls
 
 notifications:
   slack:
