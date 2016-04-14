@@ -8,8 +8,30 @@ from odin.http.routes.handler import Handler, request_types, response_types
 
 _api_version = 0.1
 
+def validate_api_request(required_version):
+    """
+    Checks API version is correct and that the subsystem is registered with the
+    application dispatcher; responds with a 400 error if not
+    """
+    def decorator(func):
+        def wrapper(_self, *args, **kwargs):
+            # Extract version as first argument
+            version = args[0]
+            subsystem = args[1]
+            rem_args = args[2:]
+            if version != str(required_version):
+                _self.respond("API version {} is not supported\n".format(version), 400)
+            elif not _self.route.has_adapter(subsystem):
+                _self.respond("No API adapter registered for subsystem {}\n".format(subsystem), 400)
+            else:
+                func(_self, subsystem, *rem_args, **kwargs)
+        return wrapper
+    return decorator
+
+
 class ApiError(Exception):
     pass
+
 
 class ApiVersionHandler(Handler):
 
@@ -18,30 +40,12 @@ class ApiVersionHandler(Handler):
         logging.debug("Response content-type: {}".format(self.response_type))
         self.respond({'api_version' : _api_version})
 
+
 class ApiHandler(Handler):
 
     def initialize(self, route):
         self.route = route
 
-    def validate_api_request(required_version):
-        """
-        Checks API version is correct and that the subsystem is registered with the
-        application dispatcher; responds with a 400 error if not
-        """
-        def decorator(func):
-            def wrapper(_self, *args, **kwargs):
-                # Extract version as first argument
-                version = args[0]
-                subsystem = args[1]
-                rem_args = args[2:]
-                if version != str(required_version):
-                    _self.respond("API version {} is not supported\n".format(version), 400)
-                elif not _self.route.has_adapter(subsystem):
-                    _self.respond("No API adapter registered for subsystem {}\n".format(subsystem), 400)
-                else:
-                    func(_self, subsystem, *rem_args, **kwargs)
-            return wrapper
-        return decorator
 
     @validate_api_request(_api_version)
     def get(self, subsystem, path):
