@@ -1,11 +1,16 @@
 from nose.tools import *
 
+import sys
 import time
 import threading
 import requests
 import json
 from tempfile import NamedTemporaryFile
-from ConfigParser import SafeConfigParser
+
+if sys.version_info[0] == 3:
+    from configparser import SafeConfigParser
+else:
+    from ConfigParser import SafeConfigParser
 
 from tornado.ioloop import IOLoop
 
@@ -23,7 +28,7 @@ class TestOdinServer():
     def setup_class(cls):
         if cls.launch_server:
 
-            cls.server_conf_file = NamedTemporaryFile()
+            cls.server_conf_file = NamedTemporaryFile(mode='w+')
             parser = SafeConfigParser()
 
             parser.add_section('server')
@@ -40,7 +45,6 @@ class TestOdinServer():
 
             parser.write(cls.server_conf_file)
             cls.server_conf_file.file.flush()
-
 
             server_args=['--config={}'.format(cls.server_conf_file.name)]
             cls.server_thread = threading.Thread(target=server.main, args=(server_args,))

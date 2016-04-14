@@ -4,9 +4,14 @@ import tornado.options
 import sys
 import os
 from contextlib import contextmanager
-from StringIO import StringIO
 from tempfile import NamedTemporaryFile
-from ConfigParser import SafeConfigParser
+
+if sys.version_info[0] == 3:
+    from io import StringIO
+    from configparser import SafeConfigParser
+else:
+    from StringIO import StringIO
+    from ConfigParser import SafeConfigParser
 
 from odin.config.parser import ConfigParser, ConfigOption, ConfigError, AdapterConfig
 
@@ -124,7 +129,7 @@ class TestConfigParser():
         }
 
         # Create a test config in a temporary file for use in tests
-        cls.test_config_file = NamedTemporaryFile()
+        cls.test_config_file = NamedTemporaryFile(mode='w+')
         cls.test_config = SafeConfigParser()
 
         cls.test_config.add_section('server')
@@ -149,7 +154,7 @@ class TestConfigParser():
         cls.test_config_file.file.flush()
 
         # Create a bad configuration with the wrong syntax for use in tests
-        cls.bad_config_file = NamedTemporaryFile()
+        cls.bad_config_file = NamedTemporaryFile(mode='w+')
         cls.bad_config_file.write('amo, amas, amat, amamum, amatis, amant\n')
         cls.bad_config_file.file.flush()
 

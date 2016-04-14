@@ -10,19 +10,17 @@ class TestApiAdapters():
 
     def test_register_adapter(self):
 
-        self.api_route.register_adapter("dummy", "odin.adapters.dummy.DummyAdapter")
+        self.api_route.register_adapter('dummy', 'odin.adapters.dummy.DummyAdapter')
 
     def test_register_adapter_badmodule(self):
 
-        with assert_raises(ApiError) as cm:
-            self.api_route.register_adapter("dummy", "odin.adapters.dummyd.DummyAdapter", fail_ok=False)
-        assert_equal(str(cm.exception), "No module named dummyd")
+        with assert_raises_regexp(ApiError, 'No module named'):
+            self.api_route.register_adapter('dummy', 'odin.adapters.dummyd.DummyAdapter', fail_ok=False)
 
     def test_register_adapter_badclass(self):
 
-        with assert_raises(ApiError) as cm:
-            self.api_route.register_adapter("dummy", "odin.adapters.dummy.BadAdapter", fail_ok=False)
-        assert_equal(str(cm.exception), "'module' object has no attribute 'BadAdapter'")
+        with assert_raises_regexp(ApiError, 'has no attribute \'BadAdapter\''):
+            self.api_route.register_adapter('dummy', 'odin.adapters.dummy.BadAdapter', fail_ok=False)
 
 
 class TestApiRoute():

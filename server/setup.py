@@ -1,5 +1,9 @@
 from setuptools import setup
 import os
+
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
 setup(
     name="odin",
     version='0.1',
@@ -15,8 +19,5 @@ setup(
             'odin_server = odin.server:main',
         ],
     },
-    install_requires=
-        open(os.path.join(os.path.dirname(__file__),
-          'requirements.txt'
-        ), 'rb').readlines(),
+    install_requires=required,
 )

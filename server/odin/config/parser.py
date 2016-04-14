@@ -6,8 +6,12 @@ Tim Nicholls, STFC Application Engineering Group
 
 import sys
 from argparse import ArgumentParser
-from ConfigParser import SafeConfigParser
 from functools import partial
+
+if sys.version_info[0] == 3:
+    from configparser import SafeConfigParser
+else:
+    from ConfigParser import SafeConfigParser
 
 import tornado.options
 

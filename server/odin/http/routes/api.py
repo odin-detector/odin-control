@@ -34,7 +34,7 @@ class ApiHandler(Handler):
                 version = args[0]
                 subsystem = args[1]
                 rem_args = args[2:]
-                if version != unicode(required_version):
+                if version != str(required_version):
                     _self.respond("API version {} is not supported\n".format(version), 400)
                 elif not _self.route.has_adapter(subsystem):
                     _self.respond("No API adapter registered for subsystem {}\n".format(subsystem), 400)
