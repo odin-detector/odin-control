@@ -19,7 +19,7 @@ from odin import server
 class TestOdinServer():
 
     launch_server = True
-    server_host = "localhost"
+    server_host = 'localhost'
     server_port = 8888
     server_api_version = 0.1
     server_thread = None
@@ -60,22 +60,46 @@ class TestOdinServer():
         cls.server_conf_file.close()
 
     def build_url(self, resource):
-        return "http://{}:{}/api/{}/{}".format(
+        return 'http://{}:{}/api/{}/{}'.format(
             self.server_host, self.server_port,
             self.server_api_version, resource)
 
-    def test_simple_client(self):
+    def test_simple_client_get(self):
+        result = requests.get(self.build_url('dummy/config/none'))
+        assert_equal(result.status_code, 200)
+
+    def test_simple_client_put(self):
         headers = {'Content-Type' : 'application/json'}
         payload = {'some': 'data'}
-        result = requests.put(self.build_url("dummy/command/execute"),
+        result = requests.put(self.build_url('dummy/command/execute'),
             data=json.dumps(payload),
             headers=headers)
         assert_equal(result.status_code, 200)
 
+    def test_simple_client_delete(self):
+        result = requests.delete(self.build_url('dummy/object/delete'))
+        assert_equal(result.status_code, 200)
+
+    def test_bad_api_version(self):
+        bad_api_version = 99.9
+        temp_api_version = self.server_api_version
+        self.server_api_version = bad_api_version
+        url = self.build_url('dummy/bad/version')
+        self.server_api_version = temp_api_version
+        result = requests.get(url)
+        assert_equal(result.status_code, 400)
+        assert_equal(result.content, 'API version {} is not supported\n'.format(bad_api_version))
+
+    def test_bad_subsystem_adapter(self):
+        missing_subsystem = 'missing'
+        result = requests.get(self.build_url('{}/object'.format(missing_subsystem)))
+        assert_equal(result.status_code, 400)
+        assert_equal(result.content, 'No API adapter registered for subsystem {}\n'.format(missing_subsystem))
+
     def test_api_version(self):
         headers = {'Accept' : 'application/json'}
         result = requests.get(
-            "http://{}:{}/api".format(self.server_host, self.server_port),
+            'http://{}:{}/api'.format(self.server_host, self.server_port),
             headers=headers
         )
         assert_equal(result.status_code, 200)
@@ -84,10 +108,15 @@ class TestOdinServer():
     def test_api_version_bad_accept(self):
         headers = {'Accept' : 'text/plain'}
         result = requests.get(
-            "http://{}:{}/api".format(self.server_host, self.server_port),
+            'http://{}:{}/api'.format(self.server_host, self.server_port),
             headers=headers
         )
         assert_equal(result.status_code, 406)
+
+    def test_default_handler(self):
+
+        result = requests.get("http://{}:{}".format(self.server_host, self.server_port))
+        assert_equal(result.status_code, 200)
 
 if __name__ == '__main__':
 

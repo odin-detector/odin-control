@@ -90,6 +90,9 @@ class TestAdapterConfig():
         ac.set(option1_name, option1_val)
         ac.set(option2_name, option2_val)
 
+        assert_true(option1_name in ac)
+        assert_true(option2_name in ac)
+
         assert_equal(ac.option1, option1_val)
         assert_equal(ac.option2, option2_val)
 
@@ -211,6 +214,13 @@ class TestConfigParser():
         self.cp.parse(test_args)
 
         assert_false('ignored' in self.cp)
+
+    def test_parser_iterator(self):
+
+        self.cp.parse()
+
+        parser_opts = [opt for opt in self.cp]
+        assert_true(len(parser_opts) > 0)
 
     def test_mismatched_arg_type(self):
 
