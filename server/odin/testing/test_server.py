@@ -88,13 +88,13 @@ class TestOdinServer():
         self.server_api_version = temp_api_version
         result = requests.get(url)
         assert_equal(result.status_code, 400)
-        assert_equal(result.content, 'API version {} is not supported\n'.format(bad_api_version))
+        assert_equal(result.content.decode('utf-8'), 'API version {} is not supported\n'.format(bad_api_version))
 
     def test_bad_subsystem_adapter(self):
         missing_subsystem = 'missing'
         result = requests.get(self.build_url('{}/object'.format(missing_subsystem)))
         assert_equal(result.status_code, 400)
-        assert_equal(result.content, 'No API adapter registered for subsystem {}\n'.format(missing_subsystem))
+        assert_equal(result.content.decode('utf-8'), 'No API adapter registered for subsystem {}\n'.format(missing_subsystem))
 
     def test_api_version(self):
         headers = {'Accept' : 'application/json'}
