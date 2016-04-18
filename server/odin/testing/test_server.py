@@ -118,6 +118,12 @@ class TestOdinServer():
         result = requests.get("http://{}:{}".format(self.server_host, self.server_port))
         assert_equal(result.status_code, 200)
 
+    def test_default_accept(self):
+        result = requests.get(
+            'http://{}:{}/api'.format(self.server_host, self.server_port),
+        )
+        print result.status_code
+
 if __name__ == '__main__':
 
     import nose
