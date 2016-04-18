@@ -59,6 +59,20 @@ class TestApiAdapterResponse():
         assert_equal(response.content_type, content_type)
         assert_equal(response.status_code, status_code)
 
+    def test_response_with_set_calls(self):
+
+        data = '{\'some_json_value\' : 1.234}'
+        content_type = 'application/json'
+        status_code = 400
+
+        response = ApiAdapterResponse(data)
+        response.set_content_type(content_type)
+        response.set_status_code(status_code)
+
+        assert_equal(response.data, data)
+        assert_equal(response.content_type, content_type)
+        assert_equal(response.status_code, status_code)
+
 
 class TestApiMethodDecorators():
 
