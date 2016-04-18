@@ -1,10 +1,11 @@
-import tornado.web
 import importlib
 import logging
 import json
 
+import tornado.web
+
 from odin.http.routes.route import Route
-from odin.http.routes.handler import Handler, request_types, response_types
+from odin.adapters.adapter import ApiAdapterResponse
 
 _api_version = 0.1
 
@@ -20,11 +21,17 @@ def validate_api_request(required_version):
             subsystem = args[1]
             rem_args = args[2:]
             if version != str(required_version):
-                _self.respond("API version {} is not supported\n".format(version), 400)
+                _self.respond(ApiAdapterResponse(
+                    "API version {} is not supported".format(version),
+                    status_code=400)
+                )
             elif not _self.route.has_adapter(subsystem):
-                _self.respond("No API adapter registered for subsystem {}\n".format(subsystem), 400)
+                _self.respond(ApiAdapterResponse(
+                    "No API adapter registered for subsystem {}".format(subsystem),
+                    status_code=400)
+                )
             else:
-                func(_self, subsystem, *rem_args, **kwargs)
+                return func(_self, subsystem, *rem_args, **kwargs)
         return wrapper
     return decorator
 
@@ -33,36 +40,50 @@ class ApiError(Exception):
     pass
 
 
-class ApiVersionHandler(Handler):
+class ApiVersionHandler(tornado.web.RequestHandler):
 
-    @response_types("application/json", default="application/json")
     def get(self):
-        logging.debug("Response content-type: {}".format(self.response_type))
-        self.respond({'api_version' : _api_version})
+        if 'Accept' in self.request.headers:
+            accept_type = self.request.headers['Accept']
+            if accept_type == "*/*" or accept_type == 'application/json':
+                self.set_status(200)
+                self.write(json.dumps({'api_version' : _api_version}))
+            else:
+                self.set_status(406)
+                self.write('Requested content types not supported')
 
-
-class ApiHandler(Handler):
+class ApiHandler(tornado.web.RequestHandler):
 
     def initialize(self, route):
         self.route = route
 
-
     @validate_api_request(_api_version)
     def get(self, subsystem, path):
-        (data, code) = self.route.adapter(subsystem).get(path)
-        self.respond(data, code)
+        response = self.route.adapter(subsystem).get(path, self.request)
+        self.respond(response)
 
-    @request_types("application/json")
     @validate_api_request(_api_version)
     def put(self, subsystem, path):
-        (data, code) = self.route.adapter(subsystem).put(path)
-        self.respond(data, code)
+        response = self.route.adapter(subsystem).put(path, self.request)
+        self.respond(response)
 
     @validate_api_request(_api_version)
     def delete(self, subsystem, path):
-        (data, code) = self.route.adapter(subsystem).delete(path)
-        self.respond(data, code)
+        response = self.route.adapter(subsystem).delete(path, self.request)
+        self.respond(response)
 
+    def respond(self, response):
+
+        self.set_status(response.status_code)
+        self.set_header('Content-Type', response.content_type)
+
+        data = response.data
+
+        if response.content_type == 'application/json':
+            if not isinstance(response.data, dict):
+                data = json.dumps(response.data)
+
+        self.write(data)
 
 class ApiRoute(Route):
 

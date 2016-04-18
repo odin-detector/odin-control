@@ -1,3 +1,12 @@
+"""
+odin.adapters.adapter.py - base API adapter implmentation for the ODIN server
+
+Tim Nicholls, STFC Application Engineering Group
+"""
+
+import logging
+
+
 class ApiAdapter(object):
     """
     API adapter base class
@@ -8,17 +17,166 @@ class ApiAdapter(object):
     """
 
     def __init__(self):
+
+        """Initialise the ApiAdapter object"""
+
         self.name = type(self).__name__
         pass
 
-    def get(self, path):
+    def get(self, path, request):
+
+        """HTTP GET method abstract implementation for ApiAdapter
+
+        :param path: URI path of resource
+        :param request: HTTP request object passed from handler
+        :return: ApiAdapterResponse container of data, content-type and status_code
+        """
         response = "GET method not implemented by {}".format(self.name)
-        return(response, 400)
+        return ApiAdapterResponse(response, status_code=400)
 
-    def put(self, path):
+    def put(self, path, request):
+
+        """HTTP PUT method abstract implementation for ApiAdapter
+
+        :param path: URI path of resource
+        :param request: HTTP request object passed from handler
+        :return: ApiAdapterResponse container of data, content-type and status_code
+        """
         response = "PUT method not implemented by {}".format(self.name)
-        return(response, 400)
+        return ApiAdapterResponse(response, status_code=400)
 
-    def delete(self, path):
+    def delete(self, path, request):
+
+        """HTTP DELETE method abstract implementation for ApiAdapter
+
+        :param path: URI path of resource
+        :param request: HTTP request object passed from handler
+        :return: ApiAdapterResponse container of data, content-type and status_code
+        """
         response = "DELETE method not implemented by {}".format(self.name)
-        return(response, 400)
+        return ApiAdapterResponse(response, status_code=400)
+
+
+class ApiAdapterResponse(object):
+    """
+    API adapter response object.
+
+    This is a container class for responses returned by ApiAdapter method calls.
+    It encapsulates the required attributes for all responses; data, content type and
+    status code.
+    """
+
+    def __init__(self, data, content_type='text/plain', status_code=200):
+
+        self.data = data
+        self.content_type = content_type
+        self.status_code = status_code
+
+    def set_content_type(self, content_type):
+        self.content_type = content_type
+
+    def set_status_code(self, status_code):
+        self.status_code = status_code
+
+
+def request_types(*oargs):
+    """
+    Decorator method to define legal content types that adapter method will accept
+
+    This method comparse the HTTP Content-Type header with a list of acceptable
+    type. If there is a match, the adapter method is called accordingly, otherwise an
+    HTTP 415 error response is returned.
+
+    Typical usage would be, in an adapter, to decorate a verb method as follows:
+
+    @request_types('application/json')
+    def get(self, path, request)
+
+    Note that both the request_types and response_types decorators can be applied to a
+    method.
+
+    :param oargs: a variable length list of acceptable content types
+    :return: decorator context
+    """
+    def decorator(func):
+        """Function decorator"""
+
+        def wrapper(_self, path, request):
+            """Inner method wrapper"""
+
+            # Validate the Content-Type header in the request against allowed types
+            if 'Content-Type' in request.headers:
+                logging.debug("Request content type: %s", request.headers['Content-Type'])
+                if request.headers['Content-Type'] not in oargs:
+                    return ApiAdapterResponse(
+                        'Request content type ({}) not supported'.format(
+                            request.headers['Content-Type']), status_code=415)
+            return func(_self, path, request)
+
+        return wrapper
+
+    return decorator
+
+
+def response_types(*oargs, **okwargs):
+    """
+    Decorator method to define legal response types and a default for an adapter method.
+
+    This method compares the HTTP request Accept header with a list of acceptable
+    response types. If there is a match, the response type is set accordingly, otherwise
+    an HTTP 406 error code is returned. A default type is also allowable, so if the request
+    fails to specify a type (e.g. '*/*') then this will be used.
+
+    Typical usage for this would be, in an adapter, to decorate a verb method as follows:
+
+    @response_type('application/json', 'text/html', default='text/html')
+    def get(self, path, request):
+        ....
+
+    to specify that the
+
+    :param oargs: a variable length list of  acceptable response types
+    :param okwargs: keyword argument(s), allowing default type to be specified.
+    :return: decorator context
+    """
+
+    def decorator(func):
+        """ Function decorator"""
+
+        def wrapper(_self, path, request):
+            """Inner function wrapper"""
+
+            response_type = None
+
+            # If Accept header is present, resolve the response type appropriately, otherwise
+            # coerce to the default before calling the decorated function
+            if 'Accept' in request.headers:
+
+                if request.headers['Accept'] == '*/*':
+                    if 'default' in okwargs:
+                        response_type = okwargs['default']
+                    else:
+                        response_type = 'text/plain'
+                else:
+                    for accept_type in request.headers['Accept'].split(','):
+                        if accept_type in oargs:
+                            response_type = accept_type
+                            break
+
+                # If it was not possible to resolve a response type or there was not default
+                # given, return an error code 406
+                if response_type is None:
+                    return ApiAdapterResponse("Requested content types not supported", status_code=406)
+
+            else:
+                response_type = okwargs['default'] if 'default' in okwargs else 'text/plain'
+                request.headers['Accept'] = response_type
+
+            # Call the decorated function
+            return func(_self, path, request)
+
+        return wrapper
+
+    return decorator
+
+
