@@ -122,7 +122,6 @@ class TestOdinServer():
         result = requests.get(
             'http://{}:{}/api'.format(self.server_host, self.server_port),
         )
-        print result.status_code
 
 if __name__ == '__main__':
 
