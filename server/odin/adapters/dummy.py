@@ -21,12 +21,14 @@ class DummyAdapter(ApiAdapter):
     @response_types('application/json', default='application/json')
     def put(self, path, request):
 
-        response = 'DummyAdapter: PUT on path {}'.format(path)
+        response = {'response' : 'DummyAdapter: PUT on path {}'.format(path)}
+        content_type = 'application/json'
         status_code = 200
 
         logging.debug(response)
 
-        return ApiAdapterResponse(response, status_code=status_code)
+        return ApiAdapterResponse(response, content_type=content_type,
+                                  status_code=status_code)
 
     def delete(self, path, request):
 

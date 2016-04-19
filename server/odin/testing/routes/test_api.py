@@ -1,4 +1,11 @@
+import sys
+
 from nose.tools import *
+
+if sys.version_info[0] == 3:
+    from unittest.mock import Mock
+else:
+    from mock import Mock
 
 from odin.http.routes.api import ApiRoute, ApiHandler, ApiError, _api_version
 
@@ -28,6 +35,22 @@ class TestApiRoute():
         with assert_raises_regexp(ApiError, 'has no attribute \'BadAdapter\''):
             self.api_route.register_adapter('dummy', 'odin.adapters.dummy.BadAdapter', fail_ok=False)
 
+
+class TestApiHandler():
+
+    def test_handler_response_json(self):
+        application = Mock()
+        application.ui_methods = {}
+        request = Mock()
+        handler = ApiHandler(application, request, route=None)
+        handler.write = Mock()
+
+        response = Mock()
+        response.status_code = 200
+        response.content_type = 'application/json'
+        response.data = '{\'response\' : \'is_json\'}'
+
+        #handler.respond(response)
 
 # class TestApiHandler():
 #
