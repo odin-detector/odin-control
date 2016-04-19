@@ -52,6 +52,7 @@ class ApiVersionHandler(tornado.web.RequestHandler):
                 self.set_status(406)
                 self.write('Requested content types not supported')
 
+
 class ApiHandler(tornado.web.RequestHandler):
 
     def initialize(self, route):
@@ -80,8 +81,8 @@ class ApiHandler(tornado.web.RequestHandler):
         data = response.data
 
         if response.content_type == 'application/json':
-            if not isinstance(response.data, dict):
-                data = json.dumps(response.data)
+            if not isinstance(response.data, (str, dict)):
+                raise ApiError('A response with content type application/json must have str or dict data')
 
         self.write(data)
 

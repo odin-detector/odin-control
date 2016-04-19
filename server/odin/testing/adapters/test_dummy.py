@@ -25,8 +25,10 @@ class TestDummyAdapter():
         assert_equal(response.status_code, 200)
 
     def test_adapter_put(self):
+
+        expected_response = {'response': 'DummyAdapter: PUT on path {}'.format(self.path)}
         response = self.adapter.put(self.path, self.request)
-        assert_equal(response.data, 'DummyAdapter: PUT on path {}'.format(self.path))
+        assert_equal(response.data, expected_response)
         assert_equal(response.status_code, 200)
 
     def test_adapter_delete(self):

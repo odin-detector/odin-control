@@ -57,7 +57,9 @@ class TestOdinServer():
             ioloop = IOLoop.instance()
             ioloop.add_callback(ioloop.stop)
             cls.server_thread.join()
-        cls.server_conf_file.close()
+
+        if cls.launch_server:
+            cls.server_conf_file.close()
 
     def build_url(self, resource):
         return 'http://{}:{}/api/{}/{}'.format(
