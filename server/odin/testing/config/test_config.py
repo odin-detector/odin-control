@@ -162,6 +162,19 @@ class TestConfigParser():
         cls.bad_config_file.write('amo, amas, amat, amamum, amatis, amant\n')
         cls.bad_config_file.file.flush()
 
+        cls.missing_adapter_file = NamedTemporaryFile(mode='w+')
+        cls.missing_adapter_config = SafeConfigParser()
+
+        cls.missing_adapter_config.add_section('server')
+        cls.missing_adapter_config.set('server', 'adapters', 'missing')
+        cls.missing_adapter_config.set('server', 'debug_mode', '1')
+
+        cls.missing_adapter_config.add_section('adapter.missing')
+        cls.missing_adapter_config.set('adapter.missing', 'dummy', 'nothing')
+
+        cls.missing_adapter_config.write(cls.missing_adapter_file)
+        cls.missing_adapter_file.file.flush()
+
     @classmethod
     def teardown_class(cls):
 
@@ -377,6 +390,17 @@ class TestConfigParser():
         with assert_raises_regexp(
                 ConfigError,
                 'No configuration file parsed, unable to resolve adapters'):
+            self.cp.resolve_adapters()
+
+    def test_parser_config_missing_adapter_module(self):
+
+        test_args = ['prog_name', '--config', self.missing_adapter_file.name]
+        self.cp.parse(test_args)
+
+        with assert_raises_regexp(
+            ConfigError,
+            'Configuration file has no module parameter for adapter missing'
+        ):
             self.cp.resolve_adapters()
 
     def test_resolve_adapters(self):
