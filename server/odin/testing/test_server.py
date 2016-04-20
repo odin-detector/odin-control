@@ -126,6 +126,12 @@ class TestOdinServer():
             'http://{}:{}/api'.format(self.server_host, self.server_port),
         )
 
+    def test_server_entry_config_error(self):
+
+        server_args = ['--config=absent.cfg']
+        rc = server.main((server_args),)
+        assert_equal(rc, 2)
+
 if __name__ == '__main__':
 
     import nose
