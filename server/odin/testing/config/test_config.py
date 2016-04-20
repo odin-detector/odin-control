@@ -129,6 +129,7 @@ class TestConfigParser():
             'http_port'  : '8888',
             'http_addr'  : '0.0.0.0',
             'adapters'   : ','.join(cls.test_config_adapter_list),
+            'wrapped'    : 'wrapped_str'
         }
 
         # Create a test config in a temporary file for use in tests
@@ -326,6 +327,18 @@ class TestConfigParser():
         assert_true('adapters' in self.cp)
         assert_equal(type(self.cp.adapters), list)
 
+    def test_option_type_not_in_map(self):
+
+        class StrWrapper(str):
+            pass
+
+        self.cp.define('wrapped', type=StrWrapper, help='Wrapped String')
+
+        test_args = ['prog_name', '--config', self.test_config_file.name]
+
+        self.cp.parse(test_args)
+        assert_equal(self.cp.wrapped, 'wrapped_str')
+
     def test_parser_with_no_adapters(self):
 
         self.cp.parse()
@@ -343,6 +356,28 @@ class TestConfigParser():
                 ConfigError,
                 'Configuration parser has no adapter option set'):
             noadapter_cp.resolve_adapters()
+
+    def test_parser_with_no_adapters(self):
+
+        self.cp.define('summy', type=bool, help='Dummy option')
+
+        test_args = ['prog_name', '--dummy', '1']
+        self.cp.parse(test_args)
+
+        with assert_raises_regexp(
+                ConfigError,
+                'No adapters specified in configuration'):
+            self.cp.resolve_adapters()
+
+    def test_parser_no_config_file_for_adapters(self):
+
+        test_args = ['prog_name', '--adapters', 'dummy']
+        self.cp.parse(test_args)
+
+        with assert_raises_regexp(
+                ConfigError,
+                'No configuration file parsed, unable to resolve adapters'):
+            self.cp.resolve_adapters()
 
     def test_resolve_adapters(self):
 
