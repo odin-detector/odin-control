@@ -10,13 +10,13 @@ try:
     from zmq.eventloop import ioloop
     ioloop.install()
     using_zmq_loop = True
-except ImportError:
+except ImportError:   # pragma: no cover
     using_zmq_loop = False
 
 import tornado.ioloop
 
 
-def sigint_handler(signum, frame):
+def sigint_handler(signum, frame):  # pragma: no cover
     logging.info("Interrupt signal received, shutting down")
     tornado.ioloop.IOLoop.instance().stop()
 
@@ -54,7 +54,7 @@ def main(argv=None):
         config.http_addr, config.http_port))
 
     # Register a SIGINT signal handler only if this is the main thread
-    if isinstance(threading.current_thread(), threading._MainThread):
+    if isinstance(threading.current_thread(), threading._MainThread): # pragma: no cover
         signal.signal(signal.SIGINT, sigint_handler)
 
     # Enter IO processing loop
@@ -64,5 +64,5 @@ def main(argv=None):
 
     return 0
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     sys.exit(main())

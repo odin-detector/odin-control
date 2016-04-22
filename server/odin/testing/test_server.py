@@ -5,16 +5,55 @@ import time
 import threading
 import requests
 import json
+import logging
 from tempfile import NamedTemporaryFile
 
-if sys.version_info[0] == 3:
+if sys.version_info[0] == 3:  # pragma: no cover
     from configparser import SafeConfigParser
-else:
+else:                         # pragma: no cover
     from ConfigParser import SafeConfigParser
 
 from tornado.ioloop import IOLoop
 
 from odin import server
+
+def start_server(http_port=8888, with_adapters=True):
+    server_conf_file = NamedTemporaryFile(mode='w+')
+    parser = SafeConfigParser()
+
+    parser.add_section('server')
+    parser.set('server', 'debug_mode', '1')
+    parser.set('server', 'http_port', str(http_port))
+    parser.set('server', 'http_addr', '127.0.0.1')
+    if with_adapters:
+        parser.set('server', 'adapters', 'dummy')
+
+    parser.add_section('tornado')
+    parser.set('tornado', 'logging', 'debug')
+
+    if with_adapters:
+        parser.add_section('adapter.dummy')
+        parser.set('adapter.dummy', 'module', 'odin.adapters.dummy.DummyAdapter')
+
+    parser.write(server_conf_file)
+    server_conf_file.file.flush()
+
+    server_args = ['--config={}'.format(server_conf_file.name)]
+    server_thread = threading.Thread(target=server.main, args=(server_args,))
+    server_thread.start()
+
+    return server_thread, server_conf_file
+
+
+def stop_server(server_thread, server_conf_file):
+    if server_thread is not None:
+        ioloop = IOLoop.instance()
+        ioloop.add_callback(ioloop.stop)
+        server_thread.join()
+
+    if server_conf_file is not None:
+        server_conf_file.close()
+
 
 class TestOdinServer():
 
@@ -23,43 +62,18 @@ class TestOdinServer():
     server_port = 8888
     server_api_version = 0.1
     server_thread = None
+    server_conf_file = None
 
     @classmethod
     def setup_class(cls):
         if cls.launch_server:
-
-            cls.server_conf_file = NamedTemporaryFile(mode='w+')
-            parser = SafeConfigParser()
-
-            parser.add_section('server')
-            parser.set('server', 'debug_mode', '1')
-            parser.set('server', 'http_port', '8888')
-            parser.set('server', 'http_addr', '127.0.0.1')
-            parser.set('server', 'adapters', 'dummy')
-
-            parser.add_section('tornado')
-            parser.set('tornado', 'logging', 'debug')
-
-            parser.add_section('adapter.dummy')
-            parser.set('adapter.dummy', 'module', 'odin.adapters.dummy.DummyAdapter')
-
-            parser.write(cls.server_conf_file)
-            cls.server_conf_file.file.flush()
-
-            server_args=['--config={}'.format(cls.server_conf_file.name)]
-            cls.server_thread = threading.Thread(target=server.main, args=(server_args,))
-            cls.server_thread.start()
+            (cls.server_thread, cls.server_conf_file) = start_server()
             time.sleep(0.2)
 
     @classmethod
     def teardown_class(cls):
-        if cls.server_thread != None:
-            ioloop = IOLoop.instance()
-            ioloop.add_callback(ioloop.stop)
-            cls.server_thread.join()
-
         if cls.launch_server:
-            cls.server_conf_file.close()
+            stop_server(cls.server_thread, cls.server_conf_file)
 
     def build_url(self, resource):
         return 'http://{}:{}/api/{}/{}'.format(
@@ -132,7 +146,44 @@ class TestOdinServer():
         rc = server.main((server_args),)
         assert_equal(rc, 2)
 
-if __name__ == '__main__':
+class LogCaptureFilter(logging.Filter):
+
+    def __init__(self, *args, **kwargs):
+
+        logging.Filter.__init__(self, *args, **kwargs)
+        self.messages = {logging.DEBUG: [],
+                         logging.INFO: [],
+                         logging.WARNING: [],
+                         logging.ERROR: [],
+                         logging.CRITICAL: []
+                         }
+
+    def filter(self, record):
+
+        self.messages[record.levelno].append(record.getMessage())
+        return True
+
+class TestOdinServerMissingAdapters():
+
+    def test_server_missing_adapters(self):
+
+        log_capture_filter = LogCaptureFilter()
+        logging.getLogger().handlers[0].addFilter(log_capture_filter)
+
+        (server_thread, server_conf) = start_server(http_port=8889, with_adapters=False)
+
+        time.sleep(0.2)
+
+        no_adapters_msg_seen = False
+        for msg in log_capture_filter.messages[logging.WARNING]:
+            if msg == 'Failed to resolve API adapters: No adapters specified in configuration':
+                no_adapters_msg_seen = True
+
+        assert_true(no_adapters_msg_seen)
+
+        stop_server(server_thread, server_conf)
+
+if __name__ == '__main__': #pragma: no cover
 
     import nose
     # If we are running this test module standalone, assume that the ODIN server

@@ -8,9 +8,9 @@ import sys
 from argparse import ArgumentParser
 from functools import partial
 
-if sys.version_info[0] == 3:
+if sys.version_info[0] == 3:                  #pragma: no cover
     from configparser import SafeConfigParser
-else:
+else:                                         #pragma: no cover
     from ConfigParser import SafeConfigParser
 
 import tornado.options

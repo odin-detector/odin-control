@@ -2,9 +2,9 @@ import sys
 
 from nose.tools import *
 
-if sys.version_info[0] == 3:
+if sys.version_info[0] == 3:  # pragma: no cover
     from unittest.mock import Mock
-else:
+else:                         # pragma: no cover
     from mock import Mock
 
 from odin.adapters.dummy import DummyAdapter

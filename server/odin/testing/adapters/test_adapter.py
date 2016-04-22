@@ -1,8 +1,8 @@
 import sys
 
-if sys.version_info[0] == 3:
+if sys.version_info[0] == 3:  # pragma: no cover
     from unittest.mock import Mock
-else:
+else:                         # pragma: no cover
     from mock import Mock
 
 from nose.tools import *
@@ -118,7 +118,7 @@ class TestApiMethodDecorators():
             response = ApiAdapterResponse(
                 self.response_data_json,
                 content_type=self.response_type_json, status_code=self.response_code)
-        else:
+        else:  # pragma: no cover
             response = None
             assert ("Request type decorator failed to trap unknown content type")
 
@@ -176,6 +176,17 @@ class TestApiMethodDecorators():
         assert_equal(response.status_code, self.response_code)
         assert_equal(response.content_type, self.response_type_plain)
         assert_equal(response.data, self.response_data_plain)
+
+    def test_decorated_method_no_default_json(self):
+
+        request = Mock()
+        request.data = '{\'request\' : 1234}'
+        request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
+
+        response = self.decorated_method_without_default(self.path, request)
+        assert_equal(response.status_code, self.response_code)
+        assert_equal(response.content_type, self.response_type_json)
+        assert_equal(response.data, self.response_data_json)
 
     def test_decorated_method_no_accept(self):
 

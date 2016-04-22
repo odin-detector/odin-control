@@ -6,10 +6,10 @@ import os
 from contextlib import contextmanager
 from tempfile import NamedTemporaryFile
 
-if sys.version_info[0] == 3:
+if sys.version_info[0] == 3:  # pragma: no cover
     from io import StringIO
     from configparser import SafeConfigParser
-else:
+else:                         # pragma: no cover
     from StringIO import StringIO
     from ConfigParser import SafeConfigParser
 
@@ -352,7 +352,7 @@ class TestConfigParser():
         self.cp.parse(test_args)
         assert_equal(self.cp.wrapped, 'wrapped_str')
 
-    def test_parser_with_no_adapters(self):
+    def test_parser_with_no_config_for_adapters(self):
 
         self.cp.parse()
 
