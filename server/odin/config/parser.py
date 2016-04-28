@@ -162,9 +162,9 @@ class ConfigParser(object):
         for section in self.allowed_options:
             for option in self.allowed_options[section]:
                 option_val = None
-                if option in file_config[section] and file_config[section][option] != None:
+                if option in file_config[section] and file_config[section][option] is not None:
                     option_val = file_config[section][option]
-                if option in arg_config_vars and arg_config_vars[option] != None:
+                if option in arg_config_vars and arg_config_vars[option] is not None:
                     option_val = vars(arg_config)[option]
                 if option_val is None:
                     option_val = self.allowed_options[section][option].default
