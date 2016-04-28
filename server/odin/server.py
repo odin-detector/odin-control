@@ -26,9 +26,9 @@ def main(argv=None):
     config = ConfigParser()
 
     # Define configuration options and add to the configuration parser
-    config.define("http_addr", default="0.0.0.0", help="Set HTTP server address")
-    config.define("http_port", default=8888, help="Set HTTP server port")
-    config.define("debug_mode", default=False, help="Enable tornado debug mode")
+    config.define("http_addr", default="0.0.0.0", option_help="Set HTTP server address")
+    config.define("http_port", default=8888, option_help="Set HTTP server port")
+    config.define("debug_mode", default=False, option_help="Enable tornado debug mode")
 
     # Parse configuration options and any configuration file specified
     try:

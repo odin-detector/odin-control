@@ -13,7 +13,7 @@ else:                         # pragma: no cover
     from StringIO import StringIO
     from ConfigParser import SafeConfigParser
 
-from odin.config.parser import ConfigParser, ConfigOption, ConfigError, AdapterConfig
+from odin.config.parser import ConfigParser, ConfigOption, ConfigError, AdapterConfig, _parse_multiple_arg
 
 
 class TestConfigOption():
@@ -28,7 +28,7 @@ class TestConfigOption():
         opt = ConfigOption(opt_name, opt_type, opt_default)
 
         assert_equal(opt.name, opt_name)
-        assert_equal(opt.type, opt_type)
+        assert_equal(opt.option_type, opt_type)
         assert_equal(opt.default, opt_default)
 
     def test_option_with_only_name(self):
@@ -38,7 +38,7 @@ class TestConfigOption():
         opt = ConfigOption(opt_name)
 
         assert_equal(opt.name, opt_name)
-        assert_equal(opt.type, str)
+        assert_equal(opt.option_type, str)
         assert_equal(opt.default, None)
 
     def test_option_with_default(self):
@@ -50,7 +50,7 @@ class TestConfigOption():
 
         assert_equal(opt.name, opt_name)
         assert_equal(opt.default, opt_default)
-        assert_equal(opt.type, opt_default.__class__)
+        assert_equal(opt.option_type, opt_default.__class__)
 
     def test_option_with_wrong_default_type(self):
 
@@ -59,7 +59,7 @@ class TestConfigOption():
         opt_type = bool
 
         with assert_raises(ConfigError) as cm:
-            opt = ConfigOption(opt_name, type=opt_type, default=opt_default)
+            opt = ConfigOption(opt_name, option_type=opt_type, default=opt_default)
         assert_equal(str(cm.exception),
              'Default value {} for option {} does not have correct type ({})'.format(
                  opt_default, opt_name, opt_type
@@ -197,9 +197,9 @@ class TestConfigParser():
         addr = '127.0.0.1'
         default_opt_val = False
 
-        self.cp.define('http_addr', default='0.0.0.0', help='Set HTTP server address')
-        self.cp.define('http_port', default=8888, help='Set HTTP server port')
-        self.cp.define('default_opt', default=default_opt_val, help='Default option')
+        self.cp.define('http_addr', default='0.0.0.0', option_help='Set HTTP server address')
+        self.cp.define('http_port', default=8888, option_help='Set HTTP server port')
+        self.cp.define('default_opt', default=default_opt_val, option_help='Default option')
 
         test_args=['prog_name', '--http_port', str(port), '--http_addr', str(addr)]
 
@@ -238,7 +238,7 @@ class TestConfigParser():
 
     def test_mismatched_arg_type(self):
 
-        self.cp.define('intopt', default=1234, type=int, help='This is an integer option')
+        self.cp.define('intopt', default=1234, option_type=int, option_help='This is an integer option')
         test_args = ['prog_name', '--intopt', 'wibble']
 
         with assert_raises(SystemExit) as cm:
@@ -249,7 +249,7 @@ class TestConfigParser():
 
     def test_parse_file(self):
 
-        self.cp.define('debug_mode', default=False, type=bool, help='Enable tornado debug mode')
+        self.cp.define('debug_mode', default=False, option_type=bool, option_help='Enable tornado debug mode')
 
         test_args = ['prog_name', '--config', self.test_config_file.name]
 
@@ -281,7 +281,7 @@ class TestConfigParser():
         multiarg_list = ['dummy1', 'dummy2', 'dummy3']
         multiarg_str = ','.join(multiarg_list)
 
-        split_args = self.cp._parse_multiple_arg(multiarg_str, arg_type=str, splitchar=',')
+        split_args = _parse_multiple_arg(multiarg_str, arg_type=str, splitchar=',')
 
         assert_equal(len(multiarg_list), len(split_args))
         for (elem_in, elem_out) in zip(multiarg_list, split_args):
@@ -294,11 +294,11 @@ class TestConfigParser():
 
         with assert_raises_regexp(ConfigError,
                   'Multiple-valued argument contained element of incorrect type'):
-            self.cp._parse_multiple_arg(multiarg_str, arg_type=int, splitchar=',')
+            _parse_multiple_arg(multiarg_str, arg_type=int, splitchar=',')
 
     def test_multiple_option(self):
 
-        self.cp.define('intvals', type=int, multiple=True, help='Integer list')
+        self.cp.define('intvals', option_type=int, multiple=True, option_help='Integer list')
 
         adapter_list = ['dummy', 'dummy2 ', 'dummy3']
         adapter_str = ','.join(adapter_list)
@@ -320,7 +320,7 @@ class TestConfigParser():
 
     def test_bad_multiple_option(self):
 
-        self.cp.define('intvals', type=int, multiple=True, help='Integer list')
+        self.cp.define('intvals', option_type=int, multiple=True, option_help='Integer list')
 
         bad_list = ['123', '456', 'oops']
         bad_str = '.'.join(bad_list)
@@ -345,7 +345,7 @@ class TestConfigParser():
         class StrWrapper(str):
             pass
 
-        self.cp.define('wrapped', type=StrWrapper, help='Wrapped String')
+        self.cp.define('wrapped', option_type=StrWrapper, option_help='Wrapped String')
 
         test_args = ['prog_name', '--config', self.test_config_file.name]
 
@@ -372,7 +372,7 @@ class TestConfigParser():
 
     def test_parser_with_no_adapters(self):
 
-        self.cp.define('summy', type=bool, help='Dummy option')
+        self.cp.define('summy', option_type=bool, option_help='Dummy option')
 
         test_args = ['prog_name', '--dummy', '1']
         self.cp.parse(test_args)
