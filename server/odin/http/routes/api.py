@@ -95,7 +95,7 @@ class ApiRoute(Route):
     def __init__(self):
 
         super(ApiRoute, self).__init__()
-        
+
         # Define a default handler which can return the support API version
         self.add_handler((r"/api/?", ApiVersionHandler))
 
