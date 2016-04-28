@@ -21,7 +21,6 @@ class ApiAdapter(object):
         """Initialise the ApiAdapter object"""
 
         self.name = type(self).__name__
-        pass
 
     def get(self, path, request):
 
@@ -31,6 +30,8 @@ class ApiAdapter(object):
         :param request: HTTP request object passed from handler
         :return: ApiAdapterResponse container of data, content-type and status_code
         """
+        logging.debug('GET on path %s from %s: method not implemented by %s',
+                      path, request.remote_ip, self.name)
         response = "GET method not implemented by {}".format(self.name)
         return ApiAdapterResponse(response, status_code=400)
 
@@ -42,6 +43,8 @@ class ApiAdapter(object):
         :param request: HTTP request object passed from handler
         :return: ApiAdapterResponse container of data, content-type and status_code
         """
+        logging.debug('PUT on path %s from %s: method not implemented by %s',
+                      path, request.remote_ip, self.name)
         response = "PUT method not implemented by {}".format(self.name)
         return ApiAdapterResponse(response, status_code=400)
 
@@ -53,6 +56,8 @@ class ApiAdapter(object):
         :param request: HTTP request object passed from handler
         :return: ApiAdapterResponse container of data, content-type and status_code
         """
+        logging.debug('DELETE on path %s from %s: method not implemented by %s',
+                      path, request.remote_ip, self.name)
         response = "DELETE method not implemented by {}".format(self.name)
         return ApiAdapterResponse(response, status_code=400)
 
@@ -68,14 +73,31 @@ class ApiAdapterResponse(object):
 
     def __init__(self, data, content_type='text/plain', status_code=200):
 
+        """Initialise the APiAdapterResponse object
+
+        :param data: data to return from data
+        :param content_type: content type of response
+        :param status_code: HTTP status code to return
+        """
+
         self.data = data
         self.content_type = content_type
         self.status_code = status_code
 
     def set_content_type(self, content_type):
+
+        """ Sets the content type for the adapter response
+
+        :param content_type: response content type
+        """
         self.content_type = content_type
 
     def set_status_code(self, status_code):
+
+        """ Sets the HTTP status code for the adapter response
+
+        :param status_code: HTTP status code
+        """
         self.status_code = status_code
 
 
@@ -166,7 +188,9 @@ def response_types(*oargs, **okwargs):
                 # If it was not possible to resolve a response type or there was not default
                 # given, return an error code 406
                 if response_type is None:
-                    return ApiAdapterResponse("Requested content types not supported", status_code=406)
+                    return ApiAdapterResponse(
+                        "Requested content types not supported", status_code=406
+                    )
 
             else:
                 response_type = okwargs['default'] if 'default' in okwargs else 'text/plain'
