@@ -1,6 +1,3 @@
-from odin.http.server import HttpServer
-from odin.config.parser import ConfigParser, ConfigError
-
 import sys
 import logging
 import signal
@@ -15,6 +12,8 @@ except ImportError:   # pragma: no cover
 
 import tornado.ioloop
 
+from odin.http.server import HttpServer
+from odin.config.parser import ConfigParser, ConfigError
 
 def sigint_handler(signum, frame):  # pragma: no cover
     logging.info("Interrupt signal received, shutting down")
@@ -34,24 +33,23 @@ def main(argv=None):
     try:
         config.parse(argv)
     except ConfigError as e:
-        logging.error("Failed to parse configuration: {}".format(e))
+        logging.error("Failed to parse configuration: %s", e)
         return 2
 
     # Resolve the list of adapters specified
     try:
         adapters = config.resolve_adapters()
     except ConfigError as e:
-        logging.warning("Failed to resolve API adapters: {}".format(e))
-        adapters = []
+        logging.warning("Failed to resolve API adapters: %s", e)
+        adapters = {}
 
-    logging.info("Using the {} IOLoop instance".format("0MQ" if using_zmq_loop else "tornado"))
+    logging.info("Using the %s IOLoop instance", "0MQ" if using_zmq_loop else "tornado")
 
     # Launch the HTTP server
     http_server = HttpServer(config.debug_mode, adapters)
     http_server.listen(config.http_port, config.http_addr)
 
-    logging.info("HTTP server listening on {}:{}" .format(
-        config.http_addr, config.http_port))
+    logging.info("HTTP server listening on %s:%s", config.http_addr, config.http_port)
 
     # Register a SIGINT signal handler only if this is the main thread
     if isinstance(threading.current_thread(), threading._MainThread): # pragma: no cover

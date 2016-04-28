@@ -9,6 +9,7 @@ from odin.adapters.adapter import ApiAdapterResponse
 
 _api_version = 0.1
 
+
 def validate_api_request(required_version):
     """
     Checks API version is correct and that the subsystem is registered with the
@@ -82,14 +83,19 @@ class ApiHandler(tornado.web.RequestHandler):
 
         if response.content_type == 'application/json':
             if not isinstance(response.data, (str, dict)):
-                raise ApiError('A response with content type application/json must have str or dict data')
+                raise ApiError(
+                    'A response with content type application/json must have str or dict data'
+                )
 
         self.write(data)
+
 
 class ApiRoute(Route):
 
     def __init__(self):
 
+        super(ApiRoute, self).__init__()
+        
         # Define a default handler which can return the support API version
         self.add_handler((r"/api/?", ApiVersionHandler))
 
@@ -110,11 +116,16 @@ class ApiRoute(Route):
             adapter_class  = getattr(adapter_module, class_name)
             self.adapters[path] = adapter_class()
         except (ImportError, AttributeError) as e:
-            logging.error("Failed to register API adapter {} for path {} with dispatcher: {}".format(adapter_name, path, e))
+            logging.error(
+                "Failed to register API adapter %s for path %s with dispatcher: %s",
+                adapter_name, path, e)
             if not fail_ok:
                 raise ApiError(e)
         else:
-            logging.debug("Registered API adapter class {} from module {} for path {}".format(class_name, module_name, path))
+            logging.debug(
+                "Registered API adapter class %s from module %s for path %s",
+                class_name, module_name, path
+            )
 
     def has_adapter(self, subsystem):
 

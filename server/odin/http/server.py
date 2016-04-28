@@ -1,6 +1,4 @@
 import os
-import time
-import json
 import logging
 
 import tornado.gen
@@ -19,7 +17,7 @@ class HttpServer(object):
             "debug" : debug_mode,
             }
 
-        logging.debug("static_path is {}".format(settings['static_path']))
+        logging.debug("static_path is %s", settings['static_path'])
 
         # Create an API route
         api_route = ApiRoute()
