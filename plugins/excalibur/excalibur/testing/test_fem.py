@@ -1,6 +1,7 @@
-from fem.client import ExcaliburFem, ExcaliburFemError
 from nose.tools import *
 import random
+
+from excalibur.fem.client import ExcaliburFem, ExcaliburFemError
 
 class TestExcaliburFem:
 

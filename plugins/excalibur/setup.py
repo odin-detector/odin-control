@@ -1,15 +1,26 @@
-from setuptools import setup, Extension
+from setuptools import setup, find_packages, Extension
+import os
 
-# define the extension module
-fem_api = Extension('fem_api', sources=['fem_api_source/fem_api_wrapper.c', 'fem_api_source/femApi.cpp', 'fem_api_source/ExcaliburFemClient.cpp', 'fem_api_source/FemApiError.cpp'])
+# Import requirements from file
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
+# Define the extension module
+fem_api_source_path='fem_api_source'
+fem_api_sources = ['fem_api_wrapper.c', 'femApi.cpp', 'ExcaliburFemClient.cpp', 'FemApiError.cpp']
+
+fem_api = Extension('fem_api', sources=[
+    os.path.join(fem_api_source_path, source) for source in fem_api_sources
+])
 
 setup(
-    name="excalibur",
+    name='excalibur',
     version='0.1',
     description='EXCALIBUR detector plugin for ODIN framework',
     url='https://github.com/timcnicholls/odin',
     author='Tim Nicholls',
     author_email='tim.nicholls@stfc.ac.uk',
-    setup_requires=['nose>=1.0'],
     ext_modules=[fem_api],
+    packages = find_packages(),
+    install_requires=required,
 )
