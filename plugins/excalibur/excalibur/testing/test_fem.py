@@ -56,7 +56,7 @@ class TestExcaliburFem:
 
         assert_equal(rc, ExcaliburFem.FEM_RTN_OK)
         assert_equal(len(values), param_len)
-        assert_equal(values, range(param_id, param_id+param_len))
+        assert_equal(values, list(range(param_id, param_id+param_len)))
 
     def test_get_int_exception(self):
 
@@ -86,7 +86,7 @@ class TestExcaliburFem:
         chip_id = 0
         param_id = 1001
         param_len = 10
-        values = range(param_id, param_id + param_len)
+        values = list(range(param_id, param_id + param_len))
 
         rc = self.the_fem.set_int(chip_id, param_id, values)
 
@@ -107,7 +107,7 @@ class TestExcaliburFem:
         chip_id = 0
         param_id = 10002
         param_len = 100
-        values_in = [random.randint(0, 1000000) for x in xrange(param_len)]
+        values_in = [random.randint(0, 1000000) for x in range(param_len)]
 
         rc = self.the_fem.set_int(chip_id, param_id, values_in)
         assert_equal(rc, ExcaliburFem.FEM_RTN_OK)

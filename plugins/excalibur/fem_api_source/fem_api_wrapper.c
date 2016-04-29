@@ -1,5 +1,29 @@
 #include <Python.h>
 
+#if PY_MAJOR_VERSION >= 3
+  #define MOD_ERROR_VAL NULL
+  #define MOD_SUCCESS_VAL(val) val
+  #define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
+  #define MOD_DEF(ob, name, doc, methods) \
+          static struct PyModuleDef moduledef = { \
+            PyModuleDef_HEAD_INIT, name, doc, -1, methods, }; \
+          ob = PyModule_Create(&moduledef);
+
+  #define PyInt_FromLong PyLong_FromLong
+  #define PyInt_AsLong   PyLong_AsLong
+  #define PyInt_Check    PyLong_Check
+
+#else
+  #define MOD_ERROR_VAL
+  #define MOD_SUCCESS_VAL(val)
+  #define MOD_INIT(name) void init##name(void)
+  #define MOD_DEF(ob, name, doc, methods) \
+          ob = Py_InitModule3(name, methods, doc);
+#endif
+
+#if PY_MAJOR_VERSION >= 3
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -241,16 +265,21 @@ static PyMethodDef fem_api_methods[] =
 };
 
 /* module initialization */
-PyMODINIT_FUNC
-initfem_api(void)
+//PyMODINIT_FUNC
+//initfem_api(void)
+MOD_INIT(fem_api)
 {
     PyObject* m;
-    m = Py_InitModule("fem_api", fem_api_methods);
+    //m = Py_InitModule("fem_api", fem_api_methods);
+    MOD_DEF(m, "fem_api", "Module docstring", fem_api_methods)
     if (m == NULL) {
-        return;
+        return MOD_ERROR_VAL;
     }
 
     fem_api_error = PyErr_NewException("fem_api.error", NULL, NULL);
     Py_INCREF(fem_api_error);
     PyModule_AddObject(m, "error", fem_api_error);
+
+    return MOD_SUCCESS_VAL(m);
+
 }

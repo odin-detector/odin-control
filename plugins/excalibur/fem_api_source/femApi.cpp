@@ -39,11 +39,11 @@ int femGetInt(void* femHandle, int chipId, int id, size_t size, int* value)
     //ExcaliburFemClient* theFem = reinterpret_cast<ExcaliburFemClient*>(femHandle);
 
     if (int_params.count(id) > 0) {
-        for (int i = 0; i < size; i++) {
+        for (size_t i = 0; i < size; i++) {
             value[i] = int_params[id][i];
         }
     } else {
-        for (int i = 0; i < size; i++) {
+        for (size_t i = 0; i < size; i++) {
             value[i] = id + i;
         }
     }
