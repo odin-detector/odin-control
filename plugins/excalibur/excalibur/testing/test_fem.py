@@ -3,6 +3,16 @@ import random
 
 from excalibur.fem.client import ExcaliburFem, ExcaliburFemError
 
+
+class TestExcaliburFemError:
+
+    def test_error_value(self):
+
+        value = 'Test error value'
+        with assert_raises_regexp(ExcaliburFemError, value):
+            raise ExcaliburFemError(value)
+
+
 class TestExcaliburFem:
 
     @classmethod
@@ -20,6 +30,14 @@ class TestExcaliburFem:
         with assert_raises(ExcaliburFemError) as cm:
             bad_fem = ExcaliburFem(id)
         assert_equal(cm.exception.value, 'Error trying to initialise FEM id {}: Illegal ID specified'.format(id))
+
+    def test_fem_id_exception(self):
+
+        temp_fem = ExcaliburFem(1)
+        temp_fem.fem_handle = None
+        with assert_raises_regexp(
+                ExcaliburFemError, 'get_id: resolved FEM object pointer to null'):
+            temp_fem.get_id()
 
     def test_double_close(self):
 
@@ -39,6 +57,19 @@ class TestExcaliburFem:
         assert_equal(rc, ExcaliburFem.FEM_RTN_OK)
         assert_equal(len(values), param_len)
         assert_equal(values, range(param_id, param_id+param_len))
+
+    def test_get_int_exception(self):
+
+        chip_id = 0
+        param_id = 1001
+        param_len = 10
+
+        temp_fem = ExcaliburFem(1)
+        temp_fem.fem_handle = None
+
+        with assert_raises_regexp(
+                ExcaliburFemError, 'get_int: resolved FEM object pointer to null'):
+            temp_fem.get_int(chip_id, param_id, param_len)
 
     def test_legal_set_single_int(self):
 
@@ -98,3 +129,16 @@ class TestExcaliburFem:
         cmd_id = -1
         rc = self.the_fem.cmd(chip_id, cmd_id)
         assert_equal(rc, ExcaliburFem.FEM_RTN_UNKNOWNOPID)
+
+    def test_cmd_exception(self):
+
+        chip_id = 0
+        cmd_id = 1
+
+        temp_fem = ExcaliburFem(1)
+        temp_fem.fem_handle = None
+
+        with assert_raises_regexp(
+                ExcaliburFemError, 'cmd: resolved FEM object pointer to null'):
+            temp_fem.cmd(chip_id, cmd_id)
+

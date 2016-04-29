@@ -34,7 +34,7 @@ class ExcaliburFem(object):
     def get_id(self):
 
         try:
-            id =  fem_api.get_id(self.fem_handle)
+            id = fem_api.get_id(self.fem_handle)
         except fem_api.error as e:
             raise ExcaliburFemError(str(e))
 
@@ -43,7 +43,7 @@ class ExcaliburFem(object):
     def get_int(self, chip_id, param_id, size):
 
         try:
-            rc =  fem_api.get_int(self.fem_handle, chip_id, param_id, size)
+            rc = fem_api.get_int(self.fem_handle, chip_id, param_id, size)
         except fem_api.error as e:
             raise ExcaliburFemError(str(e))
 
