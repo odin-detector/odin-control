@@ -16,11 +16,19 @@ install:
   - cd server
   - python setup.py install
   - cd ..
+  - cd plugins/excalibur
+  - python setup.py install
+  - cd ../..
   - pip install coveralls
 
 script:
   - cd server
   - python setup.py nosetests
+  - cd ..
+  - cd plugins/excalibur
+  - python setup.py nosetests
+  - cd ../..
+  - coverage combine server/.coverage plugins/excalibur/.coverage && coverage report -m
 
 after_success:
   - coveralls
