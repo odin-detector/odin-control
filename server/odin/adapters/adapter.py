@@ -153,9 +153,9 @@ def response_types(*oargs, **okwargs):
 
     @response_type('application/json', 'text/html', default='text/html')
     def get(self, path, request):
-        ....
+    <snip>
 
-    to specify that the
+    to specify that the method has acceptable resonse types of JSON, HTML, defaulting to HTML
 
     :param oargs: a variable length list of  acceptable response types
     :param okwargs: keyword argument(s), allowing default type to be specified.

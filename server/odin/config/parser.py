@@ -139,7 +139,7 @@ class ConfigParser(object):
         to replicate the desired behaviour.
 
         :param args: optional string containing arguments to parse
-        :return None
+        :return: None
         """
 
         # If args not specified, use the program command-line argv string
@@ -260,7 +260,7 @@ class ConfigParser(object):
         list of adapters to be loaded and configured by the server.
 
         :param adapter_list: a list of adapter names to resolve. If not set, the
-        parsers adapters attribute will be substituted
+            parsers adapters attribute will be substituted
 
         :return: dict of AdapterConfig objects from the configuration file
         """
