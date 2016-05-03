@@ -1,4 +1,4 @@
-import fem_api
+from excalibur import fem_api
 
 class ExcaliburFemError(Exception):
 

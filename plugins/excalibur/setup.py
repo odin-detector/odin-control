@@ -9,7 +9,7 @@ with open('requirements.txt') as f:
 fem_api_source_path='fem_api_source'
 fem_api_sources = ['fem_api_wrapper.c', 'femApi.cpp', 'ExcaliburFemClient.cpp', 'FemApiError.cpp']
 
-fem_api = Extension('fem_api', sources=[
+fem_api = Extension('excalibur.fem_api', sources=[
     os.path.join(fem_api_source_path, source) for source in fem_api_sources
 ])
 
