@@ -3,9 +3,9 @@ from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types,
 
 class DummyAdapter(ApiAdapter):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
 
-        super(DummyAdapter, self).__init__(*args, **kwargs)
+        super(DummyAdapter, self).__init__(**kwargs)
         logging.debug('DummyAdapter loaded')
 
     def get(self, path, request):

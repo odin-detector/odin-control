@@ -17,11 +17,11 @@ class ExcaliburAdapter(ApiAdapter):
     transforming the REST-like API HTTP verbs into the appropriate EXCALIBUR detector control actions
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
 
         """Initialise the ExcaliburAdapter object"""
 
-        super(ExcaliburAdapter, self).__init__(*args, **kwargs)
+        super(ExcaliburAdapter, self).__init__(**kwargs)
         logging.debug('ExcaliburAdapter loaded')
 
 

@@ -436,7 +436,7 @@ class AdapterConfig(object):
         :raises: AttributeError for unrecognised option
         """
 
-        if not option in self._options:
+        if option not in self._options:
             raise AttributeError('Unrecognised option {}'.format(option))
 
         return self._options[option]

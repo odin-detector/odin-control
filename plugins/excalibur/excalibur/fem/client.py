@@ -1,5 +1,6 @@
 from excalibur import fem_api
 
+
 class ExcaliburFemError(Exception):
 
     def __init__(self, value):
@@ -7,6 +8,7 @@ class ExcaliburFemError(Exception):
 
     def __str__(self):
         return repr(self.value)
+
 
 class ExcaliburFem(object):
 
@@ -16,11 +18,11 @@ class ExcaliburFem(object):
     FEM_RTN_BADSIZE = 3
     FEM_RTN_INITFAILED = 4
 
-    def __init__(self, id):
+    def __init__(self, fem_id):
 
         self.fem_handle = None
         try:
-            self.fem_handle = fem_api.initialise(id)
+            self.fem_handle = fem_api.initialise(fem_id)
         except fem_api.error as e:
             raise ExcaliburFemError(str(e))
 
@@ -34,11 +36,11 @@ class ExcaliburFem(object):
     def get_id(self):
 
         try:
-            id = fem_api.get_id(self.fem_handle)
+            fem_id = fem_api.get_id(self.fem_handle)
         except fem_api.error as e:
             raise ExcaliburFemError(str(e))
 
-        return id
+        return fem_id
 
     def get_int(self, chip_id, param_id, size):
 
