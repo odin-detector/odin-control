@@ -14,7 +14,12 @@ class TestApiAdapter():
     @classmethod
     def setup_class(cls):
 
-        cls.adapter = ApiAdapter()
+        cls.adapter_options = {
+            'test_option_float' : 1.234,
+            'test_option_str' : 'value',
+            'test_option_int' : 4567.
+        }
+        cls.adapter = ApiAdapter(**cls.adapter_options)
         cls.path = '/api/path'
         cls.request = Mock()
         cls.request.headers = {'Accept': '*/*', 'Content-Type': 'text/plain'}
@@ -36,6 +41,10 @@ class TestApiAdapter():
         assert_equal(response.data, 'DELETE method not implemented by ApiAdapter')
         assert_equal(response.status_code, 400)
 
+    def test_api_adapter_has_options(self):
+
+        opts = self.adapter.options
+        assert_equal(opts, self.adapter_options)
 
 class TestApiAdapterResponse():
 

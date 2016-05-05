@@ -108,23 +108,38 @@ class ApiRoute(Route):
 
         self.adapters = {}
 
-    def register_adapter(self, path, adapter_name, fail_ok=True):
+    def register_adapter(self, adapter_config, fail_ok=True):
 
-        (module_name, class_name) = adapter_name.rsplit('.', 1)
+        """
+        Registers an API adapter with the APIRoute object.
+
+        Based on the adapter_config object passed in as an argument, this method attempts to
+        load the specified module and create an instance of the adapter class to be used
+        to handle requests to the API route on the appropriate path.
+
+        :param adapter_config: AdapterConfig object for the adapter
+        :param fail_ok: Allow the adapter import and registration to fail without raising an error
+        """
+
+        # Resolve the adapter module and class name from the dotted module path in the config object
+        (module_name, class_name) = adapter_config.module.rsplit('.', 1)
+
+        # Try to import the module, resolve the class in the module and create an instance of it
         try:
             adapter_module = importlib.import_module(module_name)
-            adapter_class  = getattr(adapter_module, class_name)
-            self.adapters[path] = adapter_class()
+            adapter_class = getattr(adapter_module, class_name)
+            self.adapters[adapter_config.name] = adapter_class(**adapter_config.options())
+
         except (ImportError, AttributeError) as e:
             logging.error(
                 "Failed to register API adapter %s for path %s with dispatcher: %s",
-                adapter_name, path, e)
+                adapter_config.module, adapter_config.name, e)
             if not fail_ok:
                 raise ApiError(e)
         else:
             logging.debug(
                 "Registered API adapter class %s from module %s for path %s",
-                class_name, module_name, path
+                class_name, module_name, adapter_config.name
             )
 
     def has_adapter(self, subsystem):

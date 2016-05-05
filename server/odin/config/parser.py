@@ -386,6 +386,7 @@ class ConfigOption(object):
             else:
                 self.option_type = str
 
+
 class AdapterConfig(object):
 
     """ An adapter configuration container class
@@ -405,6 +406,7 @@ class AdapterConfig(object):
 
         self.name = name
         self.module = module
+        self._options = {}
 
     def set(self, option, value):
 
@@ -414,14 +416,36 @@ class AdapterConfig(object):
         :param value: value of the option
         :return: None
         """
-        setattr(self, option, value)
+        self._options[option] = value
 
-    def __contains__(self, item):
+    def __contains__(self, option):
 
         """ Containment check operator - allows ``in`` to check for presence of option
 
-        :param item: name of option to check for
+        :param option: name of option to check for
         :return: bool True or False indicating presence of option
         """
-        return getattr(self, item)
+        return option in self._options
 
+    def __getattr__(self, option):
+
+        """ Attribute getter allowing adapter options to be accessed by object.option syntax
+
+        :param option: name option to get
+        :return: value of the requested option
+        :raises: AttributeError for unrecognised option
+        """
+
+        if not option in self._options:
+            raise AttributeError('Unrecognised option {}'.format(option))
+
+        return self._options[option]
+
+    def options(self):
+
+        """ Returns a dictionary of the options set in the object
+
+        :return: dictionary of options
+        """
+
+        return self._options

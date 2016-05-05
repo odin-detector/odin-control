@@ -24,7 +24,7 @@ class HttpServer(object):
 
         # Register adapters with the API route and get handlers
         for adapter in adapters:
-            api_route.register_adapter(adapters[adapter].name, adapters[adapter].module)
+            api_route.register_adapter(adapters[adapter])
 
         handlers = api_route.get_handlers()
 

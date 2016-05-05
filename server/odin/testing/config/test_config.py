@@ -96,6 +96,14 @@ class TestAdapterConfig():
         assert_equal(ac.option1, option1_val)
         assert_equal(ac.option2, option2_val)
 
+        with assert_raises_regexp(AttributeError, 'Unrecognised option option3'):
+            option3 = ac.option3
+
+        ac_options = ac.options()
+        assert_true(type(ac_options) is dict)
+        assert_equal(len(ac_options), 2)
+        assert_true(option1_name in ac_options)
+        assert_true(option2_name in ac_options)
 
 class TestConfigParser():
 

@@ -9,7 +9,7 @@ else:                         # pragma: no cover
     from mock import Mock
 
 from odin.http.routes.api import ApiRoute, ApiHandler, ApiError, _api_version
-
+from odin.config.parser import AdapterConfig
 
 class TestApiRoute():
 
@@ -22,17 +22,22 @@ class TestApiRoute():
 
     def test_register_adapter(self):
 
-        self.api_route.register_adapter('dummy', 'odin.adapters.dummy.DummyAdapter')
+        adapter_config = AdapterConfig('dummy', 'odin.adapters.dummy.DummyAdapter')
+        self.api_route.register_adapter(adapter_config)
 
     def test_register_adapter_badmodule(self):
 
+        adapter_config = AdapterConfig('dummy', 'odin.adapters.bad_dummy.DummyAdapter')
+
         with assert_raises_regexp(ApiError, 'No module named'):
-            self.api_route.register_adapter('dummy', 'odin.adapters.dummyd.DummyAdapter', fail_ok=False)
+            self.api_route.register_adapter(adapter_config, fail_ok=False)
 
     def test_register_adapter_badclass(self):
 
+        adapter_config = AdapterConfig('dummy', 'odin.adapters.dummy.BadAdapter')
+
         with assert_raises_regexp(ApiError, 'has no attribute \'BadAdapter\''):
-            self.api_route.register_adapter('dummy', 'odin.adapters.dummy.BadAdapter', fail_ok=False)
+            self.api_route.register_adapter(adapter_config, fail_ok=False)
 
 
 class TestApiHandler():

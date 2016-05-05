@@ -16,11 +16,16 @@ class ApiAdapter(object):
     implement them, returning an error message and 400 code.
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
 
         """Initialise the ApiAdapter object"""
 
         self.name = type(self).__name__
+
+        # Load any keyword arguments into the adapter options dictionary
+        self.options = {}
+        for kw in kwargs:
+            self.options[kw] = kwargs[kw]
 
     def get(self, path, request):
 
