@@ -1,3 +1,4 @@
+#include "FemApi.h"
 #include "FemException.h"
 
 typedef enum
@@ -48,7 +49,8 @@ typedef enum
 class ExcaliburFemClient{
 public:
 
-    ExcaliburFemClient(int id = 0);
+    ExcaliburFemClient(void* aCtlHandle, const CtlCallbacks* aCallbacks,
+			const CtlConfig* aConfig, unsigned int aTimeoutInMsecs = 0);
     ~ExcaliburFemClient();
 
     int get_id();

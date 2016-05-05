@@ -98,8 +98,7 @@ const char* femErrorMsg(void);
 int femErrorCode(void);
 int femGetId(void* femHandle);
 
-//void* femInitialise(void* ctlHandle, const CtlCallbacks* callBacks, const CtlConfig* config);
-void* femInitialise(int id);
+void* femInitialise(void* ctlHandle, const CtlCallbacks* callbacks, const CtlConfig* config);
 int femSetInt(void* femHandle, int chipId, int id, size_t size, int* value);
 int femSetShort(void* femHandle, int chipId, int id, size_t size, short* value);
 int femSetFloat(void* femHandle, int chipId, int id, size_t size, double* value);

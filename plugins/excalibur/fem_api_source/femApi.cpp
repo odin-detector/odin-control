@@ -8,6 +8,8 @@
 
 std::map<int, std::vector<int> > int_params;
 
+const unsigned int kClientTimeoutMsecs = 10000;
+
 const char* femErrorMsg(void)
 {
     return FemApiError::get_string();
@@ -18,15 +20,15 @@ int femErrorCode(void)
     return FemApiError::get_code();
 }
 
-void* femInitialise(int id)
+void* femInitialise(void* ctlHandle, const CtlCallbacks* callbacks, const CtlConfig* config)
 {
     ExcaliburFemClient* theFem = NULL;
     try {
-        theFem = new ExcaliburFemClient(id);
+        theFem = new ExcaliburFemClient(ctlHandle, callbacks, config, kClientTimeoutMsecs);
     }
     catch (FemClientException& e)
     {
-        FemApiError().Set(e.which()) << "Error trying to initialise FEM id " << id << ": " << e.what();
+        FemApiError().Set(e.which()) << "Error trying to initialise FEM id " << config->femNumber << ": " << e.what();
     }
 
     return (void*)theFem;

@@ -37,6 +37,7 @@
 */
 typedef struct Fem {
     void* handle;
+    CtlConfig config;
 } Fem;
 typedef Fem* FemPtr;
 
@@ -80,7 +81,10 @@ static PyObject* _initialise(PyObject* self, PyObject* args)
         return NULL;
     }
 
-    fem_ptr->handle = femInitialise(id);
+    /* Set up the CtlConfig structure to pass to the FEM on initialisation */
+    fem_ptr->config.femNumber = id;
+
+    fem_ptr->handle = femInitialise((void*)NULL, (const CtlCallbacks*)NULL, (const CtlConfig*)&(fem_ptr->config));
     if (fem_ptr->handle == NULL) {
         PyErr_SetString(fem_api_error, femErrorMsg());
         return NULL;
