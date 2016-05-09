@@ -67,6 +67,54 @@ void _set_api_error_string(const char* format, ...) {
         _set_api_error_string("%s: FEM object pointer has null FEM handle", func_name); \
         return NULL; }
 
+
+typedef enum log_level_ {info, warning, error, debug} log_level;
+#define MAX_LOG_STRING_LEN 128
+
+static void log_msg(log_level level, const char* format, ...)
+{
+    static PyObject *logging = NULL;
+    static PyObject *string = NULL;
+
+    // Import logging module when needed
+    if (logging == NULL){
+        logging = PyImport_ImportModuleNoBlock("logging");
+        if (logging == NULL)
+            PyErr_SetString(PyExc_ImportError,
+                "Could not import module 'logging'");
+    }
+
+    // Build the log message from the format and variable argument list
+    char msg[MAX_LOG_STRING_LEN];
+    va_list arglist;
+    va_start(arglist, format);
+    vsnprintf(msg, MAX_LOG_STRING_LEN, format, arglist);
+    va_end(arglist);
+
+    string = Py_BuildValue("s", msg);
+
+    // Call the logging function depending on loglevel
+    switch (level)
+    {
+        case info:
+            PyObject_CallMethod(logging, "info", "O", string);
+            break;
+
+        case warning:
+            PyObject_CallMethod(logging, "warn", "O", string);
+            break;
+
+        case error:
+            PyObject_CallMethod(logging, "error", "O", string);
+            break;
+
+        case debug:
+            PyObject_CallMethod(logging, "debug", "O", string);
+            break;
+    }
+    Py_DECREF(string);
+}
+
 static PyObject* _initialise(PyObject* self, PyObject* args)
 {
     int id;
@@ -90,6 +138,8 @@ static PyObject* _initialise(PyObject* self, PyObject* args)
         return NULL;
     }
     //printf("Initialised module with handle %lu\n", (unsigned long)(fem_ptr->handle));
+    log_msg(debug, "Initialised fem_api module with handle %lu for FEM ID %d",
+        (unsigned long)(fem_ptr->handle), id);
 
     return PyCapsule_New(fem_ptr, "FemPtr", _del);
 }

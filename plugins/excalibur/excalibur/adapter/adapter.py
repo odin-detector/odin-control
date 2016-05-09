@@ -7,6 +7,7 @@ Tim Nicholls, STFC Application Engineering Group
 import logging
 from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
 
+from excalibur.fem.client import ExcaliburFem, ExcaliburFemError
 
 class ExcaliburAdapter(ApiAdapter):
 
@@ -22,6 +23,8 @@ class ExcaliburAdapter(ApiAdapter):
         """Initialise the ExcaliburAdapter object"""
 
         super(ExcaliburAdapter, self).__init__(**kwargs)
+
+        self.fem = ExcaliburFem(123)
         logging.debug('ExcaliburAdapter loaded')
 
 
