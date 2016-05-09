@@ -93,3 +93,4 @@ ENV/
 
 # CTAGS tags files
 tags
+.tags
