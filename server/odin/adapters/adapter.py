@@ -207,5 +207,3 @@ def response_types(*oargs, **okwargs):
         return wrapper
 
     return decorator
-
-

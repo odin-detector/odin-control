@@ -14,7 +14,8 @@ class TestOdinServer(OdinTestServer):
         adapter_config = {
             'dummy': {
                 'module': 'odin.adapters.dummy.DummyAdapter',
-                'test_param': 13.46,
+                'background_task_enable': 1,
+                'background_task_interval': 0.1,
             }
         }
         super(TestOdinServer, cls).setup_class(adapter_config)
@@ -88,6 +89,12 @@ class TestOdinServer(OdinTestServer):
         server_args = ['--config=absent.cfg']
         rc = server.main((server_args),)
         assert_equal(rc, 2)
+
+    def test_background_task_in_adapter(self):
+        result = requests.get(self.build_url('dummy/background_task_count'))
+        assert_equal(result.status_code, 200)
+        count = result.json()['response']['background_task_count']
+        assert_true(count > 0)
 
 
 class TestOdinServerMissingAdapters(OdinTestServer):

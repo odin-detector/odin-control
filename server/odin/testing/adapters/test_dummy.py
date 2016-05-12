@@ -20,8 +20,9 @@ class TestDummyAdapter():
         cls.request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
 
     def test_adapter_get(self):
+        expected_response = {'response': 'DummyAdapter: GET on path {}'.format(self.path)}
         response = self.adapter.get(self.path, self.request)
-        assert_equal(response.data, 'DummyAdapter: GET on path {}'.format(self.path))
+        assert_equal(response.data, expected_response)
         assert_equal(response.status_code, 200)
 
     def test_adapter_put(self):
@@ -49,4 +50,3 @@ class TestDummyAdapter():
         response = self.adapter.put(self.path, bad_request)
         assert_equal(response.data, 'Requested content types not supported')
         assert_equal(response.status_code, 406)
-
