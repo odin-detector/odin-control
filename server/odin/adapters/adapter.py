@@ -1,5 +1,5 @@
 """
-odin.adapters.adapter.py - base API adapter implmentation for the ODIN server
+odin.adapters.adapter.py - base API adapter implmentation for the ODIN server.
 
 Tim Nicholls, STFC Application Engineering Group
 """
@@ -9,7 +9,7 @@ import logging
 
 class ApiAdapter(object):
     """
-    API adapter base class
+    API adapter base class.
 
     This class defines the basis for all API adapters and provides default
     methods for the required HTTP verbs in case the derived classes fail to
@@ -17,9 +17,10 @@ class ApiAdapter(object):
     """
 
     def __init__(self, **kwargs):
+        """Initialise the ApiAdapter object.
 
-        """Initialise the ApiAdapter object"""
-
+        :param kwargs: keyword argument list that is copied into options dictionary
+        """
         self.name = type(self).__name__
 
         # Load any keyword arguments into the adapter options dictionary
@@ -28,8 +29,9 @@ class ApiAdapter(object):
             self.options[kw] = kwargs[kw]
 
     def get(self, path, request):
+        """Handle an HTTP GET request.
 
-        """HTTP GET method abstract implementation for ApiAdapter
+        This method is an abstract implementation of the GET request handler for ApiAdapter.
 
         :param path: URI path of resource
         :param request: HTTP request object passed from handler
@@ -41,8 +43,9 @@ class ApiAdapter(object):
         return ApiAdapterResponse(response, status_code=400)
 
     def put(self, path, request):
+        """Handle an HTTP PUT request.
 
-        """HTTP PUT method abstract implementation for ApiAdapter
+        This method is an abstract implementation of the PUT request handler for ApiAdapter.
 
         :param path: URI path of resource
         :param request: HTTP request object passed from handler
@@ -54,8 +57,9 @@ class ApiAdapter(object):
         return ApiAdapterResponse(response, status_code=400)
 
     def delete(self, path, request):
+        """Handle an HTTP DELETE request.
 
-        """HTTP DELETE method abstract implementation for ApiAdapter
+        This method is an abstract implementation of the DELETE request handler for ApiAdapter.
 
         :param path: URI path of resource
         :param request: HTTP request object passed from handler
@@ -77,29 +81,25 @@ class ApiAdapterResponse(object):
     """
 
     def __init__(self, data, content_type='text/plain', status_code=200):
-
-        """Initialise the APiAdapterResponse object
+        """Initialise the APiAdapterResponse object.
 
         :param data: data to return from data
         :param content_type: content type of response
         :param status_code: HTTP status code to return
         """
-
         self.data = data
         self.content_type = content_type
         self.status_code = status_code
 
     def set_content_type(self, content_type):
-
-        """ Sets the content type for the adapter response
+        """Set the content type for the adapter response.
 
         :param content_type: response content type
         """
         self.content_type = content_type
 
     def set_status_code(self, status_code):
-
-        """ Sets the HTTP status code for the adapter response
+        """Set the HTTP status code for the adapter response.
 
         :param status_code: HTTP status code
         """
@@ -108,9 +108,9 @@ class ApiAdapterResponse(object):
 
 def request_types(*oargs):
     """
-    Decorator method to define legal content types that adapter method will accept
+    Decorator method to define legal content types that adapter method will accept.
 
-    This method comparse the HTTP Content-Type header with a list of acceptable
+    This method compares the HTTP Content-Type header with a list of acceptable
     type. If there is a match, the adapter method is called accordingly, otherwise an
     HTTP 415 error response is returned.
 
@@ -126,11 +126,9 @@ def request_types(*oargs):
     :return: decorator context
     """
     def decorator(func):
-        """Function decorator"""
-
+        """Function decorator."""
         def wrapper(_self, path, request):
-            """Inner method wrapper"""
-
+            """Inner method wrapper."""
             # Validate the Content-Type header in the request against allowed types
             if 'Content-Type' in request.headers:
                 logging.debug("Request content type: %s", request.headers['Content-Type'])
@@ -139,9 +137,7 @@ def request_types(*oargs):
                         'Request content type ({}) not supported'.format(
                             request.headers['Content-Type']), status_code=415)
             return func(_self, path, request)
-
         return wrapper
-
     return decorator
 
 
@@ -166,13 +162,10 @@ def response_types(*oargs, **okwargs):
     :param okwargs: keyword argument(s), allowing default type to be specified.
     :return: decorator context
     """
-
     def decorator(func):
-        """ Function decorator"""
-
+        """Function decorator."""
         def wrapper(_self, path, request):
-            """Inner function wrapper"""
-
+            """Inner function wrapper."""
             response_type = None
 
             # If Accept header is present, resolve the response type appropriately, otherwise
@@ -203,7 +196,5 @@ def response_types(*oargs, **okwargs):
 
             # Call the decorated function
             return func(_self, path, request)
-
         return wrapper
-
     return decorator
