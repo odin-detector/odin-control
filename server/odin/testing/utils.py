@@ -33,6 +33,10 @@ class LogCaptureFilter(logging.Filter):
                          logging.CRITICAL: []
                          }
 
+        for level in self.messages:
+            msg_getter_name = 'log_{}'.format(logging.getLevelName(level).lower())
+            setattr(self, msg_getter_name, lambda self=self, level=level: self.messages[level])
+
     def filter(self, record):
 
         self.messages[record.levelno].append(record.getMessage())

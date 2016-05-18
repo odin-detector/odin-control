@@ -25,7 +25,7 @@ from odin.config.parser import ConfigParser, ConfigError
 
 def shutdown_handler():  # pragma: no cover
     """Handle interrupt signals gracefully and shutdown IOLoop."""
-    logging.info("Interrupt signal received, shutting down")
+    logging.info('Interrupt signal received, shutting down')
     tornado.ioloop.IOLoop.instance().stop()
 
 
@@ -41,31 +41,32 @@ def main(argv=None):
     config = ConfigParser()
 
     # Define configuration options and add to the configuration parser
-    config.define("http_addr", default="0.0.0.0", option_help="Set HTTP server address")
-    config.define("http_port", default=8888, option_help="Set HTTP server port")
-    config.define("debug_mode", default=False, option_help="Enable tornado debug mode")
+    config.define('http_addr', default='0.0.0.0', option_help='Set HTTP server address')
+    config.define('http_port', default=8888, option_help='Set HTTP server port')
+    config.define('debug_mode', default=False, option_help='Enable tornado debug mode')
+    config.define('static_path', default='./static', option_help='Set path for static file content')
 
     # Parse configuration options and any configuration file specified
     try:
         config.parse(argv)
     except ConfigError as e:
-        logging.error("Failed to parse configuration: %s", e)
+        logging.error('Failed to parse configuration: %s', e)
         return 2
 
     # Resolve the list of adapters specified
     try:
         adapters = config.resolve_adapters()
     except ConfigError as e:
-        logging.warning("Failed to resolve API adapters: %s", e)
+        logging.warning('Failed to resolve API adapters: %s', e)
         adapters = {}
 
-    logging.info("Using the %s IOLoop instance", "0MQ" if using_zmq_loop else "tornado")
+    logging.info('Using the %s IOLoop instance', '0MQ' if using_zmq_loop else 'tornado')
 
     # Launch the HTTP server
-    http_server = HttpServer(config.debug_mode, adapters)
+    http_server = HttpServer(config.debug_mode, config.static_path, adapters)
     http_server.listen(config.http_port, config.http_addr)
 
-    logging.info("HTTP server listening on %s:%s", config.http_addr, config.http_port)
+    logging.info('HTTP server listening on %s:%s', config.http_addr, config.http_port)
 
     # Register a SIGINT signal handler only if this is the main thread
     if isinstance(threading.current_thread(), threading._MainThread):  # pragma: no cover
@@ -74,9 +75,9 @@ def main(argv=None):
     # Enter IO processing loop
     tornado.ioloop.IOLoop.instance().start()
 
-    logging.info("ODIN server shutdown")
+    logging.info('ODIN server shutdown')
 
     return 0
 
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == '__main__':  # pragma: no cover
     sys.exit(main())
