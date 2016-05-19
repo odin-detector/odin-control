@@ -35,7 +35,7 @@ class LogCaptureFilter(logging.Filter):
 
         root_logger = logging.getLogger()
         if len(root_logger.handlers) == 0:
-            root_logger.addHandler(logging.handlers.MemoryHandler(100))
+            root_logger.addHandler(logging.handlers.MemoryHandler(100))  # pragma: nocover
 
         root_logger.handlers[0].addFilter(self)
 
