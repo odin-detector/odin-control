@@ -66,7 +66,7 @@ class TestOdinServer(OdinTestServer):
         assert_equal(result.json()['api_version'], 0.1)
 
     def test_api_version_bad_accept(self):
-        headers = {'Accept' : 'text/plain'}
+        headers = {'Accept': 'text/plain'}
         result = requests.get(
             'http://{}:{}/api'.format(self.server_host, self.server_port),
             headers=headers
@@ -74,8 +74,26 @@ class TestOdinServer(OdinTestServer):
         assert_equal(result.status_code, 406)
         assert_equal(result.text, 'Requested content types not supported')
 
-    def test_default_handler(self):
+    def test_api_adapter_list(self):
+        """Test API route returns a list of loaded adapters at the appropriate URL."""
+        headers = {'Accept': 'application/json'}
+        result = requests.get(self.build_url('adapters/'), headers=headers)
+        assert_equal(result.status_code, 200)
+        assert_equal(result.json()['adapters'], ['dummy'])
 
+    def test_api_adapter_list_bad_version(self):
+        """Test API route rejects an adapter list GET with a bad API version."""
+        result = requests.get(self.build_url('adapters/', api_version='99.9'))
+        assert_equal(result.status_code, 400)
+
+    def test_api_adapter_list_bad_accept(self):
+        """Test API route rejects and adapter list GET with a bad Accept type."""
+        headers = {'Accept': 'test/plain'}
+        result = requests.get(self.build_url('adapters/'), headers=headers)
+        assert_equal(result.status_code, 406)
+
+    def test_default_handler(self):
+        """Test default handler returns OK for the top-level URL."""
         result = requests.get("http://{}:{}".format(self.server_host, self.server_port))
         assert_equal(result.status_code, 200)
 
@@ -83,6 +101,7 @@ class TestOdinServer(OdinTestServer):
         result = requests.get(
             'http://{}:{}/api'.format(self.server_host, self.server_port),
         )
+        assert_equal(result.status_code, 200)
 
     def test_server_entry_config_error(self):
 

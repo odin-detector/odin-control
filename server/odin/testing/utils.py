@@ -114,7 +114,10 @@ class OdinTestServer(object):
         if cls.launch_server:
             cls.stop_server()
 
-    def build_url(self, resource):
+    def build_url(self, resource, api_version=None):
+        if api_version is None:
+            api_version = self.server_api_version
         return 'http://{}:{}/api/{}/{}'.format(
             self.server_host, self.server_port,
-            self.server_api_version, resource)
+            api_version, resource
+        )
