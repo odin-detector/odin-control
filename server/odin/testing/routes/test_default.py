@@ -18,9 +18,6 @@ class TestDefaultRoute():
     def setup_class(cls):
         """Set up class with a logging capture filter."""
         cls.log_capture_filter = LogCaptureFilter()
-        logger = logging.getLogger()
-        logger.addHandler(logging.handlers.MemoryHandler(100))
-        logger.handlers[0].addFilter(cls.log_capture_filter)
 
     def test_default_route_relative_path(self):
         """Test DefaultRoute resolves relative path for static content."""

@@ -130,7 +130,7 @@ class TestOdinServerMissingAdapters(OdinTestServer):
     def test_server_missing_adapters(self):
 
         no_adapters_msg_seen = False
-        for msg in self.log_warning():
+        for msg in self.log_capture_filter.log_warning():
             if msg == 'Failed to resolve API adapters: No adapters specified in configuration':
                 no_adapters_msg_seen = True
 

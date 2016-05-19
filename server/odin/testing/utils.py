@@ -33,6 +33,12 @@ class LogCaptureFilter(logging.Filter):
                          logging.CRITICAL: []
                          }
 
+        root_logger = logging.getLogger()
+        if len(root_logger.handlers) == 0:
+            root_logger.addHandler(logging.handlers.MemoryHandler(100))
+
+        root_logger.handlers[0].addFilter(self)
+
         for level in self.messages:
             msg_getter_name = 'log_{}'.format(logging.getLevelName(level).lower())
             setattr(self, msg_getter_name, lambda self=self, level=level: self.messages[level])
@@ -98,14 +104,7 @@ class OdinTestServer(object):
     @classmethod
     def setup_class(cls, adapter_config=None):
         if cls.launch_server:
-
             cls.log_capture_filter = LogCaptureFilter()
-            logging.getLogger().handlers[0].addFilter(cls.log_capture_filter)
-
-            for level in cls.log_capture_filter.messages:
-                msg_getter_name = 'log_{}'.format(logging.getLevelName(level).lower())
-                setattr(cls, msg_getter_name, lambda self, level=level: self.log_capture_filter.messages[level])
-
             cls.start_server(adapter_config)
             time.sleep(0.2)
 
