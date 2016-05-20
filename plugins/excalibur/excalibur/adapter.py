@@ -7,7 +7,7 @@ Tim Nicholls, STFC Application Engineering Group
 import logging
 from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
 
-from excalibur.fem.client import ExcaliburFem, ExcaliburFemError
+from excalibur.fem import ExcaliburFem, ExcaliburFemError
 
 class ExcaliburAdapter(ApiAdapter):
 

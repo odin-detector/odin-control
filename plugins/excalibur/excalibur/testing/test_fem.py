@@ -1,7 +1,7 @@
 from nose.tools import *
 import random
 
-from excalibur.fem.client import ExcaliburFem, ExcaliburFemError
+from excalibur.fem import ExcaliburFem, ExcaliburFemError
 
 
 class TestExcaliburFemError:
@@ -141,4 +141,3 @@ class TestExcaliburFem:
         with assert_raises_regexp(
                 ExcaliburFemError, 'cmd: resolved FEM object pointer to null'):
             temp_fem.cmd(chip_id, cmd_id)
-
