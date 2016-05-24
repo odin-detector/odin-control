@@ -20,7 +20,7 @@ class TestExcaliburPlugin(OdinTestServer):
         adapter_config = {
             'excalibur': {
                 'module': 'excalibur.adapter.ExcaliburAdapter',
-                'test': 123.4,
+                'detector_fems': '192.168.0.1:6969, 192.168.0.2:6969, 192.168.0.3:6969',
             }
         }
         super(TestExcaliburPlugin, cls).setup_class(adapter_config)
@@ -36,4 +36,4 @@ class TestExcaliburPlugin(OdinTestServer):
             headers=headers
         )
         assert_equal(result.status_code, 200)
-        print(result.json())
+        assert_equal(result.json()['response'], 'ExcaliburAdapter: GET on path config/none')

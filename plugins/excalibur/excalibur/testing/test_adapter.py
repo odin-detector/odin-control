@@ -14,19 +14,39 @@ else:                         # pragma: no cover
 
 from excalibur.adapter import ExcaliburAdapter
 
-class TestExcaliburAdapter():
+class ExcaliburAdapterFixture(object):
+
+    @classmethod
+    def setup_class(cls, **adapter_params):
+        cls.adapter = ExcaliburAdapter(**adapter_params)
+        cls.path = '/test/path'
+        cls.request = Mock()
+        cls.request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
+
+
+class TestExcaliburAdapter(ExcaliburAdapterFixture):
 
     @classmethod
     def setup_class(cls):
 
-        cls.adapter = ExcaliburAdapter()
-        cls.path = '/excalibur/test/path'
-        cls.request = Mock()
-        cls.request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
+        adapter_params = {
+            'detector_fems': '192.168.0.1:6969, 192.168.0.2:6969, 192.168.0.3:6969',
+        }
+        super(TestExcaliburAdapter, cls).setup_class(**adapter_params)
 
     def test_adapter_name(self):
 
         assert_equal(self.adapter.name, 'ExcaliburAdapter')
+
+    def test_adapter_single_fem(self):
+        adapter_params = {'detector_fems': '192.168.0.1:6969'}
+        adapter = ExcaliburAdapter(**adapter_params)
+        assert_equal(len(adapter.detector.fems), 1)
+
+    def test_adapter_bad_fem_config(self):
+        adapter_params = {'detector_fems': '192.168.0.1 6969, 192.168.0.2:6969'}
+        adapter = ExcaliburAdapter(**adapter_params)
+        assert_equal(adapter.detector, None)
 
     def test_adapter_get(self):
         expected_response = {'response': '{}: GET on path {}'.format(self.adapter.name, self.path)}
@@ -40,9 +60,24 @@ class TestExcaliburAdapter():
         assert_equal(response.data, expected_response)
         assert_equal(response.status_code, 200)
 
-
     def test_adapter_delete(self):
-        expected_response = {'response': '{}: DELETE on path {}'.format(self.adapter.name, self.path)}
+        expected_response = {
+            'response': '{}: DELETE on path {}'.format(self.adapter.name, self.path)
+        }
         response = self.adapter.delete(self.path, self.request)
         assert_equal(response.data, expected_response)
         assert_equal(response.status_code, 200)
+
+
+class TestExcaliburAdapterNoFems(ExcaliburAdapterFixture):
+
+    @classmethod
+    def setup_class(cls):
+        super(TestExcaliburAdapterNoFems, cls).setup_class()
+
+    def test_adapter_no_fems(self):
+        assert_equal(self.adapter.detector, None)
+
+    def test_adapter_no_fems_get(self):
+        response = self.adapter.get(self.path, self.request)
+        assert_equal(response.status_code, 500)
