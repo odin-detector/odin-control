@@ -5,6 +5,7 @@ Tim Nicholls, STFC Application Engineering Group
 """
 
 import logging
+import re
 from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
 
 from excalibur.detector import ExcaliburDetector, ExcaliburDetectorError
@@ -34,7 +35,11 @@ class ExcaliburAdapter(ApiAdapter):
 
         :param kwargs: keyword arguments passed to ApiAdapter as options.
         """
+        # Initialise the ApiAdapter base class to store adapter options
         super(ExcaliburAdapter, self).__init__(**kwargs)
+
+        # Compile the regular expression used to resolve paths into actions and resources
+        self.path_regexp = re.compile('(.*?)/(.*)')
 
         # Parse the FEM connection information out of the adapter options and initialise the
         # detector object
@@ -80,8 +85,13 @@ class ExcaliburAdapter(ApiAdapter):
         :param request: Tornado HTTP request object
         :return: ApiAdapterResponse object to be returned to the client
         """
-        response = {'response': '{}: PUT on path {}'.format(self.name, path)}
-        status_code = 200
+        (action, resource) = self.resolve_path(path)
+        if (action, resource) == (None, None):
+            response = {'response': '{} PUT could not resolve path {}'.format(self.name, path)}
+            status_code = 400
+        else:
+            response = {'response': '{}: PUT on path {}'.format(self.name, path)}
+            status_code = 200
 
         logging.debug(response)
 
@@ -105,3 +115,21 @@ class ExcaliburAdapter(ApiAdapter):
         logging.debug(response)
 
         return ApiAdapterResponse(response, status_code=status_code)
+
+    def resolve_path(self, path):
+        """Resolve adapter request path to yield action and resource.
+
+        This method resolves a request path passed to the adapter into an action and a resource
+        associated with that action, returning them as a tuple. For instance, given a path of
+        'command/connect', a tuple of action 'command' and resource 'connect' is returned.
+
+        :param path: path to resolve for action and resource
+        :return: tuple containing action and resource
+        """
+        match = self.path_regexp.match(path)
+        if match is not None:
+            (action, resource) = match.groups()
+        else:
+            (action, resource) = (None, None)
+
+        return (action, resource)

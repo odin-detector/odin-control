@@ -19,7 +19,7 @@ class ExcaliburAdapterFixture(object):
     @classmethod
     def setup_class(cls, **adapter_params):
         cls.adapter = ExcaliburAdapter(**adapter_params)
-        cls.path = '/test/path'
+        cls.path = 'test/path'
         cls.request = Mock()
         cls.request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
 
@@ -59,6 +59,10 @@ class TestExcaliburAdapter(ExcaliburAdapterFixture):
         response = self.adapter.put(self.path, self.request)
         assert_equal(response.data, expected_response)
         assert_equal(response.status_code, 200)
+
+    def test_adapter_bad_path(self):
+        response = self.adapter.put('bad_path', self.request)
+        assert_equal(response.status_code, 400)
 
     def test_adapter_delete(self):
         expected_response = {
