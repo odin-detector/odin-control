@@ -1,5 +1,6 @@
 import sys
 from setuptools import setup, find_packages
+import versioneer
 
 with open('requirements.txt') as f:
     required = f.read().splitlines()
@@ -9,7 +10,8 @@ if sys.version_info[0] == 2:
 
 setup(
     name="odin",
-    version='0.1',
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     description='ODIN detector server',
     url='https://github.com/timcnicholls/odin',
     author='Tim Nicholls',

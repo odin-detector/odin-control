@@ -2,6 +2,7 @@
 
 Tim Nicholls, STFC Application Engineering Group
 """
+from odin._version import get_versions
 
 import sys
 from argparse import ArgumentParser
@@ -60,6 +61,11 @@ class ConfigParser(object):
         self.file_parser = SafeConfigParser()
         self.file_parsed = False
 
+        # Define a --version option to return the ODIN server version
+        self.define('version', option_type=bool, default=False, action='store_true',
+                    option_help='Show the server version information and exit',
+                    callback=self._version_callback)
+
         # Define a --config option to specify configuration file to parse.
         self.define('config', default=None, metavar='FILE',
                     option_help='Specify a configuration file to parse')
@@ -70,7 +76,7 @@ class ConfigParser(object):
                         option_help='Comma-separated list of API adapters to load')
 
     def define(self, name, default=None, option_type=None, option_help=None, metavar=None,
-               multiple=False):
+               multiple=False, action='store', callback=None):
         """Define an option to be parsed from the command-line and/or a configuration file.
 
         This method replicates the functionality of the tornado options define(), allowing
@@ -85,11 +91,13 @@ class ConfigParser(object):
         :param option_help: help text to be displayed for the option
         :param metavar: a name for the option to be used in help text
         :param multiple: defines if the option accepts multiple, comma-delimited values
+        :param action: ArgumentParser-like action to be taken on parsing option
+        :param callback: callback to run whenever a value for the option is set at parse time
         :return: None
         """
         # Add the option to allowed_options
         self.allowed_options['server'][name] = ConfigOption(
-            name, option_type=option_type, default=default, multiple=multiple)
+            name, option_type=option_type, default=default, multiple=multiple, callback=callback)
 
         # Format the CLI option switch
         opt_switch = '--{}'.format(name)
@@ -107,9 +115,20 @@ class ConfigParser(object):
         # default value specified by this call is resolved at parse time if necessary.
         default = None
 
+        # Build the kwargs for the add_argument call for the parser. If a boolean
+        # flag action has been specified, i.e. store_true or store_false, don't add the
+        # type and metavar keyword arguments as their presence causes an exception to be
+        # thrown
+        add_kwargs = {
+            'action': action, 'default': default,
+            'help': option_help,
+        }
+        if action != 'store_true' and action != 'store_false':
+            add_kwargs['type'] = option_type
+            add_kwargs['metavar'] = metavar
+
         # Add the option as an argument to the CLI parser
-        self.arg_parser.add_argument(opt_switch, type=option_type, default=default,
-                                     help=option_help, metavar=metavar)
+        self.arg_parser.add_argument(opt_switch, **add_kwargs)
 
         # Set this option as an attribute in the current instance but with an undefined
         # value until parsing occurs. The allows the parser.<option> syntax to be used
@@ -166,6 +185,10 @@ class ConfigParser(object):
                 # If this option is in the tornado options, update its value
                 if option in tornado.options.options:
                     setattr(tornado.options.options, option, option_val)
+
+                # If this option has a callback, call it
+                if self.allowed_options[section][option].callback is not None:
+                    self.allowed_options[section][option].callback(option_val)
 
         # Run the tornado parser callbacks to replicate the tornado parser behaviour
         tornado.options.options.run_parse_callbacks()
@@ -239,6 +262,12 @@ class ConfigParser(object):
                 self.allowed_options['tornado'][tornado_opts[opt].name] = ConfigOption(
                     tornado_opts[opt].name, tornado_opts[opt].type, tornado_opts[opt].default
                 )
+
+    def _version_callback(self, value):
+        """Print the odin server version information and exit."""
+        if value:
+            print("odin server {}".format(get_versions()['version']))
+            sys.exit(0)
 
     def resolve_adapters(self, adapter_list=None):
         """Resolve any adapter sections present in the configuration file.
@@ -337,18 +366,20 @@ class ConfigOption(object):
     its type, default value and whether it has multiple values
     """
 
-    def __init__(self, name, option_type=None, default=None, multiple=False):
+    def __init__(self, name, option_type=None, default=None, multiple=False, callback=None):
         """Initialise the ConfigOption object.
 
         :param name: name of the option
         :param option_type: type of the option (e.g. int, bool, str, ...)
         :param default:  default value for the option
         :param multiple: flag indicating multiple-valued option
+        :param callback: callback to be called whenever option has a value set at parse time
         """
         self.name = name
         self.option_type = option_type
         self.default = default
         self.multiple = multiple
+        self.callback = callback
 
         # Raise an error if specified option_type and default are inconsistent
         if self.option_type is not None and self.default is not None:
