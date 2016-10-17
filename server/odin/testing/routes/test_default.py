@@ -23,7 +23,7 @@ class TestDefaultRoute():
         """Test DefaultRoute resolves relative path for static content."""
         path = '.'
         def_route = DefaultRoute(path)
-        assert_regexp_matches(def_route.default_handler_args['path'], 'odin/server/odin')
+        assert_regexp_matches(def_route.default_handler_args['path'], 'server/odin')
 
     def test_default_route_absolute_path(self):
         """Test DefaultRoute treats absolute path for static content correctly."""

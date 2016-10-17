@@ -229,6 +229,17 @@ class TestConfigParser():
             if tornado_opts[opt].name != 'help':
                 assert_true(tornado_opts[opt].name in self.cp)
 
+    def test_version_arg_handling(self):
+
+        test_args = ['prog_name', '--version']
+
+        with assert_raises(SystemExit) as cm:
+            with self.capture_sys_output() as (stdout, stderr):
+                self.cp.parse(test_args)
+
+        assert_regexp_matches(stdout.getvalue(), 'odin server')
+        assert_equal(cm.exception.code, 0)
+
     def test_ignores_undefined_arg(self):
 
         test_args = ['prog_name', '--ignored', '1234']
@@ -253,7 +264,7 @@ class TestConfigParser():
             with self.capture_sys_output() as (stdout, stderr):
                 self.cp.parse(test_args)
 
-        assert_true(cm.exception.code, 2)
+        assert_equal(cm.exception.code, 2)
 
     def test_parse_file(self):
 
@@ -431,4 +442,3 @@ class TestConfigParser():
             for option in self.test_config_adapter_options[adapter]:
                 assert_equal(self.test_config_adapter_options[adapter][option],
                              getattr(adapters[adapter], option))
-
