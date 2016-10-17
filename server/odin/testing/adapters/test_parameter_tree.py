@@ -165,6 +165,8 @@ class TestRwParameterTree():
         cls.int_rw_value = 9876
         cls.int_wo_param = 0
 
+        cls.rw_value_set_called = False
+
         cls.nested_rw_param = 53.752
         cls.nested_ro_value = 9.8765
 
@@ -177,7 +179,7 @@ class TestRwParameterTree():
             'intCallableRwParam': (cls.intCallableRwParamGet, cls.intCallableRwParamSet),
             'intCallableRoParam': (cls.intCallableRoParamGet, None),
             'intCallableWoParam': (None, cls.intCallableWoParamSet),
-            'intCallableRwValue': (cls.int_rw_value, cls.intCallableRoParamSet),
+            'intCallableRwValue': (cls.int_rw_value, cls.intCallableRwValueSet),
             'branch': nested_tree
         })
 
@@ -198,8 +200,8 @@ class TestRwParameterTree():
         cls.int_wo_param = value
 
     @classmethod
-    def intCallableRoParamSet(cls, value):
-        pass
+    def intCallableRwValueSet(cls, value):
+        cls.rw_value_set_called = True
 
     @classmethod
     def nestedRwParamSet(cls, value):
@@ -238,6 +240,12 @@ class TestRwParameterTree():
         new_value = 1234
         self.rw_callable_tree.set('intCallableWoParam', new_value)
         assert_equal(self.int_wo_param, new_value)
+
+    def test_rw_callable_tree_set_rw_value(self):
+
+        new_value = 1234
+        self.rw_callable_tree.set('intCallableRwValue', new_value)
+        assert_true(self.rw_value_set_called)
 
     def test_rw_callable_nested_param_get(self):
 
