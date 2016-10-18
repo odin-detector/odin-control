@@ -4,5 +4,4 @@ codeclimate-test-reporter>=0.1.0
 pyzmq>=15.2.0
 requests>=2.9.1
 tornado>=4.3
-versioneer>=0.17
 future
