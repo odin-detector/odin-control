@@ -13,24 +13,25 @@ addons:
     repo_token: c284526db8bf58103c7a4d742630230d7e50c750b0c27596e05a66919c7f5cfb
 
 install:
-  - cd server
+  # - cd server
   - pip install -r requirements.txt
   - python setup.py install
-  - cd ..
-  - cd plugins/excalibur
-  - python setup.py install
-  - cd ../..
+  # - cd ..
+  # - cd plugins/excalibur
+  # - python setup.py install
+  # - cd ../..
   - pip install coveralls
 
 script:
-  - cd server
+  # - cd server
   - python setup.py nosetests
-  - cd ..
-  - cd plugins/excalibur
-  - python setup.py nosetests
-  - cd ../..
-  - coverage combine server/.coverage plugins/excalibur/.coverage && coverage report -m
-
+  # - cd ..
+  # - cd plugins/excalibur
+  # - python setup.py nosetests
+  # - cd ../..
+  # - coverage combine server/.coverage plugins/excalibur/.coverage && coverage report -m
+  - coverage report -m
+  
 after_success:
   - coveralls
 
