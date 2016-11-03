@@ -8,6 +8,7 @@ import sys
 import time
 import threading
 import logging
+import os
 
 from tempfile import NamedTemporaryFile
 
@@ -64,10 +65,15 @@ class OdinTestServer(object):
         cls.server_conf_file = NamedTemporaryFile(mode='w+')
         parser = SafeConfigParser()
 
+        file_dir = os.path.dirname(os.path.abspath(__file__))
+        static_path = os.path.join(file_dir, 'static')
+
         parser.add_section('server')
         parser.set('server', 'debug_mode', '1')
         parser.set('server', 'http_port', str(cls.server_port))
         parser.set('server', 'http_addr', '127.0.0.1')
+        parser.set('server', 'static_path', static_path)
+
         if adapter_config is not None:
             adapters = ', '.join([adapter for adapter in adapter_config])
             parser.set('server', 'adapters', adapters)

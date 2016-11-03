@@ -34,15 +34,10 @@ class DefaultRoute(Route):
         :param path: path to serve static content from
         :param default_filename: default filename serve for directory requests
         """
-        # If the specified path is relative, resolve it relative to the root of package path
-        if not os.path.isabs(path):
-            file_dir = os.path.dirname(os.path.abspath(__file__))
-            odin_root = os.path.abspath(os.path.join(file_dir, '../..'))
-            path = os.path.abspath(os.path.join(odin_root, path))
-
         if not os.path.isdir(path):
             logging.warning('Default handler static path does not exist: %s', path)
-        logging.debug('Static path for default handler is %s', path)
+        else:
+            logging.debug('Static path for default handler is %s', path)
 
         # Create argument dictionary to initialise default handler
         self.default_handler_args = {
