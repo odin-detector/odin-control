@@ -70,6 +70,15 @@ class ApiAdapter(object):
         response = "DELETE method not implemented by {}".format(self.name)
         return ApiAdapterResponse(response, status_code=400)
 
+    def cleanup(self):
+        """Clean up adapter state.
+
+        This is an abstract implementation of the cleanup mechanism provided to allow adapters
+        to clean up their state (e.g. disconnect cleanly from the device being controlled, set
+        some status message).
+        """
+        pass
+
 
 class ApiAdapterResponse(object):
     """

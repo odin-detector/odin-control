@@ -244,3 +244,15 @@ class ApiRoute(Route):
         :return: adapter for subsystem
         """
         return self.adapters[subsystem]
+
+    def cleanup_adapters(self):
+        """Clean up state of registered adapters.
+
+        This calls the cleanup method present in any registered adapters, allowing them to
+        clean up their state (e.g. connected hardware) in a controlled fashion at shutdown.
+        """
+        for adapter_name, adapter in self.adapters.items():
+            try:
+                getattr(adapter, 'cleanup')()
+            except AttributeError:
+                logging.debug("Adapter %s has no cleanup method", adapter_name)

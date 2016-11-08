@@ -29,13 +29,13 @@ class HttpServer(object):
         }
 
         # Create an API route
-        api_route = ApiRoute()
+        self.api_route = ApiRoute()
 
         # Register adapters with the API route and get handlers
         for adapter in adapters:
-            api_route.register_adapter(adapters[adapter])
+            self.api_route.register_adapter(adapters[adapter])
 
-        handlers = api_route.get_handlers()
+        handlers = self.api_route.get_handlers()
 
         # Create a default route for static content and get handlers
         default_route = DefaultRoute(static_path)
@@ -51,3 +51,8 @@ class HttpServer(object):
         :param host: host address to listen on
         """
         self.application.listen(port, host)
+
+    def cleanup_adapters(self):
+        """Clean up state of registered adapters.
+        """
+        self.api_route.cleanup_adapters()
