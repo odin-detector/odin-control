@@ -1,4 +1,4 @@
-"""Dummy adapter class for the ODIN server.
+""" Dummy adapter class for the ODIN server.
 
 This class implements a dummy adapter for the ODIN server, demonstrating the
 basic adapter implementation and providing a loadable adapter for testing
@@ -125,3 +125,13 @@ class DummyAdapter(ApiAdapter):
         logging.debug(response)
 
         return ApiAdapterResponse(response, status_code=status_code)
+
+    def cleanup(self):
+        """Clean up the state of the adapter.
+
+        This method cleans up the state of the adapter, which in this case is
+        trivially setting the background task counter back to zero for test
+        purposes.
+        """
+        logging.debug("DummyAdapter cleanup: resetting background test counter")
+        self.background_task_counter = 0

@@ -75,6 +75,9 @@ def main(argv=None):
     # Enter IO processing loop
     tornado.ioloop.IOLoop.instance().start()
 
+    # At shutdown, clean up the state of the loaded adapters
+    http_server.cleanup_adapters()
+    
     logging.info('ODIN server shutdown')
 
     return 0

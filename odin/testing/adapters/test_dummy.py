@@ -50,3 +50,8 @@ class TestDummyAdapter():
         response = self.adapter.put(self.path, bad_request)
         assert_equal(response.data, 'Requested content types not supported')
         assert_equal(response.status_code, 406)
+
+    def test_adapter_cleanup(self):
+        self.adapter.background_task_counter = 1000
+        self.adapter.cleanup()
+        assert_equal(self.adapter.background_task_counter, 0)

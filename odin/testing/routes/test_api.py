@@ -39,6 +39,20 @@ class TestApiRoute():
         with assert_raises_regexp(ApiError, 'has no attribute \'BadAdapter\''):
             self.api_route.register_adapter(adapter_config, fail_ok=False)
 
+    def test_register_adapter_no_cleanup(self):
+
+        adapter_name = 'dummy_no_clean'
+        adapter_config = AdapterConfig(adapter_name, 'odin.adapters.dummy.DummyAdapter')
+        self.api_route.register_adapter(adapter_config)
+        self.api_route.adapters[adapter_name].cleanup = Mock(side_effect=AttributeError())
+
+        raised = False
+        try:
+            self.api_route.cleanup_adapters()
+        except:
+            raised = True
+
+        assert_false(raised)
 
 class TestApiHandler():
 
@@ -141,7 +155,3 @@ class TestApiHandler():
         with assert_raises_regexp(ApiError,
               'A response with content type application/json must have str or dict data'):
             self.handler.respond(bad_response)
-
-
-
-

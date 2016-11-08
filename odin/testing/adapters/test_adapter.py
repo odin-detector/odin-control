@@ -46,6 +46,15 @@ class TestApiAdapter():
         opts = self.adapter.options
         assert_equal(opts, self.adapter_options)
 
+    def test_api_adapter_cleanup(self):
+
+        raised = False
+        try:
+            self.adapter.cleanup()
+        except:
+            raised = True
+        assert_false(raised)
+
 class TestApiAdapterResponse():
 
     def test_simple_response(self):
@@ -137,12 +146,23 @@ class TestApiMethodDecorators():
 
         plain_request = Mock()
         plain_request.data = 'Simple plain text request'
-        plain_request.headers = {'Accept' : 'text/plain', 'Content-Type': 'text/plain'}
+        plain_request.headers = {'Accept': 'text/plain', 'Content-Type': 'text/plain'}
 
         response = self.decorated_method(self.path, plain_request)
         assert_equal(response.status_code, self.response_code)
         assert_equal(response.content_type, self.response_type_plain)
         assert_equal(response.data, self.response_data_plain)
+
+    def test_decorated_method_default(self):
+
+        json_request = Mock()
+        json_request.data = '{\'request\': 1234}'
+        json_request.headers = {'Accept': '*/*', 'Content-Type': 'application/json'}
+
+        response = self.decorated_method(self.path, json_request)
+        assert_equal(response.status_code, self.response_code)
+        assert_equal(response.content_type, self.response_type_json)
+        assert_equal(response.data, self.response_data_json)
 
     def test_decorated_method_json(self):
 
