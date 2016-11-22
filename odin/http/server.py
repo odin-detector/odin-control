@@ -9,6 +9,7 @@ Tim Nicholls, STFC Application Engineering
 import tornado.gen
 import tornado.web
 import tornado.ioloop
+from tornado.log import access_log
 
 from odin.http.routes.api import ApiRoute
 from odin.http.routes.default import DefaultRoute
@@ -26,6 +27,7 @@ class HttpServer(object):
         """
         settings = {
             "debug": debug_mode,
+            "log_function": self.log_request,
         }
 
         # Create an API route
@@ -51,6 +53,26 @@ class HttpServer(object):
         :param host: host address to listen on
         """
         self.application.listen(port, host)
+
+    def log_request(self, handler):
+        """Log completed request information.
+
+        This method is passed to the tornado.web.Application instance to override the
+        default request logging behaviour. In doing so, successful requests are logged
+        at debug level rather than info in order to reduce the rate of logging under
+        normal conditions.
+
+        :param handler: currently active request handler
+        """
+        if handler.get_status() < 400:
+            log_method = access_log.debug
+        elif handler.get_status() < 500:
+            log_method = access_log.warning
+        else:
+            log_method = access_log.error
+        request_time = 1000.0 * handler.request.request_time()
+        log_method("%d %s %.2fms", handler.get_status(),
+                   handler._request_summary(), request_time)
 
     def cleanup_adapters(self):
         """Clean up state of registered adapters.

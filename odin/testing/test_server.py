@@ -1,11 +1,15 @@
-from nose.tools import *
-
+import sys
+if sys.version_info[0] == 3:  # pragma: no cover
+    from unittest.mock import Mock
+else:                         # pragma: no cover
+    from mock import Mock
 import requests
 import json
+from nose.tools import *
 
-from odin.testing.utils import OdinTestServer
+from odin.testing.utils import OdinTestServer, LogCaptureFilter
 from odin import server
-
+from odin.http.server import HttpServer
 
 class TestOdinServer(OdinTestServer):
 
@@ -135,6 +139,41 @@ class TestOdinServerMissingAdapters(OdinTestServer):
                 no_adapters_msg_seen = True
 
         assert_true(no_adapters_msg_seen)
+
+class TestOdinHttpServerLogging():
+
+    @classmethod
+    def setup_class(cls):
+        cls.http_server = HttpServer(adapters=[])
+        cls.handler = Mock()
+        cls.handler.get_status = Mock(return_value=200)
+        cls.request_summary = 'request'
+        cls.handler._request_summary = Mock(return_value=cls.request_summary)
+        cls.handler.request = Mock()
+        cls.request_time = 1234
+        cls.handler.request.request_time = Mock(return_value=cls.request_time)
+        cls.log_capture_filter = LogCaptureFilter()
+
+    def do_log_request(self, http_status, capture_filter_getter):
+
+        self.handler.get_status.return_value = http_status
+        self.http_server.log_request(self.handler)
+
+        msg_seen = False
+        for msg in capture_filter_getter:
+            if msg == '{:d} {:s} {:.2f}ms'.format(
+                    http_status, self.request_summary, self.request_time*1000.0):
+                msg_seen = True
+        return msg_seen
+
+    def test_success_logging(self):
+        assert_true(self.do_log_request(200, self.log_capture_filter.log_debug()))
+
+    def test_warning_logging(self):
+        assert_true(self.do_log_request(404, self.log_capture_filter.log_warning()))
+
+    def test_error_logging(self):
+        assert_true(self.do_log_request(503, self.log_capture_filter.log_error()))
 
 if __name__ == '__main__': #pragma: no cover
 
