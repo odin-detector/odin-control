@@ -7,8 +7,6 @@ interfacing of those to the underlying device or object.
 
 James Hogge, Tim Nicholls, STFC Application Engineering Group.
 """
-from platform import node
-
 
 class ParameterTreeError(Exception):
     """Simple error class for raising parameter tree parameter tree exceptions."""
