@@ -94,3 +94,5 @@ ENV/
 # CTAGS tags files
 tags
 .tags
+/.project
+/.pydevproject
