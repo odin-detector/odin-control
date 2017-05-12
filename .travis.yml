@@ -1,40 +1,23 @@
 language: python
 sudo: false
-
 python:
-  - 2.7
-  - 3.5
-
+- 2.7
+- 3.5
 addons:
   apt:
     packages:
     - libzmq3-dev
   code_climate:
-    repo_token: c284526db8bf58103c7a4d742630230d7e50c750b0c27596e05a66919c7f5cfb
-
+    repo_token: cff0747bc9e271cfb6e363047e9119e13e09df9b4fe7a20295bbac64175d40ed
 install:
-  # - cd server
-  - pip install -r requirements.txt
-  - python setup.py install
-  # - cd ..
-  # - cd plugins/excalibur
-  # - python setup.py install
-  # - cd ../..
-  - pip install coveralls
-
+- pip install -r requirements.txt
+- python setup.py install
+- pip install coveralls
 script:
-  # - cd server
-  - python setup.py nosetests
-  # - cd ..
-  # - cd plugins/excalibur
-  # - python setup.py nosetests
-  # - cd ../..
-  # - coverage combine server/.coverage plugins/excalibur/.coverage && coverage report -m
-  - coverage report -m
-  
+- python setup.py nosetests
+- coverage report -m
 after_success:
-  - coveralls
-
+- coveralls
 notifications:
   slack:
-    secure: GZc6KhzmZqtSuWZ0gTqkboucf0f4bVcjQ+yRO5DjXkmy1cwtSx53NsXaGp/WZQz0ctzIwWRG8OMNb27cT+lczVI9HKPxlU+xE13MHzmaySOKK4y+DwFsJ3PMLlDoKYR2VSRQ4sHk6oHf/G81ieNTWDQcXZTLwKG9R2gUSSe+R7yPuQ6soaLYsI0rgGhqO+M8/EfdGlEejqA4w7yh4S/pRYZRpyCJLJhLEZ1hnrL1997xtx3IDG7wum+TB4uWZZMJ412YHpYIwmBNQG9KBVihK+6ZsbMUhfwKnKFMkW4IfAG7A40II7k1W8rp+DT4HnEOMJ0TggdUePkf4FCJAAr8cDfKo+5VO3qPYoaTzwlaydSqXDioZNNgpIXTr7Ccjy3kQl528R6SdJhu4CFAqne5vzU+f7Pv3sm7HYWi5PbIUqjW8+X2tG8PgWDfX2xk/F+lq+zt7Ff1H6dHc9QH+hQ5TeYMb9t3Qm7idLc/ayXA9/kFgFe4qjpO0cgi/RQu+9UlU+998MCfkAsDmhKgzesUsVnbZl5lN7vBx7slHvKpXk4DZxG2woEV84UryzeLGQKWAKaUHOrIw8U4UV8gryOQnvPhh3luvRqQmiP/CKDeEXlc+67CQyamNRD64AxQdhDRoWU3Lu32OCGDVkty8c9LFCRdAKRshZbIfoSa22MMukE=
+    secure: o8qDJR9Hf3u1bzrivk/F6XLVTrdR2Pl+2qAe1Wwso3HifZt4FuhpRaJaJyZbcZEHf8kOJ6sAJ3ETsCKwBGePT52B5M715VA2XaamzADF0mQRFfP02zRZL6xMof5xCQ7BwxBmnx/PihYNbFDOvhEKxCN6umby2818W2wUAWIqU3nIKKUK9hnXXDZ+Y8HQpMw9quCoWn3Ix+fgcKjUyFZaFy50HWSayn1E+iBPxkkNzTsTkTYFrxKhAz0pI/pDiHXBIpTZhzjJTSOd/cKj4zWzq3aYMu4oL/uhews021EtiSu22jENoJf72LGnGfb3wrEqPyaY+qTv+3LRxaYajT8zhC1brpAPUISIA1qlcx3jlZTwTyAR8K3mhC1RjfzFbnt+jk33R3hQzZvg47ES5l4Pp4OyY7++ucirpGEKb2dp89FCBQsjdVajHO+o3VItawN1tngl3Rb9ll8j9t9IZfCy2yXdDnuc5Ft+LGvK85BSaYhDBEBzbGDeSxeay651vugxq6YMsZAVqc+eXEerYLySWBkl24gS+v+ASZUT7qz/PKziGrFXizvebOmIBhnhe+Y39+hvKgtCyNp8VVzaofdZf7JtUS/eMgCHSpoQuQMh/PjcYz3rsC9Lh7oxHbtOOtrgLdJ6o7Sku8gPdZ7rawRNE/WYIaAl4eKn6jsq+XQq95A=
