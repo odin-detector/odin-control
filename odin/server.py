@@ -44,6 +44,8 @@ def main(argv=None):
     config.define('http_addr', default='0.0.0.0', option_help='Set HTTP server address')
     config.define('http_port', default=8888, option_help='Set HTTP server port')
     config.define('debug_mode', default=False, option_help='Enable tornado debug mode')
+    config.define('access_logging', default=None, option_help="Set the tornado access log level",
+                  metavar="debug|info|warning|error|none")
     config.define('static_path', default='./static', option_help='Set path for static file content')
 
     # Parse configuration options and any configuration file specified
@@ -63,7 +65,8 @@ def main(argv=None):
     logging.info('Using the %s IOLoop instance', '0MQ' if using_zmq_loop else 'tornado')
 
     # Launch the HTTP server
-    http_server = HttpServer(config.debug_mode, config.static_path, adapters)
+    http_server = HttpServer(config.debug_mode, config.access_logging,
+                             config.static_path, adapters)
     http_server.listen(config.http_port, config.http_addr)
 
     logging.info('HTTP server listening on %s:%s', config.http_addr, config.http_port)
@@ -77,10 +80,11 @@ def main(argv=None):
 
     # At shutdown, clean up the state of the loaded adapters
     http_server.cleanup_adapters()
-    
+
     logging.info('ODIN server shutdown')
 
     return 0
+
 
 if __name__ == '__main__':  # pragma: no cover
     sys.exit(main())
