@@ -6,6 +6,7 @@ default route used to serve static content.
 
 Tim Nicholls, STFC Application Engineering
 """
+import logging
 import tornado.gen
 import tornado.web
 import tornado.ioloop
@@ -18,7 +19,8 @@ from odin.http.routes.default import DefaultRoute
 class HttpServer(object):
     """HTTP server class."""
 
-    def __init__(self, debug_mode=False, static_path='./static', adapters=None):
+    def __init__(self, debug_mode=False, access_logging=None,
+                 static_path='./static', adapters=None):
         """Initialise the HttpServer object.
 
         :param debug_mode: Set True to enable Tornado debug mode
@@ -29,6 +31,16 @@ class HttpServer(object):
             "debug": debug_mode,
             "log_function": self.log_request,
         }
+
+        # Set the up the access log level
+        if access_logging is not None:
+            try:
+                level_val = getattr(logging, access_logging.upper())
+                access_log.setLevel(level_val)
+            except AttributeError:
+                logging.error(
+                    "Access level logging level {} not recognised".format(access_logging)
+                )
 
         # Create an API route
         self.api_route = ApiRoute()
