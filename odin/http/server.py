@@ -39,7 +39,7 @@ class HttpServer(object):
                 access_log.setLevel(level_val)
             except AttributeError:
                 logging.error(
-                    "Access level logging level {} not recognised".format(access_logging)
+                    "Access logging level {} not recognised".format(access_logging)
                 )
 
         # Create an API route
