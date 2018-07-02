@@ -60,7 +60,7 @@ class OdinTestServer(object):
     server_conf_file = None
 
     @classmethod
-    def start_server(cls, adapter_config=None):
+    def start_server(cls, adapter_config=None, access_logging=None):
 
         cls.server_conf_file = NamedTemporaryFile(mode='w+')
         parser = SafeConfigParser()
@@ -73,10 +73,14 @@ class OdinTestServer(object):
         parser.set('server', 'http_port', str(cls.server_port))
         parser.set('server', 'http_addr', '127.0.0.1')
         parser.set('server', 'static_path', static_path)
-
+        
         if adapter_config is not None:
             adapters = ', '.join([adapter for adapter in adapter_config])
             parser.set('server', 'adapters', adapters)
+
+        if access_logging is not None:
+            parser.set("server", 'access_logging', 'debug')
+
 
         parser.add_section('tornado')
         parser.set('tornado', 'logging', 'debug')
@@ -108,10 +112,10 @@ class OdinTestServer(object):
             cls.server_conf_file = None
 
     @classmethod
-    def setup_class(cls, adapter_config=None):
+    def setup_class(cls, adapter_config=None, access_logging=None):
         if cls.launch_server:
             cls.log_capture_filter = LogCaptureFilter()
-            cls.start_server(adapter_config)
+            cls.start_server(adapter_config, access_logging)
             time.sleep(0.2)
 
     @classmethod

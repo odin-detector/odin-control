@@ -1,4 +1,5 @@
 import sys
+from __builtin__ import classmethod
 if sys.version_info[0] == 3:  # pragma: no cover
     from unittest.mock import Mock
 else:                         # pragma: no cover
@@ -22,7 +23,8 @@ class TestOdinServer(OdinTestServer):
                 'background_task_interval': 0.1,
             }
         }
-        super(TestOdinServer, cls).setup_class(adapter_config)
+        access_logging='debug'
+        super(TestOdinServer, cls).setup_class(adapter_config, access_logging)
 
     @classmethod
     def teardown_class(cls):
@@ -140,6 +142,21 @@ class TestOdinServerMissingAdapters(OdinTestServer):
 
         assert_true(no_adapters_msg_seen)
 
+class TestOdinServerAccessLogging():
+    
+    def test_bad_access_log_level(self):
+        
+        log_capture_filter = LogCaptureFilter()
+        bad_level='wibble'
+        http_server = HttpServer(adapters=[], access_logging=bad_level)
+        
+        msg_seen = False
+        expected_msg = 'Access logging level {} not recognised'.format(bad_level)
+        for msg in log_capture_filter.log_error():
+            if msg == expected_msg:
+                msg_seen = True
+        assert_true(msg_seen)
+        
 class TestOdinHttpServerLogging():
 
     @classmethod
