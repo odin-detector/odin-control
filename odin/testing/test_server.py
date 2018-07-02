@@ -1,5 +1,5 @@
 import sys
-from __builtin__ import classmethod
+
 if sys.version_info[0] == 3:  # pragma: no cover
     from unittest.mock import Mock
 else:                         # pragma: no cover
