@@ -81,7 +81,6 @@ class OdinTestServer(object):
         if access_logging is not None:
             parser.set("server", 'access_logging', 'debug')
 
-
         parser.add_section('tornado')
         parser.set('tornado', 'logging', 'debug')
 
