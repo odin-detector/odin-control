@@ -96,3 +96,7 @@ tags
 .tags
 /.project
 /.pydevproject
+
+# Eclipse workspace metadata
+.metadata/
+
