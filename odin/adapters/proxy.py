@@ -8,6 +8,7 @@ Tim Nicholls, STFC Application Engineering Group.
 import logging
 import time
 import tornado
+import tornado.httpclient
 
 from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
 from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
@@ -128,7 +129,12 @@ class ProxyTarget(object):
         return self.last_update
 
     def _get_data(self):
+        """
+        Update and get the target request data.
 
+        This internal method is used to update data from target and return
+        it for use in the parameter tree.
+        """
         self._update()
         return self.data
 
@@ -143,7 +149,7 @@ class ProxyAdapter(ApiAdapter):
         if 'request_timeout' in kwargs:
             try:
                 request_timeout = float(kwargs['request_timeout'])
-                logging.debug('ProxyAdapter request timeout set to {:f} secs'.format(
+                logging.debug('ProxyAdapter request timeout set to {} secs'.format(
                     request_timeout
                 ))
             except ValueError:
@@ -154,13 +160,22 @@ class ProxyAdapter(ApiAdapter):
         self.targets = []
         if 'targets' in kwargs:
             for target_str in kwargs['targets'].split(','):
-                (target, url) = target_str.strip().split('=')
-                self.targets.append(ProxyTarget(target, url, request_timeout))
+                try:
+                    (target, url) = target_str.strip().split('=')
+                    self.targets.append(ProxyTarget(target, url, request_timeout))
+                except ValueError:
+                    logging.error("Illegal target specification for ProxyAdapter: {}".format(
+                        target_str.strip()
+                    ))
+
+        if self.targets:
+            logging.debug("ProxyAdapter with {:d} targets loaded".format(len(self.targets)))
+        else:
+            logging.error("Failed to resolve targets for ProxyAdapter")
 
         self.param_tree = ParameterTree(
             {target.name: target.param_tree for target in self.targets}
         )
-        logging.debug("ProxyAdapter with {:d} targets loaded".format(len(self.targets)))
 
     @request_types('application/json')
     @response_types('application/json', default='application/json')
@@ -170,8 +185,8 @@ class ProxyAdapter(ApiAdapter):
             logging.debug("get: path {}".format(path))
             response = self.param_tree.get(path)
             status_code = 200
-        except ParameterTreeError as e:
-            response = {'error': str(e)}
+        except ParameterTreeError as param_tree_err:
+            response = {'error': str(param_tree_err)}
             status_code = 400
 
         return ApiAdapterResponse(response, status_code=status_code)
