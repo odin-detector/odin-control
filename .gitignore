@@ -100,3 +100,5 @@ tags
 # Eclipse workspace metadata
 .metadata/
 
+# VSCode settings
+.vscode/
