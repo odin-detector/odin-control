@@ -82,7 +82,7 @@ class SystemStatusAdapter(ApiAdapter):
         :param request: HTTP request object
         :return: an ApiAdapterResponse object containing the appropriate response
         """
-        response = {'response': 'SystemInfoAdapter: PUT on path {}'.format(path)}
+        response = {'response': 'SystemStatusAdapter: PUT on path {}'.format(path)}
         content_type = 'application/json'
         status_code = 200
 
@@ -100,7 +100,7 @@ class SystemStatusAdapter(ApiAdapter):
         :param request: HTTP request object
         :return: an ApiAdapterResponse object containing the appropriate response
         """
-        response = 'SystemInfoAdapter: DELETE on path {}'.format(path)
+        response = 'SystemStatusAdapter: DELETE on path {}'.format(path)
         status_code = 200
 
         logging.debug(response)
