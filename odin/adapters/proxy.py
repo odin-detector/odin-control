@@ -36,18 +36,21 @@ class ProxyTarget(object):
 
         # Initialise default state
         self.status_code = 0
-        self.error_string = ''
-        self.last_update = ''
+        self.error_string = 'OK'
+        self.last_update = 'unknown'
         self.data = {}
+        self.counter = 0
 
-        # Build a parameter tree representation of the proxy target
-        self.param_tree = ParameterTree({
+        # Build a parameter tree representatio of the proxy target status
+        self.status_param_tree = ParameterTree({
             'url': self.url,
-            'data': (self._get_data, None),
             'status_code': (self._get_status_code, None),
             'error': (self._get_error_string, None),
             'last_update': (self._get_last_update, None),
         })
+
+        # Build a parameter tree representation of the proxy target data
+        self.data_param_tree = ParameterTree((self._get_data, None))
 
         # Create an HTTP client instance and set up default request headers
         self.http_client = tornado.httpclient.HTTPClient()
@@ -56,7 +59,7 @@ class ProxyTarget(object):
             'Accept': 'application/json',
         }
 
-    def _update(self):
+    def update(self):
         """
         Update the proxy target with new data.
 
@@ -73,10 +76,10 @@ class ProxyTarget(object):
             )
             # Update status code and data accordingly
             self.status_code = response.code
+            self.error_string = 'OK'
             self.data = tornado.escape.json_decode(response.body)
-
             logging.debug("Proxy target {} fetch succeeded: {} {}".format(
-                self.name, self.status_code, self.data
+                self.name, self.status_code, self.data_param_tree.get('')
             ))
 
         except tornado.httpclient.HTTPError as http_err:
@@ -130,21 +133,37 @@ class ProxyTarget(object):
 
     def _get_data(self):
         """
-        Update and get the target request data.
+        Get the target request data.
 
-        This internal method is used to update data from target and return
-        it for use in the parameter tree.
+        This internal method is used to retrieve the target updated during last call to update(),
+        for use in the parameter tree.
         """
-        self._update()
         return self.data
 
 
 class ProxyAdapter(ApiAdapter):
+    """
+    Proxy adapter class for ODIN server.
+
+    This class implements a proxy adapter, allowing ODIN server to forward requests to
+    other HTTP services.
+    """
 
     def __init__(self, **kwargs):
+        """
+        Initialise the ProxyAdapter.
 
+        This constructor initialises the adapter instance, parsing configuration
+        options out of the keyword arguments it is passed. A ProxyTarget object is
+        instantiated for each target specified in the options.
+
+         :param kwargs: keyword arguments specifying options
+        """
+
+        # Initialise base class
         super(ProxyAdapter, self).__init__(**kwargs)
 
+        # Set the HTTP request timeout if present in the options
         request_timeout = None
         if 'request_timeout' in kwargs:
             try:
@@ -157,6 +176,8 @@ class ProxyAdapter(ApiAdapter):
                     kwargs['request_timeout']
                 ))
 
+        # Parse the list of target-URL pairs from the options, instantiating a ProxyTarget
+        # object for each target specified.
         self.targets = []
         if 'targets' in kwargs:
             for target_str in kwargs['targets'].split(','):
@@ -168,21 +189,36 @@ class ProxyAdapter(ApiAdapter):
                         target_str.strip()
                     ))
 
+        # Issue an error message if no targets were loaded
         if self.targets:
             logging.debug("ProxyAdapter with {:d} targets loaded".format(len(self.targets)))
         else:
             logging.error("Failed to resolve targets for ProxyAdapter")
 
-        self.param_tree = ParameterTree(
-            {target.name: target.param_tree for target in self.targets}
-        )
+        # Construct the parameter tree returned by this adapter
+        tree = { 'status' : {} }
+        for target in self.targets:
+            tree['status'][target.name] = target.status_param_tree
+            tree[target.name] = target.data_param_tree
+
+        self.param_tree = ParameterTree(tree)
 
     @request_types('application/json')
     @response_types('application/json', default='application/json')
     def get(self, path, request):
+        """
+        Handle an HTTP GET request.
 
+        This method handles an HTTP GET request, returning a JSON response.
+
+        :param path: URI path of request
+        :param request: HTTP request object
+        :return: an ApiAdapterResponse object containing the appropriate response
+        """
         try:
-            logging.debug("get: path {}".format(path))
+            logging.debug("GET: path=\'{}\'".format(path))
+            for target in self.targets:
+                target.update()
             response = self.param_tree.get(path)
             status_code = 200
         except ParameterTreeError as param_tree_err:

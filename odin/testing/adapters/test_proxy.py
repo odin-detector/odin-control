@@ -95,14 +95,14 @@ class TestProxyTarget():
 
         self.proxy_target.last_update = ''
 
-        self.proxy_target._update()
+        self.proxy_target.update()
         assert_equal(self.proxy_target.data, ProxyTestHandler.data)
         assert_equal(self.proxy_target.status_code, 200)
         assert_not_equal(self.proxy_target.last_update, '')
 
     def test_param_tree_get(self):
 
-        param_tree = self.proxy_target.param_tree.get('')
+        param_tree = self.proxy_target.status_param_tree.get('')
         for tree_element in ['url', 'status_code', 'error', 'last_update']:
             assert_true(tree_element in param_tree)
 
@@ -110,7 +110,7 @@ class TestProxyTarget():
 
         bad_url = self.url + 'notfound'
         proxy_target = ProxyTarget(self.name, bad_url, self.request_timeout)
-        proxy_target._update()
+        proxy_target.update()
         
         assert_equal(proxy_target.status_code, 404)
         assert_in('Not Found', proxy_target.error_string)
@@ -119,7 +119,7 @@ class TestProxyTarget():
 
         bad_url = 'http://127.0.0.1:{}'.format(self.port + 1)
         proxy_target = ProxyTarget(self.name, bad_url, self.request_timeout)
-        proxy_target._update()
+        proxy_target.update()
 
         assert_equal(proxy_target.status_code, 502)
         assert_in('Connection refused', proxy_target.error_string)
@@ -177,12 +177,14 @@ class TestProxyAdapter():
 
         response = self.adapter.get(self.path, self.request)
         
-        assert_equal(len(response.data), self.num_targets)
+        assert_true('status' in response.data)
+        
+        assert_equal(len(response.data), self.num_targets+1)
         
         for tgt in range(self.num_targets):
             node_str = 'node_{}'.format(tgt)
             assert_true(node_str in response.data)
-            assert_equal(response.data[node_str]['data'], ProxyTestHandler.data)
+            assert_equal(response.data[node_str], ProxyTestHandler.data)
 
     def test_adapter_get_bad_path(self):
 
