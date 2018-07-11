@@ -267,10 +267,11 @@ class ParameterTree(object):
             node.set(new_data)
         else:
             # Validate type of new node matches existing
-            if type(node) is not type(new_data):
-                raise ParameterTreeError('Type mismatch updating {}: got {} expected {}'.format(
-                    cur_path[:-1], type(new_data).__name__, type(node).__name__
-                ))
+            if node is not None and new_data is not None:
+                if type(node) is not type(new_data):
+                    raise ParameterTreeError('Type mismatch updating {}: got {} expected {}'.format(
+                        cur_path[:-1], type(new_data).__name__, type(node).__name__
+                    ))
             node = new_data
 
         # Call any callbacks specified at this path
