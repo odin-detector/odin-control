@@ -146,7 +146,8 @@ class SystemStatus(with_metaclass(Singleton, object)):
         if 'disks' in kwargs:
             disks = kwargs['disks'].split(',')
             for disk in disks:
-                self._disks.append(disk.strip())
+                if os.path.isdir(disk.strip()):
+                    self._disks.append(disk.strip())
 
         for disk in self._disks:
             tree['status']['disk'][disk.replace("/", "_")] = {
@@ -157,8 +158,12 @@ class SystemStatus(with_metaclass(Singleton, object)):
             }
 
         # Add any network interfaces that we need to monitor
+        available_interfaces = list(psutil.net_io_counters(pernic=True))
         if 'interfaces' in kwargs:
-            self._interfaces = kwargs['interfaces'].split(',')
+            interfaces = kwargs['interfaces'].split(',')
+            for interface in interfaces:
+                if interface.strip() in available_interfaces:
+                    self._interfaces.append(interface.strip())
 
         for interface in self._interfaces:
             tree['status']['network'][interface] = {
