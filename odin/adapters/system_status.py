@@ -227,7 +227,10 @@ class SystemStatus(with_metaclass(Singleton, object)):
         """
         if process_name not in self._processes:
             self._log.debug("Adding process %s to monitor list", process_name)
-            self._processes[process_name] = self.find_process(process_name)
+            try:
+                self._processes[process_name] = self.find_process(process_name)
+            except Exception as e:
+                self._log.debug("Unable to add process %s to the monitor list: %s", process_name, str(e))
 
     def monitor(self):
         """Executed at regular interval.  Calls the specific monitoring methods."""
@@ -274,15 +277,22 @@ class SystemStatus(with_metaclass(Singleton, object)):
                     self._processes[process_name] = self.find_process(process_name)
 
                 process = self._processes[process_name]
+                path = "status/process/" + process_name
                 if process is not None:
                     memory_info = process.memory_info()
-                    path = "status/process/" + process_name
                     self._status.set(path + "/cpu_percent", process.cpu_percent(interval=0.0))
                     self._status.set(path + "/cpu_affinity", process.cpu_affinity())
                     self._status.set(path + "/memory_percent", process.memory_percent())
                     self._status.set(path + "/memory_rss", memory_info.rss)
                     self._status.set(path + "/memory_vms", memory_info.vms)
                     self._status.set(path + "/memory_shared", memory_info.shared)
+                else:
+                    self._status.set(path + "/cpu_percent", None)
+                    self._status.set(path + "/cpu_affinity", None)
+                    self._status.set(path + "/memory_percent", None)
+                    self._status.set(path + "/memory_rss", None)
+                    self._status.set(path + "/memory_vms", None)
+                    self._status.set(path + "/memory_shared", None)
             except:
                 # Any exception may occur due to the process not existing etc, so reset the process object
                 self._processes[process_name] = None
