@@ -28,6 +28,11 @@ class TestParameterTree():
             'strParam':  cls.str_value,
         }
 
+        cls.accessor_params = {
+            'one': 1,
+            'two': 2,
+            'pi': 3.14
+        }
         cls.simple_tree = ParameterTree(cls.simple_dict)
 
         # Set up nested dict of parameters for a more complex tree
@@ -49,9 +54,14 @@ class TestParameterTree():
         cls.complex_tree = ParameterTree({
             'intParam': cls.int_value,
             'callableRoParam': (lambda: cls.int_value, None),
+            'callableAccessorParam': (cls.get_accessor_param, None),
             'listParam': cls.list_values,
             'branch': cls.complex_tree_branch,
         })
+
+    @classmethod
+    def get_accessor_param(cls):
+        return cls.accessor_params
 
     @classmethod
     def branch_callback(cls, path, value):
@@ -127,6 +137,11 @@ class TestParameterTree():
         assert_equals(complex_vals['intParam'], self.int_value)
         assert_equals(complex_vals['callableRoParam'], self.int_value)
 
+    def test_complex_tree_accessor(self):
+    
+        accessor_val = self.complex_tree.get('callableAccessorParam/one')
+        assert_equals(accessor_val['one'], self.accessor_params['one'])
+
     def test_complex_tree_callable_readonly(self):
 
         with assert_raises_regexp(ParameterTreeError, 'Parameter callableRoParam is read-only'):
@@ -143,6 +158,7 @@ class TestParameterTree():
         complex_vals = self.complex_tree.get('')
         complex_vals_copy = deepcopy(complex_vals)
         del complex_vals_copy['callableRoParam']
+        del complex_vals_copy['callableAccessorParam']
 
         self.complex_tree.set('', complex_vals_copy)
         complex_vals2 = self.complex_tree.get('')

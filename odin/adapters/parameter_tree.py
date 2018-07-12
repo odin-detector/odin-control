@@ -112,6 +112,8 @@ class ParameterTree(object):
             # Check if next level of path is valid
             if isinstance(subtree, dict) and l in subtree:
                 subtree = subtree[l]
+            elif isinstance(subtree, ParameterAccessor):
+                subtree = subtree.get()[l]
             else:
                 raise ParameterTreeError("The path %s is invalid" % path)
 
@@ -202,20 +204,13 @@ class ParameterTree(object):
 
         # Convert list or non-callable tuple to enumerated dict ; TODO - remove this?
         if isinstance(node, list) or isinstance(node, tuple):
-            #print "BUILD 1 I AM AT ", type(node), "node", node, "path", path
-            
             return [self.__recursive_build_tree(elem, path=path) for elem in node]
-            #node = {str(i): node[i] for i in range(len(node))}
 
         # Recursively check child elements
         if isinstance(node, dict):
-            #print "BUILD 2 I AM AT ", type(node), "node", node, "path", path
             return {k: self.__recursive_build_tree(
                 v, path=path + k + '/') for k, v in node.items()}
         
-        #if isinstance(node, list) or isinstance(node, tuple):
-            #print "BUILD 3 I AM AT ", type(node), "node", node, "path", path
-             
         return node
 
     def __recursive_populate_tree(self, node):
@@ -230,20 +225,16 @@ class ParameterTree(object):
         """
         # If this is a branch node recurse down the tree
         if isinstance(node, dict):
-            #print "POPULATE 1 I AM AT", type(node), "node", node
             return {k: self.__recursive_populate_tree(v) for k, v in node.items()}
 
         if isinstance(node, list) or isinstance(node, tuple):
-            #print "POPULATE 2 I AM AT", type(node), "node", node
             return [self.__recursive_populate_tree(item) for item in node]
         
         # If this is a leaf node, check if the leaf is a r/w tuple and substitute the
         # read element of that tuple into the node
         if isinstance(node, ParameterAccessor):
-            #print "POPULATE 3 I AM AT", type(node), "node", node
             return node.get()
 
-        #print "POPULATE 4 I AM AT", type(node), "node", node
         return node
 
     # Replaces values in data_tree with values from new_data
