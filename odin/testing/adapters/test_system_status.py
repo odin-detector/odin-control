@@ -33,7 +33,7 @@ class TestSystemStatus():
         assert_true('proc1' in self.system_status._processes)
 
     def test_system_status_check_bad_nic(self):
-        with assert_raises(ParameterTreeError):
+        with assert_raises(KeyError):
             self.system_status.get('status/network/bad')
 
     def test_system_status_monitor_network(self):

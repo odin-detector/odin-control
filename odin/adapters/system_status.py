@@ -129,16 +129,19 @@ class SystemStatus(with_metaclass(Singleton, object)):
         """
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
         self._processes = {}
+        self._process_status = {}
         self._interfaces = []
+        self._interface_status = {}
         self._disks = []
+        self._disk_status = {}
 
         # The parameter tree will contain general server information as well as information
         # relating to each process.  We need to initialise the top level tree
         tree = {
             'status': {
-                'disk': {},
-                'network': {},
-                'process': {}
+                'disk': (self.get_disk_status, None),
+                'network': (self.get_interface_status, None),
+                'process': (self.get_process_status, None)
             }
         }
 
@@ -150,11 +153,11 @@ class SystemStatus(with_metaclass(Singleton, object)):
                     self._disks.append(disk.strip())
 
         for disk in self._disks:
-            tree['status']['disk'][disk.replace("/", "_")] = {
-                'total': 0,
-                'used': 0,
-                'free': 0,
-                'percent': 0.0
+            self._disk_status[disk.replace("/", "_")] = {
+                'total': None,
+                'used': None,
+                'free': None,
+                'percent': None
             }
 
         # Add any network interfaces that we need to monitor
@@ -166,15 +169,15 @@ class SystemStatus(with_metaclass(Singleton, object)):
                     self._interfaces.append(interface.strip())
 
         for interface in self._interfaces:
-            tree['status']['network'][interface] = {
-                'bytes_sent': 0,
-                'bytes_recv': 0,
-                'packets_sent': 0,
-                'packets_recv': 0,
-                'errin': 0,
-                'errout': 0,
-                'dropin': 0,
-                'dropout': 0
+            self._interface_status[interface] = {
+                'bytes_sent': None,
+                'bytes_recv': None,
+                'packets_sent': None,
+                'packets_recv': None,
+                'errin': None,
+                'errout': None,
+                'dropin': None,
+                'dropout': None
             }
 
         # Add any processes that we need to monitor
@@ -184,13 +187,13 @@ class SystemStatus(with_metaclass(Singleton, object)):
                 self.add_process(process.strip())
 
         for process in self._processes:
-            tree['status']['process'][process] = {
-                'cpu_percent': 0.0,
-                'cpu_affinity': [],
-                'memory_percent': 0.0,
-                'memory_rss': 0,
-                'memory_vms': 0,
-                'memory_shared': 0
+            self._process_status[process] = {
+                'cpu_percent': None,
+                'cpu_affinity': None,
+                'memory_percent': None,
+                'memory_rss': None,
+                'memory_vms': None,
+                'memory_shared': None
             }
 
         self._status = ParameterTree(tree)
@@ -201,6 +204,15 @@ class SystemStatus(with_metaclass(Singleton, object)):
         else:
             self._update_interval = 1.0
         self.update_loop()
+
+    def get_disk_status(self):
+        return self._disk_status
+
+    def get_interface_status(self):
+        return self._interface_status
+
+    def get_process_status(self):
+        return self._process_status
 
     def get(self, path):
         """Return the requested path value"""
@@ -243,11 +255,11 @@ class SystemStatus(with_metaclass(Singleton, object)):
         for disk in self._disks:
             try:
                 usage = psutil.disk_usage(disk)
-                path = "status/disk/" + str(disk.replace("/", "_"))
-                self._status.set(path + "/total", usage.total)
-                self._status.set(path + "/used", usage.used)
-                self._status.set(path + "/free", usage.free)
-                self._status.set(path + "/percent", usage.percent)
+                path = str(disk.replace("/", "_"))
+                self._disk_status[path]['total'] = usage.total
+                self._disk_status[path]['used'] = usage.used
+                self._disk_status[path]['free'] = usage.free
+                self._disk_status[path]['percent'] = usage.percent
             except Exception as e:
                 self._log.exception(e)
 
@@ -257,15 +269,14 @@ class SystemStatus(with_metaclass(Singleton, object)):
             network = psutil.net_io_counters(pernic=True)
             for interface in self._interfaces:
                 if interface in network:
-                    path = "status/network/" + interface
-                    self._status.set(path + "/bytes_sent", network[interface].bytes_sent)
-                    self._status.set(path + "/bytes_recv", network[interface].bytes_recv)
-                    self._status.set(path + "/packets_sent", network[interface].packets_sent)
-                    self._status.set(path + "/packets_recv", network[interface].packets_recv)
-                    self._status.set(path + "/errin", network[interface].errin)
-                    self._status.set(path + "/errout", network[interface].errout)
-                    self._status.set(path + "/dropin", network[interface].dropin)
-                    self._status.set(path + "/dropout", network[interface].dropout)
+                    self._interface_status[interface]['bytes_sent'] = network[interface].bytes_sent
+                    self._interface_status[interface]['bytes_recv'] = network[interface].bytes_recv
+                    self._interface_status[interface]['packets_sent'] = network[interface].packets_sent
+                    self._interface_status[interface]['packets_recv'] = network[interface].packets_recv
+                    self._interface_status[interface]['errin'] = network[interface].errin
+                    self._interface_status[interface]['errout'] = network[interface].errout
+                    self._interface_status[interface]['dropin'] = network[interface].dropin
+                    self._interface_status[interface]['dropout'] = network[interface].dropout
         except Exception as e:
             self._log.exception(e)
 
@@ -277,22 +288,21 @@ class SystemStatus(with_metaclass(Singleton, object)):
                     self._processes[process_name] = self.find_process(process_name)
 
                 process = self._processes[process_name]
-                path = "status/process/" + process_name
                 if process is not None:
                     memory_info = process.memory_info()
-                    self._status.set(path + "/cpu_percent", process.cpu_percent(interval=0.0))
-                    self._status.set(path + "/cpu_affinity", process.cpu_affinity())
-                    self._status.set(path + "/memory_percent", process.memory_percent())
-                    self._status.set(path + "/memory_rss", memory_info.rss)
-                    self._status.set(path + "/memory_vms", memory_info.vms)
-                    self._status.set(path + "/memory_shared", memory_info.shared)
+                    self._process_status[process_name]['cpu_percent'] = process.cpu_percent(interval=0.0)
+                    self._process_status[process_name]['cpu_affinity'] = process.cpu_affinity()
+                    self._process_status[process_name]['memory_percent'] = process.memory_percent()
+                    self._process_status[process_name]['memory_rss'] = memory_info.rss
+                    self._process_status[process_name]['memory_vms'] = memory_info.vms
+                    self._process_status[process_name]['memory_shared'] = memory_info.shared
                 else:
-                    self._status.set(path + "/cpu_percent", None)
-                    self._status.set(path + "/cpu_affinity", None)
-                    self._status.set(path + "/memory_percent", None)
-                    self._status.set(path + "/memory_rss", None)
-                    self._status.set(path + "/memory_vms", None)
-                    self._status.set(path + "/memory_shared", None)
+                    self._process_status[process_name]['cpu_percent'] = None
+                    self._process_status[process_name]['cpu_affinity'] = None
+                    self._process_status[process_name]['memory_percent'] = None
+                    self._process_status[process_name]['memory_rss'] = None
+                    self._process_status[process_name]['memory_vms'] = None
+                    self._process_status[process_name]['memory_shared'] = None
             except:
                 # Any exception may occur due to the process not existing etc, so reset the process object
                 self._processes[process_name] = None
