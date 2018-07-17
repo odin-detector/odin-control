@@ -268,15 +268,14 @@ class SystemStatus(with_metaclass(Singleton, object)):
         try:
             network = psutil.net_io_counters(pernic=True)
             for interface in self._interfaces:
-                if interface in network:
-                    self._interface_status[interface]['bytes_sent'] = network[interface].bytes_sent
-                    self._interface_status[interface]['bytes_recv'] = network[interface].bytes_recv
-                    self._interface_status[interface]['packets_sent'] = network[interface].packets_sent
-                    self._interface_status[interface]['packets_recv'] = network[interface].packets_recv
-                    self._interface_status[interface]['errin'] = network[interface].errin
-                    self._interface_status[interface]['errout'] = network[interface].errout
-                    self._interface_status[interface]['dropin'] = network[interface].dropin
-                    self._interface_status[interface]['dropout'] = network[interface].dropout
+                self._interface_status[interface]['bytes_sent'] = network[interface].bytes_sent
+                self._interface_status[interface]['bytes_recv'] = network[interface].bytes_recv
+                self._interface_status[interface]['packets_sent'] = network[interface].packets_sent
+                self._interface_status[interface]['packets_recv'] = network[interface].packets_recv
+                self._interface_status[interface]['errin'] = network[interface].errin
+                self._interface_status[interface]['errout'] = network[interface].errout
+                self._interface_status[interface]['dropin'] = network[interface].dropin
+                self._interface_status[interface]['dropout'] = network[interface].dropout
         except Exception as e:
             self._log.exception(e)
 

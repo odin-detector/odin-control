@@ -52,10 +52,36 @@ class TestSystemStatus():
         assert_equal(type(result), dict)
 
     def test_system_status_monitor(self):
-        try:
-            self.system_status.monitor()
-        except:
-            self.fail("SystemStatus.monitor raised an unexpected Exception")
+        self.system_status.monitor()
+
+    def test_bad_disk_exception(self):
+        self.system_status._disks.append("rubbish")
+        # Any exceptions caught whilst monitoring will be handled within the class
+        self.system_status.monitor_disks()
+
+    def test_bad_interface_exception(self):
+        self.system_status._interfaces.append("rubbish")
+        # Any exceptions caught whilst monitoring will be handled within the class
+        self.system_status.monitor_network()
+
+    def test_bad_process_exception(self):
+        self.system_status._processes["rubbish"] = {}
+        # Any exceptions caught whilst monitoring will be handled within the class
+        self.system_status.monitor_processes()
+
+    def test_add_process_exception(self):
+        self.stash_method = self.system_status.find_process
+        self.system_status.find_process = Mock(side_effect=KeyError('error'))
+        # Any exceptions caught whilst adding processes will be handled within the class
+        self.system_status.add_process("process")
+        self.system_status.find_process = self.stash_method
+
+    def test_update_loop_exception(self):
+        self.stash_method = self.system_status.monitor
+        self.system_status.monitor = Mock(side_effect=Exception('error'))
+        # Any exceptions caught whilst monitoring will be handled within the class
+        self.system_status.update_loop()
+        self.system_status.monitor = self.stash_method
 
 
 class TestSystemStatusAdapter():
