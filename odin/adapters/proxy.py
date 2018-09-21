@@ -9,6 +9,7 @@ import logging
 import time
 import tornado
 import tornado.httpclient
+from tornado.escape import json_decode
 
 from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
 from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
@@ -50,7 +51,7 @@ class ProxyTarget(object):
         })
 
         # Build a parameter tree representation of the proxy target data
-        self.data_param_tree = ParameterTree((self._get_data, None))
+        self.data_param_tree = ParameterTree((self._get_data, self._set_data))
 
         # Create an HTTP client instance and set up default request headers
         self.http_client = tornado.httpclient.HTTPClient()
@@ -140,6 +141,10 @@ class ProxyTarget(object):
         """
         return self.data
 
+    def _set_data(self, data):
+
+        logging.debug("ProxyTarget {} set with data {}".format(self.name, data))
+
 
 class ProxyAdapter(ApiAdapter):
     """
@@ -215,14 +220,43 @@ class ProxyAdapter(ApiAdapter):
         :param request: HTTP request object
         :return: an ApiAdapterResponse object containing the appropriate response
         """
-        try:
-            logging.debug("GET: path=\'{}\'".format(path))
-            for target in self.targets:
+        # Update the target specified in the path, or all targets if none specified
+        path_elem = path.split('/')[0]
+        for target in self.targets:
+            if path_elem == '' or path_elem == target.name:
                 target.update()
+
+        # Build the response from the adapter parameter tree
+        try:
             response = self.param_tree.get(path)
             status_code = 200
         except ParameterTreeError as param_tree_err:
             response = {'error': str(param_tree_err)}
+            status_code = 400
+
+        return ApiAdapterResponse(response, status_code=status_code)
+
+    @request_types('application/json')
+    @response_types('application/json', default='application/json')
+    def put(self, path, request):
+        """Handle an HTTP PUT request.
+
+        This method handles an HTTP PUT request, returning a JSON response.
+
+        :param path: URI path of request
+        :param request: HTTP request object
+        :return: an ApiAdapterResponse object containing the appropriate response
+        """
+        try:
+            data = json_decode(request.body)
+            self.param_tree.set(path, data)
+            response = self.param_tree.get(path)
+            status_code = 200
+        except ParameterTreeError as e:
+            response = {'error': str(e)}
+            status_code = 400
+        except (TypeError, ValueError) as e:
+            response = {'error': 'Failed to decode PUT request body: {}'.format(str(e))}
             status_code = 400
 
         return ApiAdapterResponse(response, status_code=status_code)
