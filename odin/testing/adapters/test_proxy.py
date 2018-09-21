@@ -22,19 +22,23 @@ class ProxyTestHandler(RequestHandler):
 
     data = {'one': 1, 'two': 2.0, 'pi': 3.14}
 
+    def initialize(self, server):
+        server.access_count += 1
+
     def get(self):
         self.write(ProxyTestHandler.data)
 
 class ProxyTestServer(object):
 
-    def __init__(self):
+    def __init__(self,):
 
         self.server_ioloop = IOLoop()
+        self.access_count = 0
 
         @tornado.gen.coroutine
         def init_server():
             sock, self.port = bind_unused_port()
-            app = Application([('/', ProxyTestHandler)])
+            app = Application([('/', ProxyTestHandler, dict(server=self))])
             self.server = HTTPServer(app)
             self.server.add_socket(sock)
         self.server_ioloop.run_sync(init_server)
@@ -63,6 +67,11 @@ class ProxyTestServer(object):
         self.server_thread.join()
         self.server_ioloop.close(all_fds=True)
 
+    def get_access_count(self):
+        return self.access_count
+
+    def clear_access_count(self):
+        self.access_count = 0
 
 class TestProxyTarget():
 
@@ -168,6 +177,12 @@ class TestProxyAdapter():
         for test_server in cls.test_servers:
             test_server.stop()
 
+    @classmethod
+    def clear_access_counts(cls):
+
+        for test_server in cls.test_servers:
+            test_server.clear_access_count()
+
     def test_adapter_loaded(self):
 
         expected_msg = "ProxyAdapter with {} targets loaded".format(self.num_targets)
@@ -216,3 +231,23 @@ class TestProxyAdapter():
 
         expected_msg = "Failed to resolve targets for ProxyAdapter"
         assert_true(expected_msg in self.log_capture_filter.log_error())
+
+    def test_adapter_get_access_count(self):
+
+        self.clear_access_counts()
+
+        response = self.adapter.get(self.path, self.request)
+
+        access_counts = [server.get_access_count() for server in self.test_servers]
+        assert_equal(access_counts, [1]*self.num_targets)
+
+    def test_adapter_counter_get_single_node(self):
+
+        path = self.path + 'node_{}'.format(self.num_targets-1)
+
+        self.clear_access_counts()
+        response = self.adapter.get(path, self.request)
+        access_counts = [server.get_access_count() for server in self.test_servers]
+        
+        assert_true(path in response.data)
+        assert_equal(sum([server.get_access_count() for server in self.test_servers]), 1)
