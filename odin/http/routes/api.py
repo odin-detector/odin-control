@@ -124,12 +124,13 @@ class ApiHandler(tornado.web.RequestHandler):
         self.route = route
 
     @validate_api_request(_api_version)
-    def get(self, subsystem, path):
+    def get(self, subsystem, path=''):
         """Handle an API GET request.
 
         :param subsystem: subsystem element of URI, defining adapter to be called
         :param path: remaining URI path to be passed to adapter method
         """
+        print("ApiHandler.get path", path)
         response = self.route.adapter(subsystem).get(path, self.request)
         self.respond(response)
 
@@ -195,6 +196,7 @@ class ApiRoute(Route):
         #    /api/<version>/<subsystem>/<action>....
 
         self.add_handler((r"/api/(.*?)/(.*?)/(.*)", ApiHandler, dict(route=self)))
+        self.add_handler((r"/api/(.*?)/(.*?)/?", ApiHandler, dict(route=self)))
 
         self.adapters = {}
 
