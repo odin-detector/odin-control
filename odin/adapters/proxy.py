@@ -75,6 +75,7 @@ class ProxyTarget(object):
         status information is updated according to the success or failure
         of the request.
         """
+        print("PATH FOR UPDATE: {}".format(path))
         try:
             # Request data from the target
             response = self.http_client.fetch(
@@ -94,7 +95,7 @@ class ProxyTarget(object):
             self.data = temp_tree.get("")  # get dict from tree
             
             logging.debug("Proxy target {} fetch succeeded: {} {}".format(
-                self.name, self.status_code, self.data_param_tree.get('')
+                self.name, self.status_code, self.data_param_tree.get(path)
             ))
 
         except tornado.httpclient.HTTPError as http_err:
@@ -235,9 +236,9 @@ class ProxyAdapter(ApiAdapter):
         :return: an ApiAdapterResponse object containing the appropriate response
         """
         # Update the target specified in the path, or all targets if none specified
-        try:
+        if "/" in path:
             path_elem, target_path = path.split('/', 1)
-        except ValueError:
+        else:
             path_elem = path.split('/')[0]
             target_path = ""
         for target in self.targets:
