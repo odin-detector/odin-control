@@ -75,7 +75,7 @@ class ProxyTarget(object):
         status information is updated according to the success or failure
         of the request.
         """
-        print("PATH FOR UPDATE: {}".format(path))
+        
         try:
             # Request data from the target
             response = self.http_client.fetch(
@@ -86,14 +86,14 @@ class ProxyTarget(object):
             self.status_code = response.code
             self.error_string = 'OK'
             response_body = tornado.escape.json_decode(response.body)
-            # use a parameter tree to modify self.data recursivly
-            temp_tree = ParameterTree(self.data)
+            data_copy = self.data  # reference for modification
+            if path:
+                path_elems = path.split('/')
+                for elem in path_elems[:-1]:
+                    data_copy = data_copy[elem]
             for key in response_body:
-                response_path = path if path else key
-                temp_tree.set(response_path, response_body[key])
-
-            self.data = temp_tree.get("")  # get dict from tree
-            
+                new_elem = response_body[key]
+                data_copy[key] = new_elem
             logging.debug("Proxy target {} fetch succeeded: {} {}".format(
                 self.name, self.status_code, self.data_param_tree.get(path)
             ))
