@@ -130,12 +130,11 @@ class ApiHandler(tornado.web.RequestHandler):
         :param subsystem: subsystem element of URI, defining adapter to be called
         :param path: remaining URI path to be passed to adapter method
         """
-        print("ApiHandler.get path", path)
         response = self.route.adapter(subsystem).get(path, self.request)
         self.respond(response)
 
     @validate_api_request(_api_version)
-    def put(self, subsystem, path):
+    def put(self, subsystem, path=''):
         """Handle an API PUT request.
 
         :param subsystem: subsystem element of URI, defining adapter to be called
@@ -145,7 +144,7 @@ class ApiHandler(tornado.web.RequestHandler):
         self.respond(response)
 
     @validate_api_request(_api_version)
-    def delete(self, subsystem, path):
+    def delete(self, subsystem, path=''):
         """Handle an API DELETE request.
 
         :param subsystem: subsystem element of URI, defining adapter to be called
