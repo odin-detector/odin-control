@@ -193,7 +193,9 @@ class ApiRoute(Route):
         # enforced by the validate_api_request decorator, is the following:
         #
         #    /api/<version>/<subsystem>/<action>....
-
+        #
+        # The second pattern allows an API adapter to be accessed with or without
+        # a trailing slash for maximum compatibility
         self.add_handler((r"/api/(.*?)/(.*?)/(.*)", ApiHandler, dict(route=self)))
         self.add_handler((r"/api/(.*?)/(.*?)/?", ApiHandler, dict(route=self)))
 
