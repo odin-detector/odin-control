@@ -107,6 +107,11 @@ class TestParameterTree():
         branch_vals = self.nested_tree.get('branch')
         assert_equals(branch_vals['branch'], self.nested_dict['branch'])
 
+    def test_nested_tree_trailing_slash(self):
+
+        branch_vals = self.nested_tree.get('branch/')
+        assert_equals(branch_vals['branch'], self.nested_dict['branch'])
+
     def test_callback_modifies_branch_value(self):
 
         branch_data = deepcopy(self.nested_dict['branch'])
@@ -273,3 +278,21 @@ class TestRwParameterTree():
         new_float_value = self.nested_rw_param + 2.3456
         self.rw_callable_tree.set('branch/nestedRwParam', new_float_value)
         assert_equal(self.nested_rw_param, new_float_value)
+
+    def test_rw_callable_nested_tree_set(self):
+
+        nested_branch = self.rw_callable_tree.get('branch')['branch']
+        new_rw_param_val = 45.876
+        nested_branch['nestedRwParam'] = new_rw_param_val
+        self.rw_callable_tree.set('branch', nested_branch)
+        new_branch = self.rw_callable_tree.get('branch')['branch']
+        assert_equal(new_branch['nestedRwParam'], new_rw_param_val)
+
+    def test_rw_callable_nested_tree_set_trailing_slash(self):
+
+        nested_branch = self.rw_callable_tree.get('branch/')['branch']
+        new_rw_param_val = 24.601
+        nested_branch['nestedRwParam'] = new_rw_param_val
+        self.rw_callable_tree.set('branch', nested_branch)
+        new_branch = self.rw_callable_tree.get('branch/')['branch']
+        assert_equal(new_branch['nestedRwParam'], new_rw_param_val)
