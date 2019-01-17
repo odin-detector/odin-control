@@ -59,12 +59,6 @@ class ProxyTarget(object):
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
-        # TODO: find better way to instantiate self.data
-        response = self.http_client.fetch(
-                self.url, headers=self.request_headers,
-                request_timeout=self.request_timeout
-            )
-        self.data = tornado.escape.json_decode(response.body)
 
     def update(self, path):
         """
@@ -75,7 +69,7 @@ class ProxyTarget(object):
         status information is updated according to the success or failure
         of the request.
         """
-        
+
         try:
             # Request data from the target
             response = self.http_client.fetch(
@@ -87,7 +81,7 @@ class ProxyTarget(object):
             self.error_string = 'OK'
             response_body = tornado.escape.json_decode(response.body)
             data_copy = self.data  # reference for modification
-            if path:
+            if path:  # TODO: write unit test that tests this path logic
                 path_elems = path.split('/')
                 for elem in path_elems[:-1]:
                     data_copy = data_copy[elem]
@@ -156,7 +150,7 @@ class ProxyTarget(object):
         """
         return self.data
 
-    def _set_data(self, data):
+    def _set_data(self, data):  # TODO: test set data methods
 
         logging.debug("ProxyTarget {} set with data {}".format(self.name, data))
 
@@ -257,7 +251,7 @@ class ProxyAdapter(ApiAdapter):
 
     @request_types('application/json')
     @response_types('application/json', default='application/json')
-    def put(self, path, request):
+    def put(self, path, request):  # TODO: write Unit Test for put methods
         """Handle an HTTP PUT request.
 
         This method handles an HTTP PUT request, returning a JSON response.

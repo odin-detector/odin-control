@@ -104,7 +104,7 @@ class TestProxyTarget():
 
         self.proxy_target.last_update = ''
 
-        self.proxy_target.update()
+        self.proxy_target.update('')
         assert_equal(self.proxy_target.data, ProxyTestHandler.data)
         assert_equal(self.proxy_target.status_code, 200)
         assert_not_equal(self.proxy_target.last_update, '')
@@ -119,7 +119,7 @@ class TestProxyTarget():
 
         bad_url = self.url + 'notfound'
         proxy_target = ProxyTarget(self.name, bad_url, self.request_timeout)
-        proxy_target.update()
+        proxy_target.update('notfound')
         
         assert_equal(proxy_target.status_code, 404)
         assert_in('Not Found', proxy_target.error_string)
@@ -128,7 +128,7 @@ class TestProxyTarget():
 
         bad_url = 'http://127.0.0.1:{}'.format(self.port + 1)
         proxy_target = ProxyTarget(self.name, bad_url, self.request_timeout)
-        proxy_target.update()
+        proxy_target.update('')
 
         assert_equal(proxy_target.status_code, 502)
         assert_in('Connection refused', proxy_target.error_string)
