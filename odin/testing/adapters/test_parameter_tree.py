@@ -5,7 +5,74 @@ Tim Nicholls, STFC Application Engingeering
 
 from copy import deepcopy
 from nose.tools import *
-from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
+from odin.adapters.parameter_tree import ParameterAccessor, ParameterTree, ParameterTreeError
+
+class TestParameterAccessor():
+
+    @classmethod
+    def setup_class(cls):
+
+        cls.static_rw_path = 'static_rw'
+        cls.static_rw_value = 2.76923
+        cls.static_rw_accessor = ParameterAccessor(cls.static_rw_path + '/', cls.static_rw_value)
+
+        cls.callable_ro_value = 1234
+        cls.callable_ro_path = 'callable_ro'
+        cls.callable_ro_accessor = ParameterAccessor(cls.callable_ro_path + '/', cls.callable_ro_get)
+
+        cls.callable_rw_value = 'foo'
+        cls.callable_rw_path = 'callable_rw'
+        cls.callable_rw_accessor = ParameterAccessor(
+            cls.callable_rw_path + '/', cls.callable_rw_get, cls.callable_rw_set)
+
+    @classmethod
+    def callable_ro_get(cls):
+        return cls.callable_ro_value
+
+    @classmethod
+    def callable_rw_get(cls):
+        return cls.callable_rw_value
+
+    @classmethod
+    def callable_rw_set(cls, value):
+        cls.callable_rw_value = value
+
+    def test_static_rw_accessor_get(self):
+
+        assert_equal(self.static_rw_accessor.get(), self.static_rw_value)
+
+    def test_static_rw_accessor_set(self):
+
+        old_val = self.static_rw_value
+        new_val = 1.234
+        self.static_rw_accessor.set(new_val)
+        assert_equal(self.static_rw_accessor.get(), new_val)
+
+        self.static_rw_accessor.set(old_val)
+
+    def test_callable_ro_accessor_get(self):
+
+        assert_equal(self.callable_ro_accessor.get(), self.callable_ro_value)
+
+    def test_callable_ro_accessor_set(self):
+
+        new_val = 91265
+        with assert_raises_regexp(
+            ParameterTreeError, "Parameter {} is read-only".format(self.callable_ro_path)):
+            self.callable_ro_accessor.set(new_val)
+
+    def test_callable_rw_accessor_get(self):
+
+        assert_equal(self.callable_rw_accessor.get(), self.callable_rw_value)
+
+    def test_callable_rw_accessor_get(self):
+
+        old_val = self.callable_rw_value
+        new_val = 'bar'
+        self.callable_rw_accessor.set(new_val)
+        assert_equal(self.callable_rw_accessor.get(), new_val)
+
+        self.callable_rw_accessor.set(old_val)
 
 class TestParameterTree():
 
