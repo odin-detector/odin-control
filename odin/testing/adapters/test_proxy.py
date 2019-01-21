@@ -20,14 +20,43 @@ from odin.testing.utils import LogCaptureFilter
 
 class ProxyTestHandler(RequestHandler):
 
-    data = {'one': 1, 'two': 2.0, 'pi': 3.14}
+    data = {'one': 1,
+            'two': 2.0,
+            'pi': 3.14,
+            'more':
+            {
+                'three': 3.0,
+                'replace': 'Replace Me!',
+                'even_more':{
+                    'extra_val': 5.5
+                }
+            }
+        }
 
     def initialize(self, server):
         server.access_count += 1
 
-    def get(self):
-        self.write(ProxyTestHandler.data)
-
+    def get(self, path=''):
+            # TODO: handle 404 not found stuff
+            # check out how the tornado stuff creates HTTP responses to do that
+            try:
+                data_copy = self.data
+                if path:
+                    path_elems = path.split('/')
+                    for elem in path_elems[:-1]:
+                        data_copy = data_copy[elem]
+                    self.write(data_copy)
+                else:
+                    self.write(ProxyTestHandler.data)
+                    
+            except KeyError as key_e:
+                self.set_status(404)
+                self.write_error(404)
+                # return a 404 error (not found)
+            except Exception as other_e:
+                print(other_e.message)
+                self.write_error(500)
+                
 class ProxyTestServer(object):
 
     def __init__(self,):
@@ -38,7 +67,7 @@ class ProxyTestServer(object):
         @tornado.gen.coroutine
         def init_server():
             sock, self.port = bind_unused_port()
-            app = Application([('/', ProxyTestHandler, dict(server=self))])
+            app = Application([('/(.*)', ProxyTestHandler, dict(server=self))])
             self.server = HTTPServer(app)
             self.server.add_socket(sock)
         self.server_ioloop.run_sync(init_server)
@@ -104,7 +133,7 @@ class TestProxyTarget():
 
         self.proxy_target.last_update = ''
 
-        self.proxy_target.update('')
+        self.proxy_target.update()
         assert_equal(self.proxy_target.data, ProxyTestHandler.data)
         assert_equal(self.proxy_target.status_code, 200)
         assert_not_equal(self.proxy_target.last_update, '')
@@ -117,7 +146,7 @@ class TestProxyTarget():
 
     def test_proxy_target_http_error_404(self):
 
-        bad_url = self.url + 'notfound'
+        bad_url = self.url + 'notfound/'
         proxy_target = ProxyTarget(self.name, bad_url, self.request_timeout)
         proxy_target.update('notfound')
         
@@ -128,7 +157,7 @@ class TestProxyTarget():
 
         bad_url = 'http://127.0.0.1:{}'.format(self.port + 1)
         proxy_target = ProxyTarget(self.name, bad_url, self.request_timeout)
-        proxy_target.update('')
+        proxy_target.update()
 
         assert_equal(proxy_target.status_code, 502)
         assert_in('Connection refused', proxy_target.error_string)
@@ -200,6 +229,13 @@ class TestProxyAdapter():
             node_str = 'node_{}'.format(tgt)
             assert_true(node_str in response.data)
             assert_equal(response.data[node_str], ProxyTestHandler.data)
+
+    def test_adapter_get_proxy_path(self):
+        node = self.adapter.targets[0].name
+        path = "more/even_more"
+        response = self.adapter.get("{}/{}".format(node, path), self.request)
+        assert_equal(response.data["even_more"], ProxyTestHandler.data["more"]["even_more"])
+        assert_equal(self.adapter.param_tree.get('')['status'][node]['status_code'], 200)
 
     def test_adapter_get_bad_path(self):
 

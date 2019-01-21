@@ -60,7 +60,7 @@ class ProxyTarget(object):
             'Accept': 'application/json',
         }
 
-    def update(self, path):
+    def update(self, path=''):
         """
         Update the proxy target with new data.
 
@@ -81,7 +81,7 @@ class ProxyTarget(object):
             self.error_string = 'OK'
             response_body = tornado.escape.json_decode(response.body)
             data_copy = self.data  # reference for modification
-            if path:  # TODO: write unit test that tests this path logic
+            if path:
                 path_elems = path.split('/')
                 for elem in path_elems[:-1]:
                     data_copy = data_copy[elem]
