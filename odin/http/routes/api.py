@@ -124,7 +124,7 @@ class ApiHandler(tornado.web.RequestHandler):
         self.route = route
 
     @validate_api_request(_api_version)
-    def get(self, subsystem, path):
+    def get(self, subsystem, path=''):
         """Handle an API GET request.
 
         :param subsystem: subsystem element of URI, defining adapter to be called
@@ -134,7 +134,7 @@ class ApiHandler(tornado.web.RequestHandler):
         self.respond(response)
 
     @validate_api_request(_api_version)
-    def put(self, subsystem, path):
+    def put(self, subsystem, path=''):
         """Handle an API PUT request.
 
         :param subsystem: subsystem element of URI, defining adapter to be called
@@ -144,7 +144,7 @@ class ApiHandler(tornado.web.RequestHandler):
         self.respond(response)
 
     @validate_api_request(_api_version)
-    def delete(self, subsystem, path):
+    def delete(self, subsystem, path=''):
         """Handle an API DELETE request.
 
         :param subsystem: subsystem element of URI, defining adapter to be called
@@ -193,8 +193,11 @@ class ApiRoute(Route):
         # enforced by the validate_api_request decorator, is the following:
         #
         #    /api/<version>/<subsystem>/<action>....
-
+        #
+        # The second pattern allows an API adapter to be accessed with or without
+        # a trailing slash for maximum compatibility
         self.add_handler((r"/api/(.*?)/(.*?)/(.*)", ApiHandler, dict(route=self)))
+        self.add_handler((r"/api/(.*?)/(.*?)/?", ApiHandler, dict(route=self)))
 
         self.adapters = {}
 

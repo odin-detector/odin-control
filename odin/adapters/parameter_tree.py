@@ -97,14 +97,17 @@ class ParameterTree(object):
         :param path: path in tree to get parameter values for
         :returns: dict of parameter tree at the specified path
         """
-        # Split the path by levels
+
+        # Split the path by levels, truncating the last level if path ends in trailing slash
         levels = path.split('/')
+        if levels[-1] == '':
+             del levels[-1]
 
         # Initialise the subtree before descent
         subtree = self.__tree
 
         # If this is single level path, return the populated tree at the top level
-        if levels == ['']:
+        if len(levels) == 0:
             return self.__recursive_populate_tree(subtree)
 
         # Descend the specified levels in the path, checking for a valid subtree

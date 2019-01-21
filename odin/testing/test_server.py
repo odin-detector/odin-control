@@ -34,6 +34,14 @@ class TestOdinServer(OdinTestServer):
         result = requests.get(self.build_url('dummy/config/none'))
         assert_equal(result.status_code, 200)
 
+    def test_adapter_get_trailing_slash(self):
+        result = requests.get(self.build_url('dummy/'))
+        assert_equal(result.status_code, 200)
+
+    def test_adapter_get_no_trailing_slash(self):
+        result = requests.get(self.build_url('dummy'))
+        assert_equal(result.status_code, 200)
+
     def test_simple_client_put(self):
         headers = {'Content-Type' : 'application/json'}
         payload = {'some': 'data'}
