@@ -59,8 +59,14 @@ class ProxyTarget(object):
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
+        # TODO: find better way to instantiate self.data
+        response = self.http_client.fetch(
+                self.url, headers=self.request_headers,
+                request_timeout=self.request_timeout
+            )
+        self.data = tornado.escape.json_decode(response.body)
 
-    def update(self):
+    def update(self, path):
         """
         Update the proxy target with new data.
 
@@ -72,13 +78,21 @@ class ProxyTarget(object):
         try:
             # Request data from the target
             response = self.http_client.fetch(
-                self.url, headers=self.request_headers,
+                self.url + path, headers=self.request_headers,
                 request_timeout=self.request_timeout
-            )
+            )            
             # Update status code and data accordingly
             self.status_code = response.code
             self.error_string = 'OK'
-            self.data = tornado.escape.json_decode(response.body)
+            response_body = tornado.escape.json_decode(response.body)
+            # use a parameter tree to modify self.data recursivly
+            temp_tree = ParameterTree(self.data)
+            for key in response_body:
+                response_path = path if path else key
+                temp_tree.set(response_path, response_body[key])
+
+            self.data = temp_tree.get("")  # get dict from tree
+            
             logging.debug("Proxy target {} fetch succeeded: {} {}".format(
                 self.name, self.status_code, self.data_param_tree.get('')
             ))
@@ -221,11 +235,15 @@ class ProxyAdapter(ApiAdapter):
         :return: an ApiAdapterResponse object containing the appropriate response
         """
         # Update the target specified in the path, or all targets if none specified
-        path_elem = path.split('/')[0]
+        try:
+            path_elem, target_path = path.split('/', 1)
+        except ValueError:
+            path_elem = path.split('/')[0]
+            target_path = ""
         for target in self.targets:
-            if path_elem == '' or path_elem == target.name:
-                target.update()
-
+            if path_elem == '' or path_elem == target.name:                
+                target.update(target_path)
+                
         # Build the response from the adapter parameter tree
         try:
             response = self.param_tree.get(path)
