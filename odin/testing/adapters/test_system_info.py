@@ -45,7 +45,7 @@ class TestSystemInfoAdapter():
 
     def test_adapter_get_bad_path(self):
         bad_path = '/bad/path'
-        expected_response = {'error': 'The path {} is invalid'.format(bad_path)}
+        expected_response = {'error': 'Invalid path: {}'.format(bad_path)}
         response = self.adapter.get(bad_path, self.request)
         assert_equal(response.data, expected_response)
         assert_equal(response.status_code, 400)
