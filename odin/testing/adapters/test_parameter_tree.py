@@ -126,6 +126,19 @@ class TestParameterTree():
             'branch': cls.complex_tree_branch,
         })
 
+        cls.list_tree = ParameterTree({
+            'main' : [
+                cls.simple_dict.copy(),
+                list(cls.list_values)
+                ]
+        })
+
+        cls.simple_list_tree = ParameterTree({
+            'list_param': [10, 11, 12, 13]
+        })
+
+
+
     @classmethod
     def get_accessor_param(cls):
         return cls.accessor_params
@@ -161,7 +174,7 @@ class TestParameterTree():
 
     def test_simple_tree_missing_value(self):
 
-        with assert_raises_regexp(ParameterTreeError, 'The path missing is invalid'):
+        with assert_raises_regexp(ParameterTreeError, 'Invalid path: missing'):
             self.simple_tree.get('missing')
 
     def test_nested_tree_returns_nested_dict(self):
@@ -209,6 +222,17 @@ class TestParameterTree():
         assert_equals(complex_vals['intParam'], self.int_value)
         assert_equals(complex_vals['callableRoParam'], self.int_value)
 
+    def test_complex_tree_access_list_param(self):
+
+        list_param_vals = self.complex_tree.get('listParam')
+        assert_equals(list_param_vals['listParam'], self.list_values)
+
+    def test_complex_tree_access_list_param_element(self):
+
+        for elem in self.list_values:
+            list_param_elem = self.complex_tree.get('listParam/{}'.format(elem))
+            assert_equals(list_param_elem['{}'.format(elem)], elem)
+
     def test_complex_tree_accessor(self):
     
         accessor_val = self.complex_tree.get('callableAccessorParam/one')
@@ -242,6 +266,45 @@ class TestParameterTree():
 
         with assert_raises_regexp(ParameterTreeError, 'Type mismatch updating intParam'):
             self.complex_tree.set('intParam', param_data)
+
+    def test_list_tree_get_indexed(self):
+        ret = self.list_tree.get("main/1")
+        assert_equals({'1':self.list_values}, ret)
+
+    def test_list_tree_set_indexed(self):
+        self.list_tree.set("main/1/2", 7)
+        assert_equals(self.list_tree.get("main/1/2"), {'2': 7})
+
+    def test_list_tree_set_from_root(self):
+        tree_data = {
+    	    'main' : [
+                {
+                    'intParam': 0,
+                    'floatParam': 0.00,
+                    'boolParam': False,
+                    'strParam':  "test",
+                },
+		        [1,2,3,4]
+            ]
+	    }
+
+        self.list_tree.set("",tree_data)
+        assert_equals(self.list_tree.get("main"), tree_data)
+
+    def test_list_tree_from_dict(self):
+
+        new_list_param = {0: 0, 1: 1, 2: 2, 3: 3}
+        self.simple_list_tree.set('list_param', new_list_param)
+        assert_equals(
+            self.simple_list_tree.get('list_param')['list_param'], new_list_param.values())
+
+    def test_list_tree_from_dict_bad_index(self):
+
+        new_list_param = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
+        with assert_raises_regexp(ParameterTreeError,
+            "Invalid path: list_param.* list index out of range"):
+            self.simple_list_tree.set('list_param', new_list_param)
+
 
 class TestRwParameterTree():
 
@@ -360,6 +423,6 @@ class TestRwParameterTree():
         nested_branch = self.rw_callable_tree.get('branch/')['branch']
         new_rw_param_val = 24.601
         nested_branch['nestedRwParam'] = new_rw_param_val
-        self.rw_callable_tree.set('branch', nested_branch)
+        self.rw_callable_tree.set('branch/', nested_branch)
         new_branch = self.rw_callable_tree.get('branch/')['branch']
         assert_equal(new_branch['nestedRwParam'], new_rw_param_val)
