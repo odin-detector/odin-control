@@ -9,6 +9,7 @@ James Hogge, Tim Nicholls, STFC Application Engineering Group.
 """
 import warnings
 
+
 class ParameterTreeError(Exception):
     """Simple error class for raising parameter tree parameter tree exceptions."""
 
@@ -103,7 +104,7 @@ class ParameterTree(object):
         # Split the path by levels, truncating the last level if path ends in trailing slash
         levels = path.split('/')
         if levels[-1] == '':
-             del levels[-1]
+            del levels[-1]
 
         # Initialise the subtree before descent
         subtree = self.__tree
@@ -139,7 +140,6 @@ class ParameterTree(object):
         """
         # Expand out any lists/tuples
         data = self.__recursive_build_tree(data)
-        #print("set() recursive_build_tree complete")
 
         # Get subtree from the node the path points to
         levels = path.split('/')
@@ -207,8 +207,6 @@ class ParameterTree(object):
         :returns: built node
         """
 
-        #print ("BUILD: node at path", path, "type", type(node))
-
         # If the node is a ParameterTree instance, replace with its own built tree
         if isinstance(node, ParameterTree):
             # Merge in callbacks in node if present
@@ -218,24 +216,17 @@ class ParameterTree(object):
 
         # Convert 2-tuple of one or more callables into a read-write accessor pair
         if isinstance(node, tuple) and len(node) == 2:
-            #print ("Returning accessor for 2-tuple at path", path)
             return ParameterAccessor(path, node[0], node[1])
 
         # Convert list or non-callable tuple to enumerated dict
         if isinstance(node, list):
-            #print "BUILD 1 I AM AT ", type(node), "node", node, "path", path
             return [self.__recursive_build_tree(elem, path=path) for elem in node]
-            #print "BUILD 1 built_list: ", built_list
-            #return built_list
 
         # Recursively check child elements
         if isinstance(node, dict):
             return {k: self.__recursive_build_tree(
                 v, path=path + str(k) + '/') for k, v in node.items()}
-        
-        #print ("Returning ParameterAccessor at path: ", path)
-        #return ParameterAccessor(path, node)
-        #print "Returning node at path", path
+
         return node
 
     def __recursive_populate_tree(self, node):
@@ -254,7 +245,7 @@ class ParameterTree(object):
 
         if isinstance(node, list):
             return [self.__recursive_populate_tree(item) for item in node]
-        
+
         # If this is a leaf node, check if the leaf is a r/w tuple and substitute the
         # read element of that tuple into the node
         if isinstance(node, ParameterAccessor):
@@ -295,7 +286,7 @@ class ParameterTree(object):
 
         # Update the value of the current parameter, calling the set accessor if specified and
         # validating the type if necessary.
-        if isinstance(node, ParameterAccessor):# and isinstance(new_data, ParameterAccessor):
+        if isinstance(node, ParameterAccessor):
             node.set(new_data)
         else:
             # Validate type of new node matches existing
