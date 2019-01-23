@@ -7,6 +7,7 @@ interfacing of those to the underlying device or object.
 
 James Hogge, Tim Nicholls, STFC Application Engineering Group.
 """
+import warnings
 
 class ParameterTreeError(Exception):
     """Simple error class for raising parameter tree parameter tree exceptions."""
@@ -59,6 +60,8 @@ class ParameterAccessor(object):
         """
         if callable(self._set):
             return self._set(value)
+        elif not callable(self._get):
+            self._get = value
         else:
             raise ParameterTreeError("Parameter {} is read-only".format(self.path))
 
@@ -108,15 +111,18 @@ class ParameterTree(object):
         if len(levels) == 0:
             return self.__recursive_populate_tree(subtree)
 
-        # Descend the specified levels in the path, checking for a valid subtree
+        # Descend the specified levels in the path, checking for a valid subtree of the appropriate
+        # type
         for l in levels:
-            # Check if next level of path is valid
-            if isinstance(subtree, dict) and l in subtree:
-                subtree = subtree[l]
-            elif isinstance(subtree, ParameterAccessor):
-                subtree = subtree.get()[l]
-            else:
-                raise ParameterTreeError("The path %s is invalid" % path)
+            try:
+                if isinstance(subtree, dict):
+                    subtree = subtree[l]
+                elif isinstance(subtree, ParameterAccessor):
+                    subtree = subtree.get()[l]
+                else:
+                    subtree = subtree[int(l)]
+            except (KeyError, ValueError, IndexError):
+                raise ParameterTreeError("Invalid path: {}".format(path))
 
         # Return the populated tree at the appropriate path
         return self.__recursive_populate_tree({levels[-1]: subtree})
@@ -133,19 +139,25 @@ class ParameterTree(object):
         """
         # Expand out any lists/tuples
         data = self.__recursive_build_tree(data)
+        #print("set() recursive_build_tree complete")
 
         # Get subtree from the node the path points to
         levels = path.split('/')
-        if levels == ['']:
-            levels = []
+        if levels[-1] == '':
+            del levels[-1]
 
-        merge_point = self.__tree
+        merge_parent = None
+        merge_child = self.__tree
 
         # Descend the tree and validate each element of the path
         for l in levels:
-            if isinstance(merge_point, dict) and l in merge_point:
-                merge_point = merge_point[l]
-            else:
+            try:
+                merge_parent = merge_child
+                if isinstance(merge_child, dict):
+                    merge_child = merge_child[l]
+                else:
+                    merge_child = merge_child[int(l)]
+            except (KeyError, ValueError, IndexError):
                 raise ParameterTreeError("Invalid path: {}".format(path))
 
         # Add trailing / to paths where necessary
@@ -153,17 +165,17 @@ class ParameterTree(object):
             path += '/'
 
         # Merge data with tree
-        merged = self.__recursive_merge_tree(merge_point, data, path)
+        merged = self.__recursive_merge_tree(merge_child, data, path)
 
         # Add merged part to tree, either at the top of the tree or at the
         # appropriate level speicfied by the path
-        if levels == []:
+        if len(levels) == 0:
             self.__tree = merged
             return
-        merge_point = self.__tree
-        for l in levels[:-1]:
-            merge_point = merge_point[l]
-        merge_point[levels[-1]] = merged
+        if isinstance(merge_parent, dict):
+            merge_parent[levels[-1]] = merged
+        else:
+            merge_parent[int(levels[-1])] = merged
 
     def add_callback(self, path, callback):
         """Add a callback to a given path in the tree - DEPRECATED.
@@ -177,6 +189,10 @@ class ParameterTree(object):
         :param path: path to add callback for
         :param callback: method to be called when the appropriate set() call is made
         """
+        warnings.warn(
+            "Callbacks in parameter trees are deprecated, use parameter accessors instead",
+            DeprecationWarning
+        )
         self.__callbacks.append([path, callback])
 
     def __recursive_build_tree(self, node, path=''):
@@ -190,6 +206,9 @@ class ParameterTree(object):
         :param path: path to node within overall tree
         :returns: built node
         """
+
+        #print ("BUILD: node at path", path, "type", type(node))
+
         # If the node is a ParameterTree instance, replace with its own built tree
         if isinstance(node, ParameterTree):
             # Merge in callbacks in node if present
@@ -198,20 +217,25 @@ class ParameterTree(object):
             return node.__tree
 
         # Convert 2-tuple of one or more callables into a read-write accessor pair
-        if isinstance(node, tuple):
-            if len(node) > 1:
-                if callable(node[0]) or callable(node[1]):
-                    node = ParameterAccessor(path, node[0], node[1])
+        if isinstance(node, tuple) and len(node) == 2:
+            #print ("Returning accessor for 2-tuple at path", path)
+            return ParameterAccessor(path, node[0], node[1])
 
-        # Convert list or non-callable tuple to enumerated dict ; TODO - remove this?
-        if isinstance(node, list) or isinstance(node, tuple):
+        # Convert list or non-callable tuple to enumerated dict
+        if isinstance(node, list):
+            #print "BUILD 1 I AM AT ", type(node), "node", node, "path", path
             return [self.__recursive_build_tree(elem, path=path) for elem in node]
+            #print "BUILD 1 built_list: ", built_list
+            #return built_list
 
         # Recursively check child elements
         if isinstance(node, dict):
             return {k: self.__recursive_build_tree(
-                v, path=path + k + '/') for k, v in node.items()}
+                v, path=path + str(k) + '/') for k, v in node.items()}
         
+        #print ("Returning ParameterAccessor at path: ", path)
+        #return ParameterAccessor(path, node)
+        #print "Returning node at path", path
         return node
 
     def __recursive_populate_tree(self, node):
@@ -228,7 +252,7 @@ class ParameterTree(object):
         if isinstance(node, dict):
             return {k: self.__recursive_populate_tree(v) for k, v in node.items()}
 
-        if isinstance(node, list) or isinstance(node, tuple):
+        if isinstance(node, list):
             return [self.__recursive_populate_tree(item) for item in node]
         
         # If this is a leaf node, check if the leaf is a r/w tuple and substitute the
@@ -254,17 +278,24 @@ class ParameterTree(object):
         :returns: the update node at this point in the tree
         """
         # Recurse down tree if this is a branch node
-        if isinstance(node, dict):
+        if isinstance(node, dict) and isinstance(new_data, dict):
             try:
                 node.update({k: self.__recursive_merge_tree(
                     node[k], v, cur_path + k + '/') for k, v in new_data.items()})
                 return node
             except KeyError as e:
                 raise ParameterTreeError('Invalid path: {}{}'.format(cur_path, str(e)[1:-1]))
+        if isinstance(node, list) and isinstance(new_data, dict):
+            try:
+                for i, v in enumerate(new_data):
+                    node[i] = self.__recursive_merge_tree(node[i], v, cur_path + str(i) + '/')
+                return node
+            except IndexError as e:
+                raise ParameterTreeError('Invalid path: {}{} {}'.format(cur_path, str(i), str(e)))
 
-        # Update the value of the crreunt parameter, calling the set accessor if specified and
+        # Update the value of the current parameter, calling the set accessor if specified and
         # validating the type if necessary.
-        if isinstance(node, ParameterAccessor):
+        if isinstance(node, ParameterAccessor):# and isinstance(new_data, ParameterAccessor):
             node.set(new_data)
         else:
             # Validate type of new node matches existing
