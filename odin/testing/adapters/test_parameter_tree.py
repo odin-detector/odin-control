@@ -296,7 +296,9 @@ class TestParameterTree():
         new_list_param = {0: 0, 1: 1, 2: 2, 3: 3}
         self.simple_list_tree.set('list_param', new_list_param)
         assert_equals(
-            self.simple_list_tree.get('list_param')['list_param'], new_list_param.values())
+            self.simple_list_tree.get(
+                'list_param')['list_param'], list(new_list_param.values())
+            )
 
     def test_list_tree_from_dict_bad_index(self):
 
