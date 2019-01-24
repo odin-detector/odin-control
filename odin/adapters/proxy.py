@@ -44,14 +44,14 @@ class ProxyTarget(object):
 
         # Build a parameter tree representatio of the proxy target status
         self.status_param_tree = ParameterTree({
-            'url': self.url,
+            'url': (self.url, None),
             'status_code': (self._get_status_code, None),
             'error': (self._get_error_string, None),
             'last_update': (self._get_last_update, None),
         })
 
         # Build a parameter tree representation of the proxy target data
-        self.data_param_tree = ParameterTree((self._get_data, self._set_data))
+        self.data_param_tree = ParameterTree((self._get_data, None))
 
         # Create an HTTP client instance and set up default request headers
         self.http_client = tornado.httpclient.HTTPClient()
@@ -60,22 +60,17 @@ class ProxyTarget(object):
             'Accept': 'application/json',
         }
 
-    def update(self, path=''):
+    def update(self, request):
         """
-        Update the proxy target with new data.
-
-        This internal method updates the proxy target with new data by
-        issuing a client request to the specified URL. The associated
-        status information is updated according to the success or failure
-        of the request.
+        Updates the Proxy Target `ParameterTree` with data from the proxied adapter,
+        after issuing a GET or a PUT request to it. It also updates the status code
+        and error string if the HTTP request fails.
         """
-
+        logging.debug("UPDATE OF {} CALLED".format(self.name))
         try:
-            # Request data from the target
-            response = self.http_client.fetch(
-                self.url + path, headers=self.request_headers,
-                request_timeout=self.request_timeout
-            )            
+            # Request data to/from the target
+            response = self.http_client.fetch(request)
+            path = request.url.replace(self.url, '')            
             # Update status code and data accordingly
             self.status_code = response.code
             self.error_string = 'OK'
@@ -110,6 +105,44 @@ class ProxyTarget(object):
 
         # Update the timestamp of the last request in standard format
         self.last_update = tornado.httputil.format_timestamp(time.time())
+
+    def remote_get(self, path=''):
+        """
+        Update the proxy target with new data.
+
+        This method updates the proxy target with new data by
+        issuing a client request to the specified URL. The associated
+        status information is updated according to the success or failure
+        of the request.
+        """
+        logging.debug("REMOTE GET CALLED")
+        # create request to PUT data, send to the target
+        request = tornado.httpclient.HTTPRequest(
+            url=self.url + path,
+            method="GET",
+            headers=self.request_headers,
+            request_timeout=self.request_timeout
+        )
+        self.update(request)
+
+    def remote_set(self, path, data):
+        """
+        Set data on the remote target.
+
+        This method updates the proxy target by issuing a PUT
+        request to the target URL, and then updates the proxy
+        target data and status information according to the response.
+        """
+        logging.debug("REMOTE SET CALLED")
+        # create request to PUT data, send to the target
+        request = tornado.httpclient.HTTPRequest(
+            url=self.url + path,
+            method="PUT",
+            body=data,
+            headers=self.request_headers,
+            request_timeout=self.request_timeout
+        )
+        self.update(request)
 
     def _get_status_code(self):
         """
@@ -149,10 +182,6 @@ class ProxyTarget(object):
         for use in the parameter tree.
         """
         return self.data
-
-    def _set_data(self, data):  # TODO: test set data methods
-
-        logging.debug("ProxyTarget {} set with data {}".format(self.name, data))
 
 
 class ProxyAdapter(ApiAdapter):
@@ -233,11 +262,11 @@ class ProxyAdapter(ApiAdapter):
         if "/" in path:
             path_elem, target_path = path.split('/', 1)
         else:
-            path_elem = path.split('/')[0]
+            path_elem = path
             target_path = ""
         for target in self.targets:
-            if path_elem == '' or path_elem == target.name:                
-                target.update(target_path)
+            if path_elem == '' or path_elem == target.name:               
+                target.remote_get(target_path)
                 
         # Build the response from the adapter parameter tree
         try:
@@ -260,13 +289,21 @@ class ProxyAdapter(ApiAdapter):
         :param request: HTTP request object
         :return: an ApiAdapterResponse object containing the appropriate response
         """
+        # Update the target specified in the path, or all targets if none specified
+        if "/" in path:
+            path_elem, target_path = path.split('/', 1)
+        else:
+            path_elem = path
+            target_path = ""
+        for target in self.targets:
+            if path_elem == '' or path_elem == target.name:                
+                target.remote_set(target_path, request.body)
+
         try:
-            data = json_decode(request.body)
-            self.param_tree.set(path, data)
             response = self.param_tree.get(path)
             status_code = 200
-        except ParameterTreeError as e:
-            response = {'error': str(e)}
+        except ParameterTreeError as param_tree_err:
+            response = {'error': str(param_tree_err)}    
             status_code = 400
         except (TypeError, ValueError) as e:
             response = {'error': 'Failed to decode PUT request body: {}'.format(str(e))}
