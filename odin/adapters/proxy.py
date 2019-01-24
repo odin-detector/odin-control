@@ -60,17 +60,19 @@ class ProxyTarget(object):
             'Accept': 'application/json',
         }
 
+        self.remote_get()  # init the data tree
+
     def update(self, request):
         """
         Updates the Proxy Target `ParameterTree` with data from the proxied adapter,
         after issuing a GET or a PUT request to it. It also updates the status code
         and error string if the HTTP request fails.
         """
-        logging.debug("UPDATE OF {} CALLED".format(self.name))
+        logging.debug("UPDATE OF {} CALLED. REQUEST BODY: {}".format(self.name, request.body))
         try:
             # Request data to/from the target
             response = self.http_client.fetch(request)
-            path = request.url.replace(self.url, '')            
+            path = request.url.replace(self.url, '')         
             # Update status code and data accordingly
             self.status_code = response.code
             self.error_string = 'OK'
@@ -133,7 +135,6 @@ class ProxyTarget(object):
         request to the target URL, and then updates the proxy
         target data and status information according to the response.
         """
-        logging.debug("REMOTE SET CALLED")
         # create request to PUT data, send to the target
         request = tornado.httpclient.HTTPRequest(
             url=self.url + path,
@@ -290,16 +291,17 @@ class ProxyAdapter(ApiAdapter):
         :return: an ApiAdapterResponse object containing the appropriate response
         """
         # Update the target specified in the path, or all targets if none specified
-        if "/" in path:
-            path_elem, target_path = path.split('/', 1)
-        else:
-            path_elem = path
-            target_path = ""
-        for target in self.targets:
-            if path_elem == '' or path_elem == target.name:                
-                target.remote_set(target_path, request.body)
-
+        
         try:
+            json_decode(request.body) #ensure request body is JSON. If the body cannot be decoded will throw a TypeError
+            if "/" in path:
+                path_elem, target_path = path.split('/', 1)
+            else:
+                path_elem = path
+                target_path = ""
+            for target in self.targets:
+                if path_elem == '' or path_elem == target.name:                
+                    target.remote_set(target_path, request.body)
             response = self.param_tree.get(path)
             status_code = 200
         except ParameterTreeError as param_tree_err:
@@ -307,6 +309,6 @@ class ProxyAdapter(ApiAdapter):
             status_code = 400
         except (TypeError, ValueError) as e:
             response = {'error': 'Failed to decode PUT request body: {}'.format(str(e))}
-            status_code = 400
+            status_code = 415
 
         return ApiAdapterResponse(response, status_code=status_code)

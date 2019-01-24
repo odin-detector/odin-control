@@ -37,25 +37,48 @@ class ProxyTestHandler(RequestHandler):
         server.access_count += 1
 
     def get(self, path=''):
-            # TODO: handle 404 not found stuff
-            # check out how the tornado stuff creates HTTP responses to do that
-            try:
-                data_copy = self.data
-                if path:
-                    path_elems = path.split('/')
-                    for elem in path_elems[:-1]:
-                        data_copy = data_copy[elem]
-                    self.write(data_copy)
-                else:
-                    self.write(ProxyTestHandler.data)
-                    
-            except KeyError as key_e:
-                self.set_status(404)
-                self.write_error(404)
-                # return a 404 error (not found)
-            except Exception as other_e:
-                print(other_e.message)
-                self.write_error(500)
+        try:
+            data_copy = self.data
+            if path:
+                path_elems = path.split('/')
+                for elem in path_elems[:-1]:
+                    data_copy = data_copy[elem]
+                self.write(data_copy)
+            else:
+                self.write(ProxyTestHandler.data)
+                
+        except KeyError as key_e:
+            self.set_status(404)
+            self.write_error(404)
+            # return a 404 error (not found)
+        except Exception as other_e:
+            print(other_e.message)
+            self.write_error(500)
+    
+    def put(self, path):
+        
+        response_body = response_body = tornado.escape.json_decode(self.request.body)
+        try:
+            data_copy = self.data
+            if path:
+                path_elems = path.split('/')
+                for elem in path_elems[:-1]:
+                    data_copy = data_copy[elem]
+                for key in response_body:
+                    new_elem = response_body[key]
+                    data_copy[key] = new_elem
+                self.write(data_copy)
+            else:
+                self.write(ProxyTestHandler.data)
+                
+        except KeyError as key_e:
+            self.set_status(404)
+            self.write_error(404)
+        
+        except Exception as other_e:
+            print(other_e.message)
+            self.write_error(500)
+
                 
 class ProxyTestServer(object):
 
@@ -144,7 +167,7 @@ class TestProxyTarget():
         for tree_element in ['url', 'status_code', 'error', 'last_update']:
             assert_true(tree_element in param_tree)
 
-    def test_proxy_target_http_error_404(self):
+    def test_proxy_target_http_get_error_404(self):
 
         bad_url = self.url + 'notfound/'
         proxy_target = ProxyTarget(self.name, bad_url, self.request_timeout)
@@ -197,6 +220,7 @@ class TestProxyAdapter():
         cls.path = ''
         cls.request = Mock
         cls.request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
+        cls.request.body = '{"pi":2.56}'
 
     @classmethod
     def teardown_class(cls):
@@ -229,13 +253,38 @@ class TestProxyAdapter():
             node_str = 'node_{}'.format(tgt)
             assert_true(node_str in response.data)
             assert_equal(response.data[node_str], ProxyTestHandler.data)
+    
+    def test_adapter_put(self):
+
+        response = self.adapter.put(self.path, self.request)
+
+        assert_true('status' in response.data)
+
+        assert_equal(len(response.data), self.num_targets+1)
+
+        for tgt in range(self.num_targets):
+            node_str = 'node_{}'.format(tgt)
+            assert_true(node_str in response.data)
+            assert_equal(response.data[node_str], ProxyTestHandler.data)
 
     def test_adapter_get_proxy_path(self):
+
         node = self.adapter.targets[0].name
         path = "more/even_more"
         response = self.adapter.get("{}/{}".format(node, path), self.request)
         assert_equal(response.data["even_more"], ProxyTestHandler.data["more"]["even_more"])
         assert_equal(self.adapter.param_tree.get('')['status'][node]['status_code'], 200)
+    
+    def test_adapter_put_proxy_path(self):
+
+        node = self.adapter.targets[0].name
+        path = "more/replace"
+        self.request.body = '{"replace": "been replaced"}'
+        response = self.adapter.put("{}/{}".format(node, path), self.request)
+
+        assert_equal(self.adapter.param_tree.get('')['status'][node]['status_code'], 200)
+        assert_equal(response.data["replace"], "been replaced")
+
 
     def test_adapter_get_bad_path(self):
 
@@ -244,6 +293,22 @@ class TestProxyAdapter():
 
         assert_true('error' in response.data)
         assert_equal('The path {} is invalid'.format(missing_path), response.data['error'])
+
+    def test_adapter_put_bad_path(self):
+
+        missing_path = 'missing/path'
+        response = self.adapter.put(missing_path, self.request)
+
+        assert_true('error' in response.data)
+        assert_equal('The path {} is invalid'.format(missing_path), response.data['error'])
+
+    def test_adapter_put_bad_type(self):
+
+        self.request.body = "bad_body"
+        response = self.adapter.put(self.path, self.request)
+
+        assert_true('error' in response.data)
+        assert_equal('Failed to decode PUT request body: No JSON object could be decoded', response.data['error'])
 
     def test_adapter_bad_timeout(self):
 
