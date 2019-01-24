@@ -308,7 +308,7 @@ class TestProxyAdapter():
         response = self.adapter.put(self.path, self.request)
 
         assert_true('error' in response.data)
-        assert_equal('Failed to decode PUT request body: No JSON object could be decoded', response.data['error'])
+        assert_true('Failed to decode PUT request body:' in response.data['error'])
 
     def test_adapter_bad_timeout(self):
 
