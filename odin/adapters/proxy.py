@@ -68,42 +68,48 @@ class ProxyTarget(object):
         after issuing a GET or a PUT request to it. It also updates the status code
         and error string if the HTTP request fails.
         """
-        logging.debug("UPDATE OF {} CALLED. REQUEST BODY: {}".format(self.name, request.body))
+        logging.debug("UPDATE OF %s CALLED. REQUEST BODY: %s", self.name, request.body)
         try:
             # Request data to/from the target
             response = self.http_client.fetch(request)
-            path = request.url.replace(self.url, '')         
+            path = request.url.replace(self.url, '')
             # Update status code and data accordingly
             self.status_code = response.code
             self.error_string = 'OK'
             response_body = tornado.escape.json_decode(response.body)
-            data_copy = self.data  # reference for modification
+            data_ref = self.data  # reference for modification
             if path:
                 path_elems = path.split('/')
                 for elem in path_elems[:-1]:
-                    data_copy = data_copy[elem]
+                    data_ref = data_ref[elem]
             for key in response_body:
                 new_elem = response_body[key]
-                data_copy[key] = new_elem
-            logging.debug("Proxy target {} fetch succeeded: {} {}".format(
-                self.name, self.status_code, self.data_param_tree.get(path)
-            ))
+                data_ref[key] = new_elem
+            logging.debug("Proxy target %s fetch succeeded: %d %s",
+                          self.name,
+                          self.status_code,
+                          self.data_param_tree.get(path)
+                         )
 
         except tornado.httpclient.HTTPError as http_err:
             # Handle HTTP errors, updating status information and reporting error
             self.status_code = http_err.code
             self.error_string = http_err.message
-            logging.error("Proxy target {} fetch failed: {} {}".format(
-                self.name, self.status_code, self.error_string
-            ))
+            logging.error("Proxy target %s fetch failed: %d %s",
+                          self.name,
+                          self.status_code,
+                          self.error_string
+                         )
 
         except Exception as other_err:
             # Handle other errors, updating status information and reporting error
             self.status_code = 502
             self.error_string = str(other_err)
-            logging.error("Proxy target {} fetch failed: {} {}".format(
-                self.name, self.status_code, self.error_string
-            ))
+            logging.error("Proxy target %s fetch failed: %d %s",
+                          self.name,
+                          self.status_code,
+                          self.error_string
+                         )
 
         # Update the timestamp of the last request in standard format
         self.last_update = tornado.httputil.format_timestamp(time.time())
@@ -113,7 +119,7 @@ class ProxyTarget(object):
         Update the proxy target with new data.
 
         This method updates the proxy target with new data by
-        issuing a client request to the specified URL. The associated
+        issuing a client GET request to the specified URL. The associated
         status information is updated according to the success or failure
         of the request.
         """
@@ -212,13 +218,11 @@ class ProxyAdapter(ApiAdapter):
         if 'request_timeout' in kwargs:
             try:
                 request_timeout = float(kwargs['request_timeout'])
-                logging.debug('ProxyAdapter request timeout set to {} secs'.format(
-                    request_timeout
-                ))
+                logging.debug('ProxyAdapter request timeout set to %f secs', request_timeout)
             except ValueError:
-                logging.error("Illegal timeout specified for ProxyAdapter: {}".format(
-                    kwargs['request_timeout']
-                ))
+                logging.error("Illegal timeout specified for ProxyAdapter: %s",
+                              kwargs['request_timeout']
+                             )
 
         # Parse the list of target-URL pairs from the options, instantiating a ProxyTarget
         # object for each target specified.
@@ -229,9 +233,8 @@ class ProxyAdapter(ApiAdapter):
                     (target, url) = target_str.strip().split('=')
                     self.targets.append(ProxyTarget(target, url, request_timeout))
                 except ValueError:
-                    logging.error("Illegal target specification for ProxyAdapter: {}".format(
-                        target_str.strip()
-                    ))
+                    logging.error("Illegal target specification for ProxyAdapter: %s",
+                                  target_str.strip())
 
         # Issue an error message if no targets were loaded
         if self.targets:
@@ -240,7 +243,7 @@ class ProxyAdapter(ApiAdapter):
             logging.error("Failed to resolve targets for ProxyAdapter")
 
         # Construct the parameter tree returned by this adapter
-        tree = { 'status' : {} }
+        tree = {'status': {}}
         for target in self.targets:
             tree['status'][target.name] = target.status_param_tree
             tree[target.name] = target.data_param_tree
@@ -266,9 +269,9 @@ class ProxyAdapter(ApiAdapter):
             path_elem = path
             target_path = ""
         for target in self.targets:
-            if path_elem == '' or path_elem == target.name:               
+            if path_elem == '' or path_elem == target.name:
                 target.remote_get(target_path)
-                
+
         # Build the response from the adapter parameter tree
         try:
             response = self.param_tree.get(path)
@@ -281,7 +284,7 @@ class ProxyAdapter(ApiAdapter):
 
     @request_types('application/json')
     @response_types('application/json', default='application/json')
-    def put(self, path, request):  # TODO: write Unit Test for put methods
+    def put(self, path, request):
         """Handle an HTTP PUT request.
 
         This method handles an HTTP PUT request, returning a JSON response.
@@ -291,24 +294,24 @@ class ProxyAdapter(ApiAdapter):
         :return: an ApiAdapterResponse object containing the appropriate response
         """
         # Update the target specified in the path, or all targets if none specified
-        
+
         try:
-            json_decode(request.body) #ensure request body is JSON. If the body cannot be decoded will throw a TypeError
+            json_decode(request.body)  # ensure request body is JSON. Will throw a TypeError if not
             if "/" in path:
                 path_elem, target_path = path.split('/', 1)
             else:
                 path_elem = path
                 target_path = ""
             for target in self.targets:
-                if path_elem == '' or path_elem == target.name:                
+                if path_elem == '' or path_elem == target.name:
                     target.remote_set(target_path, request.body)
             response = self.param_tree.get(path)
             status_code = 200
         except ParameterTreeError as param_tree_err:
-            response = {'error': str(param_tree_err)}    
+            response = {'error': str(param_tree_err)}
             status_code = 400
-        except (TypeError, ValueError) as e:
-            response = {'error': 'Failed to decode PUT request body: {}'.format(str(e))}
+        except (TypeError, ValueError) as type_val_err:
+            response = {'error': 'Failed to decode PUT request body: {}'.format(str(type_val_err))}
             status_code = 415
 
         return ApiAdapterResponse(response, status_code=status_code)
