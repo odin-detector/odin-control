@@ -9,9 +9,11 @@ interfaces = p3p1, p3p2
 processes = stFrameProcessor1.sh, stFrameProcessor3.sh
 
 
-disks is a comma separated list of disk mounts to monitor.  "/" is replaced with "_" for indexing the values.
+disks is a comma separated list of disk mounts to monitor.  "/" is replaced with "_" for
+indexing the values.
 interfaces is a comma separated list of network interfaces to monitor.
-processes in a comma separated list of processes to monitor.  Monitoring includes CPU and memory use.
+processes in a comma separated list of processes to monitor.  Monitoring includes CPU and
+memory use.
 
 Created on 20 June 2018
 
@@ -23,9 +25,9 @@ import logging
 import os
 import psutil
 from future.utils import with_metaclass
+from tornado.ioloop import IOLoop
 from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
 from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
-from tornado.ioloop import IOLoop
 
 
 class SystemStatusAdapter(ApiAdapter):
@@ -61,8 +63,8 @@ class SystemStatusAdapter(ApiAdapter):
         try:
             response = self.system_status.get(path)
             status_code = 200
-        except ParameterTreeError as e:
-            response = {'error': str(e)}
+        except ParameterTreeError as param_err:
+            response = {'error': str(param_err)}
             status_code = 400
 
         logging.debug(response)
@@ -184,17 +186,10 @@ class SystemStatus(with_metaclass(Singleton, object)):
         if 'processes' in kwargs:
             processes = kwargs['processes'].split(',')
             for process in processes:
-                self.add_process(process.strip())
+                self.add_processes(process.strip())
 
         for process in self._processes:
-            self._process_status[process] = {
-                'cpu_percent': None,
-                'cpu_affinity': None,
-                'memory_percent': None,
-                'memory_rss': None,
-                'memory_vms': None,
-                'memory_shared': None
-            }
+            self._process_status[process] = {}
 
         self._status = ParameterTree(tree)
 
@@ -206,12 +201,15 @@ class SystemStatus(with_metaclass(Singleton, object)):
         self.update_loop()
 
     def get_disk_status(self):
+        """Return disk status information."""
         return self._disk_status
 
     def get_interface_status(self):
+        """Return network status information."""
         return self._interface_status
 
     def get_process_status(self):
+        """Return process status information."""
         return self._process_status
 
     def get(self, path):
@@ -225,14 +223,14 @@ class SystemStatus(with_metaclass(Singleton, object)):
         """
         try:
             self.monitor()
-        except Exception as e:
+        except Exception as exc:
             # Nothing to do here except log the error
-            self._log.exception(e)
+            self._log.exception(exc)
 
         # Schedule the update loop to run in the IOLoop instance again after appropriate interval
         IOLoop.instance().call_later(self._update_interval, self.update_loop)
 
-    def add_process(self, process_name):
+    def add_processes(self, process_name):
         """Add a new process to monitor.
 
         :param process_name the name of the process to monitor
@@ -240,9 +238,17 @@ class SystemStatus(with_metaclass(Singleton, object)):
         if process_name not in self._processes:
             self._log.debug("Adding process %s to monitor list", process_name)
             try:
-                self._processes[process_name] = self.find_process(process_name)
-            except Exception as e:
-                self._log.debug("Unable to add process %s to the monitor list: %s", process_name, str(e))
+                self._processes[process_name] = self.find_processes(process_name)
+                self._log.debug(
+                    "Found %d proceses with name %s",
+                    len(self._processes[process_name]), process_name
+                )
+
+            except Exception as exc:
+                self._log.debug(
+                    "Unable to add process %s to the monitor list: %s",
+                    process_name, str(exc)
+                )
 
     def monitor(self):
         """Executed at regular interval.  Calls the specific monitoring methods."""
@@ -260,8 +266,8 @@ class SystemStatus(with_metaclass(Singleton, object)):
                 self._disk_status[path]['used'] = usage.used
                 self._disk_status[path]['free'] = usage.free
                 self._disk_status[path]['percent'] = usage.percent
-            except Exception as e:
-                self._log.exception(e)
+            except Exception as exc:
+                self._log.exception(exc)
 
     def monitor_network(self):
         """Loops over interfaces and retrieves the usage statistics."""
@@ -276,69 +282,102 @@ class SystemStatus(with_metaclass(Singleton, object)):
                 self._interface_status[interface]['errout'] = network[interface].errout
                 self._interface_status[interface]['dropin'] = network[interface].dropin
                 self._interface_status[interface]['dropout'] = network[interface].dropout
-        except Exception as e:
-            self._log.exception(e)
+        except Exception as exc:
+            self._log.exception(exc)
 
     def monitor_processes(self):
         """Loops over active processes and retrieves the statistics from them."""
+
         for process_name in self._processes:
-            try:
-                if self._processes[process_name] is None:
-                    self._processes[process_name] = self.find_process(process_name)
 
-                process = self._processes[process_name]
-                if process is not None:
+            self._process_status[process_name] = {}
+
+            num_processes_old = len(self._processes[process_name])
+            self._processes[process_name] = self.find_processes(process_name)
+
+            if len(self._processes[process_name]) != num_processes_old:
+                self._log.debug(
+                    "Number of processes named %s is now %d",
+                    process_name, len(self._processes[process_name])
+                )
+
+            for process in self._processes[process_name]:
+                process_status = {}
+                try:
+                    pid = process.pid
                     memory_info = process.memory_info()
-                    self._process_status[process_name]['cpu_percent'] = process.cpu_percent(interval=0.0)
-                    self._process_status[process_name]['cpu_affinity'] = process.cpu_affinity()
-                    self._process_status[process_name]['memory_percent'] = process.memory_percent()
-                    self._process_status[process_name]['memory_rss'] = memory_info.rss
-                    self._process_status[process_name]['memory_vms'] = memory_info.vms
-                    self._process_status[process_name]['memory_shared'] = memory_info.shared
+
+                    process_status['cpu_percent'] = process.cpu_percent(interval=0.0)
+                    if hasattr(process, 'cpu_affinity'):
+                        process_status['cpu_affinity'] = process.cpu_affinity()
+                    else:
+                        process_status['cpu_affinity'] = None
+                    process_status['memory_percent'] = process.memory_percent()
+
+                    process_status['memory_rss'] = getattr(
+                        memory_info, 'rss', None
+                    )
+                    process_status['memory_vms'] = getattr(
+                        memory_info, 'vms', None
+                    )
+                    process_status['memory_shared'] = getattr(
+                        memory_info, 'shared', None
+                    )
+
+                except psutil.NoSuchProcess:
+                    self._log.error("Process %s no longer exists", process_name)
+                except psutil.AccessDenied:
+                    self._log.error("Access to process %s denied by operating system", process_name)
                 else:
-                    self._process_status[process_name]['cpu_percent'] = None
-                    self._process_status[process_name]['cpu_affinity'] = None
-                    self._process_status[process_name]['memory_percent'] = None
-                    self._process_status[process_name]['memory_rss'] = None
-                    self._process_status[process_name]['memory_vms'] = None
-                    self._process_status[process_name]['memory_shared'] = None
-            except:
-                # Any exception may occur due to the process not existing etc, so reset the process object
-                self._processes[process_name] = None
+                    self._process_status[process_name][pid] = process_status
 
-    def find_process(self, process_name):
-        """Find a process and return the process object.
+    def find_processes(self, process_name):
+        """Find processes matching a name and return a list of process objects.
 
-        Returns a psutil process object
+        Returns a list of psutil process object
         """
-        parent = self.find_process_by_name(process_name)
-        if parent is not None:
-            if len(parent.children()) > 0:
+        processes = []
+
+        parents = self.find_processes_by_name(process_name)
+        for parent in parents:
+            if parent.children():
                 process = parent.children()[0]
             else:
                 process = parent
-        else:
-            process = None
-        return process
 
-    def find_process_by_name(self, name):
-        """Return the first process matching 'name' that is not this process (in the case
-        where the process name was passed as an argument to this process)."""
-        proc = None
-        for p in psutil.process_iter():
-            if name in p.name():
-                self._log.debug("Found %s in %s", name, p.name())
-                proc = p
+            # Attempt to access process and remove if access denied
+            try:
+                _ = process.cpu_percent()
+            except psutil.AccessDenied:
+                pass
             else:
-                for cmdline in p.cmdline():
-                    if name in cmdline:
-                        # Make sure the name isn't found as an argument to this process!
-                        if os.getpid() != p.pid:
-                            self._log.debug("Found %s in %s", name, p.cmdline())
-                            proc = p
-        if proc is not None:
-            if proc.status == psutil.STATUS_ZOMBIE \
-                or proc.status == psutil.STATUS_STOPPED \
-                or proc.status == psutil.STATUS_DEAD:
-                proc = None
-        return proc
+                processes.append(process)
+
+        return processes
+
+    def find_processes_by_name(self, name):
+        """Return a list of process matching 'name' that is not this process (in the case
+        where the process name was passed as an argument to this process)."""
+        processes = []
+        for proc in psutil.process_iter():
+            process = None
+            if name in proc.name():
+                process = proc
+            else:
+                try:
+                    for cmdline in proc.cmdline():
+                        if name in cmdline:
+                            # Make sure the name isn't found as an argument to this process!
+                            if os.getpid() != proc.pid:
+                                process = proc
+                except (psutil.AccessDenied, psutil.ZombieProcess):
+                    # If we cannot access the info of this process or it is a zombie, move on
+                    pass
+
+            if process is not None:
+                if process.status() not in (
+                        psutil.STATUS_ZOMBIE, psutil.STATUS_STOPPED, psutil.STATUS_DEAD
+                ):
+                    processes.append(process)
+
+        return processes
