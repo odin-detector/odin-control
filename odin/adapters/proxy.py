@@ -3,7 +3,7 @@
 This class implements a simple asynchronous proxy adapter, allowing requests to be proxied to
 one or more remote HTTP resources, typically further ODIN servers.
 
-Tim Nicholls, STFC Application Engineering Group.
+Tim Nicholls, Adam Neaves STFC Application Engineering Group.
 """
 import logging
 import time
@@ -62,54 +62,62 @@ class ProxyTarget(object):
 
         self.remote_get()  # init the data tree
 
-    def update(self, request):
+    def update(self, request, path):
         """
         Updates the Proxy Target `ParameterTree` with data from the proxied adapter,
         after issuing a GET or a PUT request to it. It also updates the status code
         and error string if the HTTP request fails.
         """
-        logging.debug("UPDATE OF %s CALLED. REQUEST BODY: %s", self.name, request.body)
+
         try:
             # Request data to/from the target
             response = self.http_client.fetch(request)
-            path = request.url.replace(self.url, '')
+
             # Update status code and data accordingly
             self.status_code = response.code
             self.error_string = 'OK'
             response_body = tornado.escape.json_decode(response.body)
             data_ref = self.data  # reference for modification
             if path:
+                # if the path exists, we need to split it so we can navigate the data
                 path_elems = path.split('/')
+
                 for elem in path_elems[:-1]:
+                    # for each element, traverse down the data tree
                     data_ref = data_ref[elem]
+
             for key in response_body:
+
                 new_elem = response_body[key]
                 data_ref[key] = new_elem
-            logging.debug("Proxy target %s fetch succeeded: %d %s",
-                          self.name,
-                          self.status_code,
-                          self.data_param_tree.get(path)
-                         )
+            logging.debug(
+                "Proxy target %s fetch succeeded: %d %s",
+                self.name,
+                self.status_code,
+                self.data_param_tree.get(path)
+                )
 
         except tornado.httpclient.HTTPError as http_err:
             # Handle HTTP errors, updating status information and reporting error
             self.status_code = http_err.code
             self.error_string = http_err.message
-            logging.error("Proxy target %s fetch failed: %d %s",
-                          self.name,
-                          self.status_code,
-                          self.error_string
-                         )
+            logging.error(
+                "Proxy target %s fetch failed: %d %s",
+                self.name,
+                self.status_code,
+                self.error_string
+                )
 
-        except Exception as other_err:
+        except (KeyError, ValueError, IOError) as other_err:
             # Handle other errors, updating status information and reporting error
             self.status_code = 502
             self.error_string = str(other_err)
-            logging.error("Proxy target %s fetch failed: %d %s",
-                          self.name,
-                          self.status_code,
-                          self.error_string
-                         )
+            logging.error(
+                "Proxy target %s fetch failed: %d %s",
+                self.name,
+                self.status_code,
+                self.error_string
+                )
 
         # Update the timestamp of the last request in standard format
         self.last_update = tornado.httputil.format_timestamp(time.time())
@@ -123,7 +131,7 @@ class ProxyTarget(object):
         status information is updated according to the success or failure
         of the request.
         """
-        logging.debug("REMOTE GET CALLED")
+
         # create request to PUT data, send to the target
         request = tornado.httpclient.HTTPRequest(
             url=self.url + path,
@@ -131,7 +139,7 @@ class ProxyTarget(object):
             headers=self.request_headers,
             request_timeout=self.request_timeout
         )
-        self.update(request)
+        self.update(request, path)
 
     def remote_set(self, path, data):
         """
@@ -149,7 +157,7 @@ class ProxyTarget(object):
             headers=self.request_headers,
             request_timeout=self.request_timeout
         )
-        self.update(request)
+        self.update(request, path)
 
     def _get_status_code(self):
         """
@@ -220,9 +228,10 @@ class ProxyAdapter(ApiAdapter):
                 request_timeout = float(kwargs['request_timeout'])
                 logging.debug('ProxyAdapter request timeout set to %f secs', request_timeout)
             except ValueError:
-                logging.error("Illegal timeout specified for ProxyAdapter: %s",
-                              kwargs['request_timeout']
-                             )
+                logging.error(
+                    "Illegal timeout specified for ProxyAdapter: %s",
+                    kwargs['request_timeout']
+                    )
 
         # Parse the list of target-URL pairs from the options, instantiating a ProxyTarget
         # object for each target specified.

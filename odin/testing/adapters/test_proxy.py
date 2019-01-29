@@ -38,12 +38,12 @@ class ProxyTestHandler(RequestHandler):
 
     def get(self, path=''):
         try:
-            data_copy = self.data
+            data_ref = self.data
             if path:
                 path_elems = path.split('/')
                 for elem in path_elems[:-1]:
-                    data_copy = data_copy[elem]
-                self.write(data_copy)
+                    data_ref = data_ref[elem]
+                self.write(data_ref)
             else:
                 self.write(ProxyTestHandler.data)
                 
@@ -59,15 +59,15 @@ class ProxyTestHandler(RequestHandler):
         
         response_body = response_body = tornado.escape.json_decode(self.request.body)
         try:
-            data_copy = self.data
+            data_ref = self.data
             if path:
                 path_elems = path.split('/')
                 for elem in path_elems[:-1]:
-                    data_copy = data_copy[elem]
+                    data_ref = data_ref[elem]
                 for key in response_body:
                     new_elem = response_body[key]
-                    data_copy[key] = new_elem
-                self.write(data_copy)
+                    data_ref[key] = new_elem
+                self.write(data_ref)
             else:
                 self.write(ProxyTestHandler.data)
                 
@@ -274,7 +274,7 @@ class TestProxyAdapter():
         response = self.adapter.get("{}/{}".format(node, path), self.request)
         assert_equal(response.data["even_more"], ProxyTestHandler.data["more"]["even_more"])
         assert_equal(self.adapter.param_tree.get('')['status'][node]['status_code'], 200)
-    
+
     def test_adapter_put_proxy_path(self):
 
         node = self.adapter.targets[0].name
@@ -284,7 +284,6 @@ class TestProxyAdapter():
 
         assert_equal(self.adapter.param_tree.get('')['status'][node]['status_code'], 200)
         assert_equal(response.data["replace"], "been replaced")
-
 
     def test_adapter_get_bad_path(self):
 
