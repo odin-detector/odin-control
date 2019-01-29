@@ -77,25 +77,6 @@ class ProxyTarget(object):
             self.status_code = response.code
             self.error_string = 'OK'
             response_body = tornado.escape.json_decode(response.body)
-            data_ref = self.data  # reference for modification
-            if path:
-                # if the path exists, we need to split it so we can navigate the data
-                path_elems = path.split('/')
-
-                for elem in path_elems[:-1]:
-                    # for each element, traverse down the data tree
-                    data_ref = data_ref[elem]
-
-            for key in response_body:
-
-                new_elem = response_body[key]
-                data_ref[key] = new_elem
-            logging.debug(
-                "Proxy target %s fetch succeeded: %d %s",
-                self.name,
-                self.status_code,
-                self.data_param_tree.get(path)
-                )
 
         except tornado.httpclient.HTTPError as http_err:
             # Handle HTTP errors, updating status information and reporting error
@@ -107,9 +88,10 @@ class ProxyTarget(object):
                 self.status_code,
                 self.error_string
                 )
+            self.last_update = tornado.httputil.format_timestamp(time.time())
+            return
 
-        except (KeyError, ValueError, IOError) as other_err:
-            # Handle other errors, updating status information and reporting error
+        except IOError as other_err:
             self.status_code = 502
             self.error_string = str(other_err)
             logging.error(
@@ -118,6 +100,27 @@ class ProxyTarget(object):
                 self.status_code,
                 self.error_string
                 )
+            self.last_update = tornado.httputil.format_timestamp(time.time())
+            return
+
+        data_ref = self.data  # reference for modification
+        if path:
+            # if the path exists, we need to split it so we can navigate the data
+            path_elems = path.split('/')
+
+            for elem in path_elems[:-1]:
+                # for each element, traverse down the data tree
+                data_ref = data_ref[elem]
+
+        for key in response_body:
+            new_elem = response_body[key]
+            data_ref[key] = new_elem
+        logging.debug(
+            "Proxy target %s fetch succeeded: %d %s",
+            self.name,
+            self.status_code,
+            self.data_param_tree.get(path)
+            )
 
         # Update the timestamp of the last request in standard format
         self.last_update = tornado.httputil.format_timestamp(time.time())
