@@ -1,4 +1,5 @@
-"""Proxy adapter class for the ODIN server.
+"""
+Proxy adapter class for the ODIN server.
 
 This class implements a simple asynchronous proxy adapter, allowing requests to be proxied to
 one or more remote HTTP resources, typically further ODIN servers.
@@ -42,7 +43,7 @@ class ProxyTarget(object):
         self.data = {}
         self.counter = 0
 
-        # Build a parameter tree representatio of the proxy target status
+        # Build a parameter tree representation of the proxy target status
         self.status_param_tree = ParameterTree({
             'url': (self.url, None),
             'status_code': (self._get_status_code, None),
@@ -64,7 +65,7 @@ class ProxyTarget(object):
 
     def update(self, request, path):
         """
-        Updates the Proxy Target `ParameterTree` with data from the proxied adapter,
+        Update the Proxy Target `ParameterTree` with data from the proxied adapter,
         after issuing a GET or a PUT request to it. It also updates the status code
         and error string if the HTTP request fails.
         """
@@ -127,12 +128,11 @@ class ProxyTarget(object):
 
     def remote_get(self, path=''):
         """
-        Update the proxy target with new data.
+        Get data from the remote target.
 
-        This method updates the proxy target with new data by
-        issuing a client GET request to the specified URL. The associated
-        status information is updated according to the success or failure
-        of the request.
+        This method updates the local proxy target with new data by
+        issuing a GET request to the target URL, and then updates the proxy
+        target data and status information according to the response.
         """
 
         # create request to PUT data, send to the target
@@ -148,8 +148,8 @@ class ProxyTarget(object):
         """
         Set data on the remote target.
 
-        This method updates the proxy target by issuing a PUT
-        request to the target URL, and then updates the proxy
+        This method updates the local proxy target with new datat by
+        issuing a PUT request to the target URL, and then updates the proxy
         target data and status information according to the response.
         """
         # create request to PUT data, send to the target
@@ -297,7 +297,8 @@ class ProxyAdapter(ApiAdapter):
     @request_types('application/json')
     @response_types('application/json', default='application/json')
     def put(self, path, request):
-        """Handle an HTTP PUT request.
+        """
+        Handle an HTTP PUT request.
 
         This method handles an HTTP PUT request, returning a JSON response.
 
