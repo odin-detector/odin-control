@@ -21,35 +21,79 @@ class ParameterAccessor(object):
 
     This class implements a parameter accessor, provding set and get methods
     for parameters requiring calls to access them, or simply returning the
-    appropriate value if the parameter is a read-only constant.
+    appropriate value if the parameter is a read-only constant. Parameter accessors also
+    contain metadata fields controlling access to and providing information about the parameter.
     """
 
-    def __init__(self, path, getter=None, setter=None):
+    # Valid metadata arguments that can be passed to ParameterAccess __init__ method.
+    VALID_METADATA_ARGS = (
+        "min", "max", "allowed_values", "name", "description", "units", "display_precision"
+    )
+    # Automatically-populated metadata fields based on inferred type of the parameter and
+    # writeable status depending on specified accessors
+    AUTO_METADATA_FIELDS = ("type", "writeable")
+
+    def __init__(self, path, getter=None, setter=None, **kwargs):
         """Initialise the ParameterAccessor instance.
 
         This constructor initialises the ParameterAccessor instance, storing
-        the path of the parameter and its set/get accessors.
+        the path of the parameter, its set/get accessors and setting metadata fields based
+        on the the specified keyword arguments
 
         :param path: path of the parameter within the tree
         :param getter: get method for the parameter, or a value if read-only constant
-        :param setting: set method for the parameter
+        :param setter: set method for the parameter
+        :param kwargs: keyword argument list for metadata fields to be set; these must be from
+                       the allow list specified in ParameterAccessor.allowed_metadata
         """
+        # Initialise path, getter and setter
         self.path = path[:-1]
         self._get = getter
         self._set = setter
 
-    def get(self):
+        # Initialize metadata dict
+        self.metadata = {}
+
+        # Check metadata keyword arguments are valid
+        for arg in kwargs:
+            if not arg in ParameterAccessor.VALID_METADATA_ARGS:
+                raise ParameterTreeError("Invalid metadata argument: {}".format(arg))
+
+        # Update metadata keywords from arguments
+        self.metadata.update(kwargs)
+
+        # Set type and writeable metadata fields based on specified accessors
+        self.metadata["type"] = type(self.get()).__name__
+        if not callable(self._set) and callable(self._get):
+            self.metadata["writeable"] = False
+        else:
+            self.metadata["writeable"] = True
+
+    def get(self, with_metadata=False):
         """Get the value of the parameter.
 
         This method returns the value of the parameter, or the value returned
-        by the get accessor if one is defined (i.e. is callable).
+        by the get accessor if one is defined (i.e. is callable). If the with_metadata argument
+        is true, the value is returned in a dictionary including all metadata for the
+        parameter.
 
+        :param with_metadata: include metadata in the response when set to True
         :returns value of the parameter
         """
+        # Determine the value of the parameter by calling the getter or simply from the stored
+        # value
         if callable(self._get):
-            return self._get()
+            value = self._get()
         else:
-            return self._get
+            value = self._get
+
+        # If metadata is requested, replace the value with a dict containing the value itself
+        # plus metadata fields
+        if with_metadata:
+            value = {"value": value}
+            value.update(self.metadata)
+
+        return value
 
     def set(self, value):
         """Set the value of the parameter.
@@ -59,12 +103,15 @@ class ParameterAccessor(object):
 
         :param value: value to set
         """
+
+        # Raise an error if this parameter is not witeable
+        if not self.metadata["writeable"]:
+            raise ParameterTreeError("Parameter {} is read-only".format(self.path))
+
         if callable(self._set):
-            return self._set(value)
+            self._set(value)
         elif not callable(self._get):
             self._get = value
-        else:
-            raise ParameterTreeError("Parameter {} is read-only".format(self.path))
 
 
 class ParameterTree(object):

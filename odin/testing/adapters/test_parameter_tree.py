@@ -25,6 +25,21 @@ class TestParameterAccessor():
         cls.callable_rw_accessor = ParameterAccessor(
             cls.callable_rw_path + '/', cls.callable_rw_get, cls.callable_rw_set)
 
+        cls.md_param_path ='mdparam'
+        cls.md_param_val = 456
+        cls.md_param_metadata = {
+            'min' : 0,
+            'max' : 1000,
+            "allowed_values": [0, 123, 456, 789, 1000],
+            "name": "Test Parameter",
+            "description": "This is a test parameter",
+            "units": "furlongs/fortnight",
+            "display_precision": 0,
+        }
+        cls.md_accessor = ParameterAccessor(
+            cls.md_param_path, cls.md_param_val, **cls.md_param_metadata
+        )
+
     @classmethod
     def callable_ro_get(cls):
         return cls.callable_ro_value
@@ -73,6 +88,49 @@ class TestParameterAccessor():
         assert_equal(self.callable_rw_accessor.get(), new_val)
 
         self.callable_rw_accessor.set(old_val)
+
+    def test_static_rw_accessor_default_metadata(self):
+
+        param = self.static_rw_accessor.get(with_metadata=True)
+        assert(isinstance(param, dict))
+        assert_equal(param['value'], self.static_rw_value)
+        assert_equal(param['type'], type(self.static_rw_value).__name__)
+        assert_equal(param['writeable'], True)
+
+    def test_callable_ro_accessor_default_metadata(self):
+
+        param = self.callable_ro_accessor.get(with_metadata=True)
+        assert_equal(param['value'], self.callable_ro_value)
+        assert_equal(param['type'], type(self.callable_ro_value).__name__)
+        assert_equal(param['writeable'], False)
+
+    def test_callable_rw_accessor_default_metadata(self):
+
+        param = self.callable_rw_accessor.get(with_metadata=True)
+        assert_equal(param['value'], self.callable_rw_value)
+        assert_equal(param['type'], type(self.callable_rw_value).__name__)
+        assert_equal(param['writeable'], True)
+
+    def test_metadata_param_accessor_metadata(self):
+
+        param = self.md_accessor.get(with_metadata=True)
+        for md_field in self.md_param_metadata:
+            assert(md_field in param)
+            assert_equal(param[md_field], self.md_param_metadata[md_field])
+        assert_equal(param['value'], self.md_param_val)
+        assert_equal(param['type'], type(self.md_param_val).__name__)
+        assert_equal(param['writeable'], True)
+
+    def test_param_accessor_bad_metadata_arg(self):
+
+        bad_metadata_argument = 'foo'
+        bad_metadata = {bad_metadata_argument: 'bar'}
+        with assert_raises_regexp(
+            ParameterTreeError, "Invalid metadata argument: {}".format(bad_metadata_argument)
+        ):
+            param = ParameterAccessor(
+                self.static_rw_path + '/', self.static_rw_value, **bad_metadata
+            )
 
 class TestParameterTree():
 
