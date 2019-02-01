@@ -69,7 +69,7 @@ class ParameterAccessor(object):
 
         # Check metadata keyword arguments are valid
         for arg in kwargs:
-            if not arg in ParameterAccessor.VALID_METADATA_ARGS:
+            if arg not in ParameterAccessor.VALID_METADATA_ARGS:
                 raise ParameterTreeError("Invalid metadata argument: {}".format(arg))
 
         # Update metadata keywords from arguments
@@ -188,10 +188,26 @@ class ParameterTree(object):
         :param tree: dict representing the parameter tree
         """
         # Create empty callback list
-        self.__callbacks = []
+        self._callbacks = []
 
         # Recursively check and initialise the tree
-        self.__tree = self.__recursive_build_tree(tree)
+        self._tree = self.__recursive_build_tree(tree)
+
+    @property
+    def callbacks(self):
+        """Return callbacks list for this tree.
+
+        Used internally for recursive descent of parameter trees.
+        """
+        return self._callbacks
+
+    @property
+    def tree(self):
+        """Return tree object for this parameter tree node.
+
+        Used internally for recursive descent of parameter trees.
+        """
+        return self._tree
 
     def get(self, path):
         """Get the values of parameters in a tree.
@@ -209,21 +225,26 @@ class ParameterTree(object):
             del levels[-1]
 
         # Initialise the subtree before descent
+<<<<<<< HEAD
         subtree = self.__tree
+=======
+        subtree = self._tree
+
+>>>>>>> Fix linting errors in parameter_tree.py
         # If this is single level path, return the populated tree at the top level
-        if len(levels) == 0:
+        if not levels:
             return self.__recursive_populate_tree(subtree)
 
         # Descend the specified levels in the path, checking for a valid subtree of the appropriate
         # type
-        for l in levels:
+        for level in levels:
             try:
                 if isinstance(subtree, dict):
-                    subtree = subtree[l]
+                    subtree = subtree[level]
                 elif isinstance(subtree, ParameterAccessor):
-                    subtree = subtree.get()[l]
+                    subtree = subtree.get()[level]
                 else:
-                    subtree = subtree[int(l)]
+                    subtree = subtree[int(level)]
             except (KeyError, ValueError, IndexError):
                 raise ParameterTreeError("Invalid path: {}".format(path))
 
@@ -249,21 +270,21 @@ class ParameterTree(object):
             del levels[-1]
 
         merge_parent = None
-        merge_child = self.__tree
+        merge_child = self._tree
 
         # Descend the tree and validate each element of the path
-        for l in levels:
+        for level in levels:
             try:
                 merge_parent = merge_child
                 if isinstance(merge_child, dict):
-                    merge_child = merge_child[l]
+                    merge_child = merge_child[level]
                 else:
-                    merge_child = merge_child[int(l)]
+                    merge_child = merge_child[int(level)]
             except (KeyError, ValueError, IndexError):
                 raise ParameterTreeError("Invalid path: {}".format(path))
 
         # Add trailing / to paths where necessary
-        if len(path) and path[-1] != '/':
+        if path and path[-1] != '/':
             path += '/'
 
         # Merge data with tree
@@ -271,8 +292,8 @@ class ParameterTree(object):
 
         # Add merged part to tree, either at the top of the tree or at the
         # appropriate level speicfied by the path
-        if len(levels) == 0:
-            self.__tree = merged
+        if not levels:
+            self._tree = merged
             return
         if isinstance(merge_parent, dict):
             merge_parent[levels[-1]] = merged
@@ -295,7 +316,7 @@ class ParameterTree(object):
             "Callbacks in parameter trees are deprecated, use parameter accessors instead",
             DeprecationWarning
         )
-        self.__callbacks.append([path, callback])
+        self._callbacks.append([path, callback])
 
     def __recursive_build_tree(self, node, path=''):
         """Recursively build and expand out a tree or node.
@@ -312,9 +333,9 @@ class ParameterTree(object):
         # If the node is a ParameterTree instance, replace with its own built tree
         if isinstance(node, ParameterTree):
             # Merge in callbacks in node if present
-            for c in node.__callbacks:
-                self.add_callback(path + c[0], c[1])
-            return node.__tree
+            for callback in node.callbacks:
+                self.add_callback(path + callback[0], callback[1])
+            return node.tree
 
         # Convert 2-tuple of one or more callables into a read-write accessor pair
         if isinstance(node, tuple) and len(node) == 2:
@@ -376,15 +397,19 @@ class ParameterTree(object):
                 node.update({k: self.__recursive_merge_tree(
                     node[k], v, cur_path + k + '/') for k, v in new_data.items()})
                 return node
-            except KeyError as e:
-                raise ParameterTreeError('Invalid path: {}{}'.format(cur_path, str(e)[1:-1]))
+            except KeyError as key_error:
+                raise ParameterTreeError(
+                    'Invalid path: {}{}'.format(cur_path, str(key_error)[1:-1])
+                )
         if isinstance(node, list) and isinstance(new_data, dict):
             try:
-                for i, v in enumerate(new_data):
-                    node[i] = self.__recursive_merge_tree(node[i], v, cur_path + str(i) + '/')
+                for i, val in enumerate(new_data):
+                    node[i] = self.__recursive_merge_tree(node[i], val, cur_path + str(i) + '/')
                 return node
-            except IndexError as e:
-                raise ParameterTreeError('Invalid path: {}{} {}'.format(cur_path, str(i), str(e)))
+            except IndexError as index_error:
+                raise ParameterTreeError(
+                    'Invalid path: {}{} {}'.format(cur_path, str(i), str(index_error))
+                )
 
         # Update the value of the current parameter, calling the set accessor if specified and
         # validating the type if necessary.
@@ -399,8 +424,8 @@ class ParameterTree(object):
             node = new_data
 
         # Call any callbacks specified at this path
-        for c in self.__callbacks:
-            if cur_path.startswith(c[0]):
-                c[1](cur_path, new_data)
+        for callback in self._callbacks:
+            if cur_path.startswith(callback[0]):
+                callback[1](cur_path, new_data)
 
         return node
