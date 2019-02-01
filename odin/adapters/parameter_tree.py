@@ -23,6 +23,19 @@ class ParameterAccessor(object):
     for parameters requiring calls to access them, or simply returning the
     appropriate value if the parameter is a read-only constant. Parameter accessors also
     contain metadata fields controlling access to and providing information about the parameter.
+
+    Valid specifiable metadata fields are:
+    min : minimum allowed value for parameter
+    max : maxmium allowed value for parameter
+    allowed_values: list of allowed values for parameter
+    name : readable parameter name
+    description: longer description of parameter
+    units: parameter units
+    display_precision: number of decimal places to display for e.g. float types
+
+    The class also maintains the following automatically-populated metadata fields:
+    type: parameter type
+    writeable: is the parameter writable
     """
 
     # Valid metadata arguments that can be passed to ParameterAccess __init__ method.
@@ -61,6 +74,9 @@ class ParameterAccessor(object):
 
         # Update metadata keywords from arguments
         self.metadata.update(kwargs)
+
+        # Save the type of the parameter for type checking
+        self._type = type(self.get())
 
         # Set type and writeable metadata fields based on specified accessors
         self.metadata["type"] = type(self.get()).__name__
@@ -108,6 +124,45 @@ class ParameterAccessor(object):
         if not self.metadata["writeable"]:
             raise ParameterTreeError("Parameter {} is read-only".format(self.path))
 
+        # Raise an error of the value to be set is not of the same type as the parameter. If
+        # the metadata type field is set to None, allow any type to be set, or if the value
+        # is integer and the parameter is float, also allow as JSON does not differentiate
+        # numerics in all cases
+        if self.metadata["type"] != "NoneType" and not isinstance(value, self._type):
+            if not (isinstance(value, int) and self.metadata["type"] == "float"):
+                raise ParameterTreeError(
+                    "Type mismatch setting {}: got {} expected {}".format(
+                        self.path, type(value).__name__, self.metadata["type"]
+                    )
+                )
+
+        # Raise an error if allowed_values has been set for this parameter and the value to
+        # set is not one of them
+        if "allowed_values" in self.metadata and value not in self.metadata["allowed_values"]:
+            raise ParameterTreeError(
+                "{} is not an allowed value for {}".format(value, self.path)
+            )
+
+        # Raise an error if the parameter has a mininum value specified in metadata and the
+        # value to set is below this
+        if "min" in self.metadata and value < self.metadata["min"]:
+            raise ParameterTreeError(
+                "{} is below the minimum value {} for {}".format(
+                    value, self.metadata["min"], self.path
+                )
+            )
+
+        # Raise an error if the parameter has a maximum value specified in metadata and the
+        # value to set is above this
+        if "min" in self.metadata and value > self.metadata["max"]:
+            raise ParameterTreeError(
+                "{} is above the maximum value {} for {}".format(
+                    value, self.metadata["max"], self.path
+                )
+            )
+
+        # Set the new parameter value, either by calling the setter or updating the local
+        # value as appropriate
         if callable(self._set):
             self._set(value)
         elif not callable(self._get):

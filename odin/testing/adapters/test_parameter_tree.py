@@ -28,16 +28,26 @@ class TestParameterAccessor():
         cls.md_param_path ='mdparam'
         cls.md_param_val = 456
         cls.md_param_metadata = {
-            'min' : 0,
+            'min' : 100,
             'max' : 1000,
-            "allowed_values": [0, 123, 456, 789, 1000],
+            "allowed_values": [100, 123, 456, 789, 1000],
             "name": "Test Parameter",
             "description": "This is a test parameter",
             "units": "furlongs/fortnight",
             "display_precision": 0,
         }
         cls.md_accessor = ParameterAccessor(
-            cls.md_param_path, cls.md_param_val, **cls.md_param_metadata
+            cls.md_param_path + '/', cls.md_param_val, **cls.md_param_metadata
+        )
+
+        cls.md_minmax_path = 'minmaxparam'
+        cls.md_minmax_val = 500
+        cls.md_minmax_metadata = {
+            'min': 100,
+            'max': 1000
+        }
+        cls.md_minmax_accessor = ParameterAccessor(
+            cls.md_minmax_path + '/', cls.md_minmax_val, **cls.md_minmax_metadata
         )
 
     @classmethod
@@ -131,6 +141,49 @@ class TestParameterAccessor():
             param = ParameterAccessor(
                 self.static_rw_path + '/', self.static_rw_value, **bad_metadata
             )
+
+    def test_param_accessor_set_type_mismatch(self):
+
+        bad_value = 1.234
+        bad_value_type = type(bad_value).__name__
+        
+        with assert_raises_regexp(
+            ParameterTreeError, "Type mismatch setting {}: got {} expected {}".format(
+                self.callable_rw_path, bad_value_type, type(self.callable_rw_value).__name__
+            )
+        ):
+            self.callable_rw_accessor.set(bad_value)
+
+    def test_param_accessor_bad_allowed_value(self):
+
+        bad_value = 222
+        with assert_raises_regexp(
+            ParameterTreeError, "{} is not an allowed value for {}".format(
+                bad_value, self.md_param_path
+            )
+        ):
+            self.md_accessor.set(bad_value)
+
+    def test_param_accessor_value_below_max(self):
+
+        bad_value = 1
+        with assert_raises_regexp(
+            ParameterTreeError, "{} is below the minimum value {} for {}".format(
+                bad_value, self.md_minmax_metadata['min'], self.md_minmax_path
+            )
+        ):
+            self.md_minmax_accessor.set(bad_value)
+
+    def test_param_accessor_value_above_max(self):
+
+        bad_value = 100000
+        with assert_raises_regexp(
+            ParameterTreeError, "{} is above the maximum value {} for {}".format(
+                bad_value, self.md_minmax_metadata['max'], self.md_minmax_path
+            )
+        ):
+            self.md_minmax_accessor.set(bad_value)
+
 
 class TestParameterTree():
 
