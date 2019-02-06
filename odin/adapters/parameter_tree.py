@@ -178,12 +178,32 @@ class ParameterTree(object):
     interfacing of those to the underlying device or object.
     """
 
+    METADATA_FIELDS = ["name", "description", "list"]
+
     def __init__(self, tree):
         """Initialise the ParameterTree object.
 
         This constructor recursively initialises the ParameterTree object, based on the parameter
         tree dictionary passed as an argument. This is done recursively, so that a parameter tree
         can have arbitrary depth and contain other ParameterTree instances as necessary.
+
+        Initialisation syntax for ParameterTree is made by passing a dict representing the tree
+        as an argument. Children of a node at any level of the tree are described with
+        dictionaries/lists e.g.
+
+          {"parent" : {"childA" : {...}, "childB" : {...}}}
+          {"parent" : [{...}, {...}]}
+
+        Leaf nodes can be one of the following formats:
+
+          value   -  (value,)  -  (value, {metadata})
+          getter  -  (getter,) -  (getter, {metadata})
+          (getter, setter)     -  (getter, setter, {metadata})
+
+        The following tags will also be treated as metadata:
+
+          name - A printable name for that branch of the tree
+          description - A printable description for that branch of the tree
 
         :param tree: dict representing the parameter tree
         """
@@ -209,7 +229,7 @@ class ParameterTree(object):
         """
         return self._tree
 
-    def get(self, path):
+    def get(self, path, with_metadata=False):
         """Get the values of parameters in a tree.
 
         This method returns the values at and below a specified path in the parameter tree.
@@ -217,6 +237,7 @@ class ParameterTree(object):
         returning the result as a dictionary.
 
         :param path: path in tree to get parameter values for
+        :param with_metadata: include metadata in the response when set to True
         :returns: dict of parameter tree at the specified path
         """
         # Split the path by levels, truncating the last level if path ends in trailing slash
@@ -233,23 +254,25 @@ class ParameterTree(object):
 >>>>>>> Fix linting errors in parameter_tree.py
         # If this is single level path, return the populated tree at the top level
         if not levels:
-            return self.__recursive_populate_tree(subtree)
+            return self.__recursive_populate_tree(subtree, with_metadata)
 
         # Descend the specified levels in the path, checking for a valid subtree of the appropriate
         # type
         for level in levels:
+            if level in self.METADATA_FIELDS and not with_metadata:
+                raise ParameterTreeError("Invalid path: {}".format(path))
             try:
                 if isinstance(subtree, dict):
                     subtree = subtree[level]
                 elif isinstance(subtree, ParameterAccessor):
-                    subtree = subtree.get()[level]
+                    subtree = subtree.get(with_metadata)[level]
                 else:
                     subtree = subtree[int(level)]
             except (KeyError, ValueError, IndexError):
                 raise ParameterTreeError("Invalid path: {}".format(path))
 
         # Return the populated tree at the appropriate path
-        return self.__recursive_populate_tree({levels[-1]: subtree})
+        return self.__recursive_populate_tree({levels[-1]: subtree}, with_metadata)
 
     def set(self, path, data):
         """Set the values of the parameters in a tree.
@@ -274,6 +297,8 @@ class ParameterTree(object):
 
         # Descend the tree and validate each element of the path
         for level in levels:
+            if level in self.METADATA_FIELDS:
+                raise ParameterTreeError("Invalid path: {}".format(path))
             try:
                 merge_parent = merge_child
                 if isinstance(merge_child, dict):
@@ -337,9 +362,29 @@ class ParameterTree(object):
                 self.add_callback(path + callback[0], callback[1])
             return node.tree
 
-        # Convert 2-tuple of one or more callables into a read-write accessor pair
-        if isinstance(node, tuple) and len(node) == 2:
-            return ParameterAccessor(path, node[0], node[1])
+        # Convert node tuple into the corresponding ParameterAccessor, depending on type of
+        # fields
+        if isinstance(node, tuple):
+            if len(node) == 1:
+                # Node is (value)
+                param = ParameterAccessor(path, node[0])
+
+            elif len(node) == 2:
+                if isinstance(node[1], dict):
+                    # Node is (value, {metadata})
+                    param = ParameterAccessor(path, node[0], **node[1])
+                else:
+                    # Node is (getter, setter)
+                    param = ParameterAccessor(path, node[0], node[1])
+
+            elif len(node) == 3 and isinstance(node[2], dict):
+                # Node is (getter, setter, {metadata})
+                param = ParameterAccessor(path, node[0], node[1], **node[2])
+
+            else:
+                raise ParameterTreeError("{} is not a valid leaf node".format(repr(node)))
+
+            return param
 
         # Convert list or non-callable tuple to enumerated dict
         if isinstance(node, list):
@@ -352,7 +397,19 @@ class ParameterTree(object):
 
         return node
 
-    def __recursive_populate_tree(self, node):
+    def __remove_metadata(self, node):
+        """Remove metadata fields from a node.
+
+        Used internally to return a parameter tree without metadata fields
+
+        :param node: tree node to return without metadata fields
+        :returns: generator yeilding items in node minus metadata
+        """
+        for key, val in node.items():
+            if key not in self.METADATA_FIELDS:
+                yield key, val
+
+    def __recursive_populate_tree(self, node, with_metadata=False):
         """Recursively populate a tree with values.
 
         This internal method recursively populates the tree with parameter values, or
@@ -360,19 +417,30 @@ class ParameterTree(object):
         return the values of parameters in the tree.
 
         :param node: tree node to populate and return
+        :param with_metadata: include parameter metadata with the tree
         :returns: populated node as a dict
         """
         # If this is a branch node recurse down the tree
         if isinstance(node, dict):
-            return {k: self.__recursive_populate_tree(v) for k, v in node.items()}
+            if with_metadata:
+                branch = {
+                    k: self.__recursive_populate_tree(v, with_metadata) for k, v
+                    in node.items()
+                }
+            else:
+                branch = {
+                    k: self.__recursive_populate_tree(v, with_metadata) for k, v
+                    in self.__remove_metadata(node)
+                }
+            return branch
 
         if isinstance(node, list):
-            return [self.__recursive_populate_tree(item) for item in node]
+            return [self.__recursive_populate_tree(item, with_metadata) for item in node]
 
         # If this is a leaf node, check if the leaf is a r/w tuple and substitute the
         # read element of that tuple into the node
         if isinstance(node, ParameterAccessor):
-            return node.get()
+            return node.get(with_metadata)
 
         return node
 
@@ -395,7 +463,7 @@ class ParameterTree(object):
         if isinstance(node, dict) and isinstance(new_data, dict):
             try:
                 node.update({k: self.__recursive_merge_tree(
-                    node[k], v, cur_path + k + '/') for k, v in new_data.items()})
+                    node[k], v, cur_path + k + '/') for k, v in self.__remove_metadata(new_data)})
                 return node
             except KeyError as key_error:
                 raise ParameterTreeError(
