@@ -418,6 +418,15 @@ class TestParameterTree():
             "Invalid path: list_param.* list index out of range"):
             self.simple_list_tree.set('list_param', new_list_param)
 
+    def test_bad_tuple_node_raises_error(self):
+
+        bad_node = 'bad'
+        bad_data = tuple(range(4))
+        bad_tree = {
+            bad_node: bad_data
+        }
+        with assert_raises_regexp(ParameterTreeError, "not a valid leaf node"):
+            tree = ParameterTree(bad_tree)
 
 class TestRwParameterTree():
 
@@ -539,3 +548,72 @@ class TestRwParameterTree():
         self.rw_callable_tree.set('branch/', nested_branch)
         new_branch = self.rw_callable_tree.get('branch/')['branch']
         assert_equal(new_branch['nestedRwParam'], new_rw_param_val)
+
+
+class TestParameterTreeMetadata():
+
+    @classmethod
+    def setup_class(cls):
+
+        cls.int_rw_param = 100
+        cls.float_ro_param = 4.6593
+        cls.int_ro_param = 1000
+
+        cls.int_rw_param_metadata = {
+            "min": 0,
+            "max": 1000,
+            "units": "arbitrary",
+            "name": "intCallableRwParam",
+            "description": "A callable integer RW parameter"
+        }
+
+        cls.metadata_tree_dict = {
+            'name': 'Metadata Tree',
+            'description': 'A paramter tree to test metadata',
+            'floatRoParam': (cls.floatRoParamGet,),
+            'intRoParam': (cls.intRoParamGet, {"units": "seconds"}),
+            'intCallableRwParam': (
+                cls.intCallableRwParamGet, cls.intCallableRwParamSet, cls.int_rw_param_metadata
+            ),
+        }
+        cls.metadata_tree = ParameterTree(cls.metadata_tree_dict)
+
+    @classmethod
+    def intCallableRwParamSet(cls, value):
+        cls.int_rw_param = value
+
+    @classmethod
+    def intCallableRwParamGet(cls):
+        return cls.int_rw_param
+
+    @classmethod
+    def floatRoParamGet(cls):
+        return cls.float_ro_param
+    
+    @classmethod
+    def intRoParamGet(cls):
+        return cls.int_ro_param
+
+    def test_basic_tree(self):
+
+        int_param_with_metadata = self.metadata_tree.get("intCallableRwParam",with_metadata=True)
+        int_param = self.metadata_tree.get("intCallableRwParam")["intCallableRwParam"]
+
+        expected_metadata = self.int_rw_param_metadata
+        expected_metadata["value"] = int_param
+        expected_metadata["type"] = 'int'
+        expected_metadata["writeable"] = True
+        expected_param = {"intCallableRwParam" : expected_metadata}
+        assert_equal(int_param_with_metadata, expected_param)
+
+    def test_get_filters_tree_metadata(self):
+
+        metadata_path = "name"
+        with assert_raises_regexp(ParameterTreeError, "Invalid path: {}".format(metadata_path)):
+            self.metadata_tree.get(metadata_path)
+
+    def test_set_tree_rejects_metadata(self):
+
+        metadata_path = "name"
+        with assert_raises_regexp(ParameterTreeError, "Invalid path: {}".format(metadata_path)):
+            self.metadata_tree.set(metadata_path, "invalid")
