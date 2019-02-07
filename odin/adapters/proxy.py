@@ -45,7 +45,7 @@ class ProxyTarget(object):
 
         # Build a parameter tree representation of the proxy target status
         self.status_param_tree = ParameterTree({
-            'url': (self.url, None),
+            'url': (self._get_url, None),
             'status_code': (self._get_status_code, None),
             'error': (self._get_error_string, None),
             'last_update': (self._get_last_update, None),
@@ -108,7 +108,8 @@ class ProxyTarget(object):
         if path:
             # if the path exists, we need to split it so we can navigate the data
             path_elems = path.split('/')
-
+            if path_elems[-1] == '':  # remove empty string caused by trailing slashes
+                del path_elems[-1]
             for elem in path_elems[:-1]:
                 # for each element, traverse down the data tree
                 data_ref = data_ref[elem]
@@ -200,6 +201,9 @@ class ProxyTarget(object):
         for use in the parameter tree.
         """
         return self.data
+
+    def _get_url(self):
+        return self.url
 
 
 class ProxyAdapter(ApiAdapter):
