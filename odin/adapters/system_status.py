@@ -361,18 +361,19 @@ class SystemStatus(with_metaclass(Singleton, object)):
         processes = []
         for proc in psutil.process_iter():
             process = None
-            if name in proc.name():
-                process = proc
-            else:
-                try:
+            try:
+                if name in proc.name():
+                    process = proc
+                else:
                     for cmdline in proc.cmdline():
                         if name in cmdline:
                             # Make sure the name isn't found as an argument to this process!
                             if os.getpid() != proc.pid:
                                 process = proc
-                except (psutil.AccessDenied, psutil.ZombieProcess):
-                    # If we cannot access the info of this process or it is a zombie, move on
-                    pass
+            except (psutil.AccessDenied, psutil.ZombieProcess, psutil.NoSuchProcess):
+                # If we cannot access the info of this process or it is a zombie or no longer
+                # exists, move on
+                pass
 
             if process is not None:
                 if process.status() not in (
