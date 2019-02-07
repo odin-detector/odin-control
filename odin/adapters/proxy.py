@@ -226,24 +226,24 @@ class ProxyAdapter(ApiAdapter):
 
         # Set the HTTP request timeout if present in the options
         request_timeout = None
-        if 'request_timeout' in kwargs:
+        if 'request_timeout' in self.options:
             try:
-                request_timeout = float(kwargs['request_timeout'])
+                request_timeout = float(self.options['request_timeout'])
                 logging.debug('ProxyAdapter request timeout set to %f secs', request_timeout)
             except ValueError:
                 logging.error(
                     "Illegal timeout specified for ProxyAdapter: %s",
-                    kwargs['request_timeout']
+                    self.options['request_timeout']
                     )
 
         # Parse the list of target-URL pairs from the options, instantiating a ProxyTarget
         # object for each target specified.
         self.targets = []
-        if 'targets' in kwargs:
-            for target_str in kwargs['targets'].split(','):
+        if 'targets' in self.options:
+            for target_str in self.options['targets'].split(','):
                 try:
-                    (target, url) = target_str.strip().split('=')
-                    self.targets.append(ProxyTarget(target, url, request_timeout))
+                    (target, url) = target_str.split('=')
+                    self.targets.append(ProxyTarget(target.strip(), url.strip(), request_timeout))
                 except ValueError:
                     logging.error("Illegal target specification for ProxyAdapter: %s",
                                   target_str.strip())
