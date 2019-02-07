@@ -558,6 +558,8 @@ class TestParameterTreeMetadata():
         cls.int_rw_param = 100
         cls.float_ro_param = 4.6593
         cls.int_ro_param = 1000
+        cls.int_enum_param = 0
+        cls.int_enum_param_allowed_values = [0, 1, 2, 3, 5, 8, 13]
 
         cls.int_rw_param_metadata = {
             "min": 0,
@@ -575,6 +577,7 @@ class TestParameterTreeMetadata():
             'intCallableRwParam': (
                 cls.intCallableRwParamGet, cls.intCallableRwParamSet, cls.int_rw_param_metadata
             ),
+            'intEnumParam': (0, {"allowed_values": cls.int_enum_param_allowed_values}),
         }
         cls.metadata_tree = ParameterTree(cls.metadata_tree_dict)
 
@@ -594,7 +597,7 @@ class TestParameterTreeMetadata():
     def intRoParamGet(cls):
         return cls.int_ro_param
 
-    def test_basic_tree(self):
+    def test_callable_rw_param_metadata(self):
 
         int_param_with_metadata = self.metadata_tree.get("intCallableRwParam",with_metadata=True)
         int_param = self.metadata_tree.get("intCallableRwParam")["intCallableRwParam"]
@@ -617,3 +620,24 @@ class TestParameterTreeMetadata():
         metadata_path = "name"
         with assert_raises_regexp(ParameterTreeError, "Invalid path: {}".format(metadata_path)):
             self.metadata_tree.set(metadata_path, "invalid")
+
+    def test_enum_param_allowed_values(self):
+
+        for value in self.int_enum_param_allowed_values:
+            self.metadata_tree.set("intEnumParam", value)
+            set_value = self.metadata_tree.get("intEnumParam")["intEnumParam"]
+            assert_equal(value, set_value)
+
+        bad_value = self.int_enum_param_allowed_values[-1] + 1
+        with assert_raises_regexp(ParameterTreeError, 
+            "{} is not an allowed value".format(bad_value)):
+            self.metadata_tree.set("intEnumParam", bad_value)
+
+    def test_ro_param_not_writeable(self):
+
+        ro_param = self.metadata_tree.get("floatRoParam", with_metadata=True)
+        assert_equal(ro_param["floatRoParam"]["writeable"], False)
+
+        with assert_raises_regexp(ParameterTreeError,
+            "Parameter {} is read-only".format("floatRoParam")):
+            self.metadata_tree.set("floatRoParam", 3.141275)
