@@ -275,6 +275,13 @@ class TestProxyAdapter():
         assert_equal(response.data["even_more"], ProxyTestHandler.data["more"]["even_more"])
         assert_equal(self.adapter.param_tree.get('')['status'][node]['status_code'], 200)
 
+    def test_adapter_get_proxy_path_trailing_slash(self):
+        node = self.adapter.targets[0].name
+        path = "more/even_more/"
+        response = self.adapter.get("{}/{}".format(node, path), self.request)
+        assert_equal(response.data["even_more"], ProxyTestHandler.data["more"]["even_more"])
+        assert_equal(self.adapter.param_tree.get('')['status'][node]['status_code'], 200)
+
     def test_adapter_put_proxy_path(self):
 
         node = self.adapter.targets[0].name
