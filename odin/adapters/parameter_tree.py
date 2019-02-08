@@ -178,7 +178,7 @@ class ParameterTree(object):
     interfacing of those to the underlying device or object.
     """
 
-    METADATA_FIELDS = ["name", "description", "list"]
+    METADATA_FIELDS = ["name", "description"]
 
     def __init__(self, tree):
         """Initialise the ParameterTree object.
