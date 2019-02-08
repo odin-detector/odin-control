@@ -578,6 +578,7 @@ class TestParameterTreeMetadata():
                 cls.intCallableRwParamGet, cls.intCallableRwParamSet, cls.int_rw_param_metadata
             ),
             'intEnumParam': (0, {"allowed_values": cls.int_enum_param_allowed_values}),
+            'valueParam': (24601,)
         }
         cls.metadata_tree = ParameterTree(cls.metadata_tree_dict)
 
@@ -641,3 +642,27 @@ class TestParameterTreeMetadata():
         with assert_raises_regexp(ParameterTreeError,
             "Parameter {} is read-only".format("floatRoParam")):
             self.metadata_tree.set("floatRoParam", 3.141275)
+
+    def test_value_param_writeable(self):
+
+        new_value = 90210
+        self.metadata_tree.set("valueParam", new_value)
+        set_param = self.metadata_tree.get("valueParam", with_metadata=True)["valueParam"]
+        assert_equal(set_param["value"], new_value)
+        assert_equal(set_param["writeable"], True)
+
+    def test_rw_param_out_of_range(self):
+
+        low_value = -1
+        high_value = 100000
+        with assert_raises_regexp(ParameterTreeError, 
+            "{} is below the minimum value {} for {}".format(
+                low_value, self.int_rw_param_metadata["min"], "intCallableRwParam")
+            ):
+            self.metadata_tree.set("intCallableRwParam", low_value)
+
+        with assert_raises_regexp(ParameterTreeError, 
+            "{} is above the maximum value {} for {}".format(
+                high_value, self.int_rw_param_metadata["max"], "intCallableRwParam")
+            ):
+            self.metadata_tree.set("intCallableRwParam", high_value)
