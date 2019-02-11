@@ -188,6 +188,7 @@ def response_types(*oargs, **okwargs):
                         response_type = 'text/plain'
                 else:
                     for accept_type in request.headers['Accept'].split(','):
+                        accept_type = accept_type.split(';')[0]
                         if accept_type in oargs:
                             response_type = accept_type
                             break
@@ -207,3 +208,18 @@ def response_types(*oargs, **okwargs):
             return func(_self, path, request)
         return wrapper
     return decorator
+
+def wants_metadata(request):
+
+    wants_metadata = False
+
+    if "Accept" in request.headers:
+        accept_elems = request.headers["Accept"].split(';')
+        if len(accept_elems) > 1:
+            for elem in accept_elems[1:]:
+                if '=' in elem:
+                    elem = elem.split('=')
+                    if elem[0].strip() == "metadata":
+                        wants_metadata = str(elem[1]).strip().lower() == 'true'
+
+    return wants_metadata
