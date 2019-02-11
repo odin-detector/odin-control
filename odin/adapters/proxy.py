@@ -15,6 +15,9 @@ from tornado.escape import json_decode
 from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
 from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
 
+TIMEOUT_CONFIG_NAME = 'request_timeout'
+TARGET_CONFIG_NAME = 'targets'
+
 
 class ProxyTarget(object):
     """
@@ -230,21 +233,21 @@ class ProxyAdapter(ApiAdapter):
 
         # Set the HTTP request timeout if present in the options
         request_timeout = None
-        if 'request_timeout' in self.options:
+        if TIMEOUT_CONFIG_NAME in self.options:
             try:
-                request_timeout = float(self.options['request_timeout'])
+                request_timeout = float(self.options[TIMEOUT_CONFIG_NAME])
                 logging.debug('ProxyAdapter request timeout set to %f secs', request_timeout)
             except ValueError:
                 logging.error(
                     "Illegal timeout specified for ProxyAdapter: %s",
-                    self.options['request_timeout']
+                    self.options[TIMEOUT_CONFIG_NAME]
                     )
 
         # Parse the list of target-URL pairs from the options, instantiating a ProxyTarget
         # object for each target specified.
         self.targets = []
-        if 'targets' in self.options:
-            for target_str in self.options['targets'].split(','):
+        if TARGET_CONFIG_NAME in self.options:
+            for target_str in self.options[TARGET_CONFIG_NAME].split(','):
                 try:
                     (target, url) = target_str.split('=')
                     self.targets.append(ProxyTarget(target.strip(), url.strip(), request_timeout))
