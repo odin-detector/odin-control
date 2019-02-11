@@ -164,7 +164,7 @@ class SystemInfo(with_metaclass(Singleton, object)):
                 "name": "tornado version",
                 "description": "version of tornado used in this server",
             }),
-            'python_version': (platform.python_version(), {
+            'python_version': (lambda: platform.python_version(), {
                 "name": "python version",
                 "description": "version of python running this server",
             }),
