@@ -45,7 +45,7 @@ class TestSystemStatus():
         assert_true('proc1' in self.system_status._processes)
 
     def test_system_status_check_bad_nic(self):
-        with assert_raises(KeyError):
+        with assert_raises(ParameterTreeError):
             self.system_status.get('status/network/bad')
 
     def test_system_status_monitor_network(self):
@@ -174,7 +174,7 @@ class TestSystemStatusAdapter():
 
     def test_adapter_get_bad_path(self):
         bad_path = '/bad/path'
-        expected_response = {'error': 'The path {} is invalid'.format(bad_path)}
+        expected_response = {'error': 'Invalid path: {}'.format(bad_path)}
         response = self.adapter.get(bad_path, self.request)
         assert_equal(response.data, expected_response)
         assert_equal(response.status_code, 400)
