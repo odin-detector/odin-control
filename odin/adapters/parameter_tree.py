@@ -246,12 +246,8 @@ class ParameterTree(object):
             del levels[-1]
 
         # Initialise the subtree before descent
-<<<<<<< HEAD
-        subtree = self.__tree
-=======
         subtree = self._tree
 
->>>>>>> Fix linting errors in parameter_tree.py
         # If this is single level path, return the populated tree at the top level
         if not levels:
             return self.__recursive_populate_tree(subtree, with_metadata)
