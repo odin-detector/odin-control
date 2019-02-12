@@ -5,3 +5,4 @@ pyzmq>=15.2.0
 requests>=2.9.1
 tornado>=4.3,<5.0
 future
+psutil
