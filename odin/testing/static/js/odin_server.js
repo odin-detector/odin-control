@@ -9,8 +9,8 @@ $( document ).ready(function() {
 function update_api_version() {
 
     $.getJSON('/api', function(response) {
-        $('#api-version').html(response.api_version);
-        api_version = response.api_version;
+        api_version = response.api;
+        $('#api-version').html(api_version);
     });
 }
 

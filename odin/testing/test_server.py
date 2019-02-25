@@ -77,7 +77,7 @@ class TestOdinServer(OdinTestServer):
             headers=headers
         )
         assert_equal(result.status_code, 200)
-        assert_equal(result.json()['api_version'], 0.1)
+        assert_equal(result.json()['api'], 0.1)
 
     def test_api_version_bad_accept(self):
         headers = {'Accept': 'text/plain'}
