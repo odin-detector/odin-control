@@ -89,6 +89,25 @@ class ApiAdapter(object):
         pass
 
 
+class ApiAdapterRequest(object):
+    """API Adapter Request object.
+
+    Designed to emulate the HTTP Request Object used in the Get and Put requests
+    of most emulators, for internal communication between adapters.
+    """
+    def __init__(self, data, content_type='application/odin-native', accept="application/json"):
+        """Initialize the Adapter Request body and headers.
+
+        Create the header and body in the same way as in a HTTP Request.
+        This means we can still use it in adapter HTTP verb methods
+        """
+        self.body = data
+        self.headers = {
+            "Content-Type": content_type,
+            "Accept": accept
+        }
+
+
 class ApiAdapterResponse(object):
     """
     API adapter response object.
