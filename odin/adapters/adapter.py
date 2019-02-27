@@ -28,6 +28,15 @@ class ApiAdapter(object):
         for kw in kwargs:
             self.options[kw] = kwargs[kw]
 
+    def initialize(self, adapters):
+        """Initialize the ApiAdapter after it has been registered by the API Route.
+
+        This is an abstract implimentation of the initialize mechinism that allows
+        an adapter to receive a list of loaded adapters, for Inter-adapter communication.
+        :param adapters: a dictionary of the adapters loaded by the API route.
+        """
+        pass
+
     def get(self, path, request):
         """Handle an HTTP GET request.
 

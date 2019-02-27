@@ -49,6 +49,9 @@ class HttpServer(object):
         for adapter in adapters:
             self.api_route.register_adapter(adapters[adapter])
 
+        # Initialize adapters for all those that require inter adapter communication
+        self.api_route.initialize_adapters()
+
         handlers = self.api_route.get_handlers()
 
         # Create a default route for static content and get handlers
