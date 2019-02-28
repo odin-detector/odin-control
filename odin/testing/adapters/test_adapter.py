@@ -7,7 +7,7 @@ else:                         # pragma: no cover
 
 from nose.tools import *
 
-from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
+from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, ApiAdapterRequest, request_types, response_types
 
 class TestApiAdapter():
 
@@ -54,6 +54,59 @@ class TestApiAdapter():
         except:
             raised = True
         assert_false(raised)
+
+    def test_api_adapter_initialize(self):
+        
+        raised = False
+        try:
+            self.adapter.initialize(None)
+        except:
+            raised = True
+        assert_false(raised)
+
+
+class TestAdapterRequest():
+
+    def test_simple_request(self):
+        data = "This is some simple request data"
+        request = ApiAdapterRequest(data)
+        assert_equal(request.body, data)
+        assert_equal(request.content_type, 'application/vnd.odin-native')
+        assert_equal(request.response_type, "text/plain")
+        expected_headers = {
+            "Content-Type": 'application/vnd.odin-native',
+            "Accept": "text/plain"
+        }
+        assert_equal(request.headers, expected_headers)
+
+    def test_request_with_types(self):
+        data = '{\'some_json_value\' : 1.234}'
+        content_type = 'application/json'
+        request_type = "application/vnd.odin-native"
+        request = ApiAdapterRequest(data, content_type=content_type, accept=request_type)
+        assert_equal(request.body, data)
+        assert_equal(request.content_type, content_type)
+        assert_equal(request.response_type, request_type)
+        assert_equal(request.headers, {
+            "Content-Type": content_type,
+            "Accept": request_type})
+
+    def test_set_content(self):
+        data = '{\'some_json_value\' : 1.234}'
+        content_type = 'application/json'
+        request_type = "application/vnd.odin-native"
+
+        request = ApiAdapterRequest(data)
+        request.set_content_type(content_type)
+        request.set_response_type(request_type)
+
+        assert_equal(request.body, data)
+        assert_equal(request.content_type, content_type)
+        assert_equal(request.response_type, request_type)
+        assert_equal(request.headers, {
+            "Content-Type": content_type,
+            "Accept": request_type})
+
 
 class TestApiAdapterResponse():
 
