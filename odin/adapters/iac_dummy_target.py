@@ -1,6 +1,7 @@
 import logging
 
 from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
+from odin.util import decode_request_body, convert_to_string
 
 
 class IacDummyTargetAdapter(ApiAdapter):
@@ -27,10 +28,13 @@ class IacDummyTargetAdapter(ApiAdapter):
 
         return ApiAdapterResponse(response, content_type=content_type, status_code=status_code)
 
-    @request_types('application/json', 'application/odin-native')
+    @request_types('application/json', 'application/vnd.odin-native')
     @response_types('application/json', default='application/json')
     def put(self, path, request):
+        data = decode_request_body(request)
+        logging.debug("Data: %s, type: %s", data, type(data))
         response = {'response': 'IAC Adapter Target: PUT on path {}'.format(path)}
+        response["data"] = data
         content_type = 'application/json'
         status_code = 200
 

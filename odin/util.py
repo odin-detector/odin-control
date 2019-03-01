@@ -21,7 +21,7 @@ def decode_request_body(request):
             body = json_decode(request.body)
         else:
             body = request.body
-    except (TypeError, ValueError):
+    except (TypeError):
         body = request.body
     return body
 
@@ -30,8 +30,11 @@ def convert_to_string(obj):
     """
     Convert all unicode parts of a dictionary or list to standard strings.
 
-    This method may not handle special characters well due to the difference between uft-8 and unicode.
+    This method may not handle special characters well due to the difference between uft-8
+    and unicode.
+
     :param obj: the dictionary, list, or unicode string
+
     :return: the same data type as obj, but with unicode strings converted to python strings.
     """
     if PY3:
