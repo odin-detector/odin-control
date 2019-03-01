@@ -72,10 +72,10 @@ class TestAdapterRequest():
         request = ApiAdapterRequest(data)
         assert_equal(request.body, data)
         assert_equal(request.content_type, 'application/vnd.odin-native')
-        assert_equal(request.response_type, "text/plain")
+        assert_equal(request.response_type, "application/json")
         expected_headers = {
             "Content-Type": 'application/vnd.odin-native',
-            "Accept": "text/plain"
+            "Accept": "application/json"
         }
         assert_equal(request.headers, expected_headers)
 
