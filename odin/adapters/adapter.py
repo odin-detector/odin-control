@@ -95,7 +95,8 @@ class ApiAdapterRequest(object):
     Designed to emulate the HTTP Request Object used in the Get and Put requests
     of most emulators, for internal communication between adapters.
     """
-    def __init__(self, data, content_type='application/vnd.odin-native', accept="application/json"):
+    def __init__(self, data, content_type='application/vnd.odin-native',
+                 accept="application/json", remote_ip="LOCAL"):
         """Initialize the Adapter Request body and headers.
 
         Create the header and body in the same way as in a HTTP Request.
@@ -104,6 +105,7 @@ class ApiAdapterRequest(object):
         self.body = data
         self.content_type = content_type
         self.response_type = accept
+        self.remote_ip = remote_ip
         self.headers = {
             "Content-Type": self.content_type,
             "Accept": self.response_type
@@ -126,6 +128,9 @@ class ApiAdapterRequest(object):
         """
         self.response_type = response_type
         self.headers['Accept'] = response_type
+
+    def set_remote_ip(self, ip):
+        self.remote_ip = ip
 
 
 class ApiAdapterResponse(object):

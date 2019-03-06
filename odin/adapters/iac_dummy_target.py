@@ -1,7 +1,8 @@
 import logging
 
 from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
-from odin.util import decode_request_body, convert_to_string
+from odin.util import decode_request_body
+from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
 
 
 class IacDummyTargetAdapter(ApiAdapter):
@@ -17,15 +18,20 @@ class IacDummyTargetAdapter(ApiAdapter):
         """
 
         super(IacDummyTargetAdapter, self).__init__(**kwargs)
+        self.param_tree = ParameterTree(self.options)
         logging.debug("IAC Dummy Target Adapter Loaded")
 
     @response_types('application/json', default='application/json')
     def get(self, path, request):
-        
-        response = {"response": "IAC Adapter Target: GET on path {}".format(path)}
-        content_type = 'application/json'
-        status_code = 200
 
+        try:
+            response = self.param_tree.get(path)
+            status_code = 200
+        except ParameterTreeError as e:
+            response = {'error': str(e)}
+            status_code = 400
+
+        content_type = 'application/json'
         return ApiAdapterResponse(response, content_type=content_type, status_code=status_code)
 
     @request_types('application/json', 'application/vnd.odin-native')

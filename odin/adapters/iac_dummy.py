@@ -3,7 +3,6 @@ import logging
 from odin.adapters.adapter import ApiAdapter, ApiAdapterRequest, \
                                 ApiAdapterResponse, request_types, response_types
 from odin.util import decode_request_body
-from tornado.escape import json_decode
 
 
 class IacDummyAdapter(ApiAdapter):
@@ -20,6 +19,7 @@ class IacDummyAdapter(ApiAdapter):
 
         super(IacDummyAdapter, self).__init__(**kwargs)
         self.adapters = {}
+
         logging.debug("IAC Dummy Adapter Loaded")
 
     @response_types('application/json', default='application/json')
@@ -30,7 +30,7 @@ class IacDummyAdapter(ApiAdapter):
         request.set_response_type('application/json')
         for key, value in self.adapters.iteritems():
             logging.debug("Calling Get of %s", key)
-            response[key] = value.get(path="", request=request).data
+            response[key] = value.get(path=path, request=request).data
         logging.debug("Full response: %s", response)
         content_type = 'application/json'
         status_code = 200
@@ -68,4 +68,3 @@ class IacDummyAdapter(ApiAdapter):
                 break
 
         logging.debug("Received following dict of Adapters: %s", self.adapters)
-        
