@@ -26,7 +26,7 @@ def decode_request_body(request):
     return body
 
 
-def convert_to_string(obj):
+def convert_unicode_to_string(obj):
     """
     Convert all unicode parts of a dictionary or list to standard strings.
 
@@ -40,10 +40,10 @@ def convert_to_string(obj):
     if PY3:
         return obj  # Python 3 strings ARE unicode, so no need to encode them
     if isinstance(obj, dict):
-        return {convert_to_string(key): convert_to_string(value)
+        return {convert_unicode_to_string(key): convert_unicode_to_string(value)
                 for key, value in obj.items()}
     elif isinstance(obj, list):
-        return [convert_to_string(element) for element in obj]
+        return [convert_unicode_to_string(element) for element in obj]
     elif isinstance(obj, unicode):
         return obj.encode('utf-8')
 
