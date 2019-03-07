@@ -27,7 +27,7 @@ class IacDummyAdapter(ApiAdapter):
         logging.debug("IAC DUMMY GET")
         response = {}
         request = ApiAdapterRequest(None, accept='application/json')
-        for key, value in self.adapters.iteritems():
+        for key, value in self.adapters.items():
             logging.debug("Calling Get of %s", key)
             response[key] = value.get(path=path, request=request).data
         logging.debug("Full response: %s", response)
@@ -44,7 +44,7 @@ class IacDummyAdapter(ApiAdapter):
         response = {}
         request = ApiAdapterRequest(body)
 
-        for key, value in self.adapters.iteritems():
+        for key, value in self.adapters.items():
             logging.debug("Calling Put of %s", key)
             response[key] = value.put(path="", request=request).data
         content_type = 'application/json'
@@ -61,7 +61,7 @@ class IacDummyAdapter(ApiAdapter):
         Receive a dictionary of all loaded adapters so that they may be interrogated by this adapter
         """
         self.adapters = dict(adapters)
-        for key, value in self.adapters.iteritems():
+        for key, value in self.adapters.items():
             if value is self:
                 del self.adapters[key]
                 break
