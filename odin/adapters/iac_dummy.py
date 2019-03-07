@@ -26,8 +26,7 @@ class IacDummyAdapter(ApiAdapter):
     def get(self, path, request):
         logging.debug("IAC DUMMY GET")
         response = {}
-        request = ApiAdapterRequest(None)
-        request.set_response_type('application/json')
+        request = ApiAdapterRequest(None, accept='application/json')
         for key, value in self.adapters.iteritems():
             logging.debug("Calling Get of %s", key)
             response[key] = value.get(path=path, request=request).data
@@ -37,7 +36,7 @@ class IacDummyAdapter(ApiAdapter):
 
         return ApiAdapterResponse(response, content_type=content_type, status_code=status_code)
 
-    @request_types('application/json', 'application/odin-native')
+    @request_types('application/json', 'application/vnd.odin-native')
     @response_types('application/json', default='application/json')
     def put(self, path, request):
         logging.debug("IAC DUMMY PUT")
