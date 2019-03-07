@@ -95,14 +95,17 @@ class TestAdapterRequest():
         data = '{\'some_json_value\' : 1.234}'
         content_type = 'application/json'
         request_type = "application/vnd.odin-native"
+        remote_ip = "127.0.0.1"
 
         request = ApiAdapterRequest(data)
         request.set_content_type(content_type)
         request.set_response_type(request_type)
+        request.set_remote_ip(remote_ip)
 
         assert_equal(request.body, data)
         assert_equal(request.content_type, content_type)
         assert_equal(request.response_type, request_type)
+        assert_equal(request.remote_ip, remote_ip)
         assert_equal(request.headers, {
             "Content-Type": content_type,
             "Accept": request_type})
