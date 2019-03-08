@@ -38,7 +38,8 @@ def convert_unicode_to_string(obj):
     :return: the same data type as obj, but with unicode strings converted to python strings.
     """
     if PY3:
-        return obj  # Python 3 strings ARE unicode, so no need to encode them
+        # Python 3 strings ARE unicode, so no need to encode them
+        return obj  # pragma: no cover
     if isinstance(obj, dict):
         return {convert_unicode_to_string(key): convert_unicode_to_string(value)
                 for key, value in obj.items()}

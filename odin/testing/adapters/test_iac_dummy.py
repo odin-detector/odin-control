@@ -1,12 +1,4 @@
-import sys
-
 from nose.tools import assert_equal
-
-if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest.mock import Mock
-else:                         # pragma: no cover
-    from mock import Mock
-
 from odin.adapters.iac_dummy import IacDummyAdapter
 from odin.adapters.adapter import ApiAdapter, ApiAdapterRequest, \
                                 ApiAdapterResponse, request_types, response_types
