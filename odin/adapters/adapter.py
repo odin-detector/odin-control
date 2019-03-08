@@ -210,7 +210,15 @@ def response_types(*oargs, **okwargs):
     return decorator
 
 def wants_metadata(request):
+    """
+    Determine if a client request wants metadata to be included in the response.
 
+    This method checks to see if an incoming request has an Accept header with
+    the 'metadata=true' qualified attached to the MIME-type.
+
+    :param request: HTTPServerRequest or equivalent from client
+    :return boolean, True if metadata is requested.
+    """
     wants_metadata = False
 
     if "Accept" in request.headers:
