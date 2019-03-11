@@ -130,6 +130,12 @@ class ApiAdapterRequest(object):
         self.headers['Accept'] = response_type
 
     def set_remote_ip(self, ip):
+        """Set the Remote IP of the request
+
+        This is only used in the event that an adapter has not implemented
+        a GET or PUT request and is still using the base adapter class version
+        of that method.
+        """
         self.remote_ip = ip
 
 
