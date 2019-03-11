@@ -15,6 +15,7 @@ class IacDummyTargetAdapter(ApiAdapter):
     def __init__(self, **kwargs):
         """Initialize the dummy target adapter.
 
+        Create a paramter tree based off the options given by the configuration.
         """
 
         super(IacDummyTargetAdapter, self).__init__(**kwargs)
@@ -23,7 +24,11 @@ class IacDummyTargetAdapter(ApiAdapter):
 
     @response_types('application/json', default='application/json')
     def get(self, path, request):
+        """Handle a HTTP GET Request.
 
+        Return the value requested from the parameter tree.
+        If no path was specified, return the entire parameter tree.
+        """
         try:
             response = self.param_tree.get(path)
             status_code = 200
@@ -37,6 +42,11 @@ class IacDummyTargetAdapter(ApiAdapter):
     @request_types('application/json', 'application/vnd.odin-native')
     @response_types('application/json', default='application/json')
     def put(self, path, request):
+        """Handle a HTTP PUT Request.
+
+        Return a dictionary containing the data from the PUT request.
+        As this is a dummy adapter this does not actually modify the parameter tree.
+        """
         data = decode_request_body(request)
         logging.debug("Data: %s, type: %s", data, type(data))
         response = {'response': 'IAC Adapter Target: PUT on path {}'.format(path)}

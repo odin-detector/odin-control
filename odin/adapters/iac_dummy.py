@@ -15,6 +15,8 @@ class IacDummyAdapter(ApiAdapter):
     def __init__(self, **kwargs):
         """Initialize the dummy target adapter.
 
+        Create the adapter using the base adapter class.
+        Create an empty dictionary to store the references to other loaded adapters.
         """
 
         super(IacDummyAdapter, self).__init__(**kwargs)
@@ -24,6 +26,11 @@ class IacDummyAdapter(ApiAdapter):
 
     @response_types('application/json', default='application/json')
     def get(self, path, request):
+        """Handle a HTTP GET Request
+
+        Call the get method of each other adapter that is loaded and return the responses
+        in a dictionary.
+        """
         logging.debug("IAC DUMMY GET")
         response = {}
         request = ApiAdapterRequest(None, accept='application/json')
@@ -39,6 +46,11 @@ class IacDummyAdapter(ApiAdapter):
     @request_types('application/json', 'application/vnd.odin-native')
     @response_types('application/json', default='application/json')
     def put(self, path, request):
+        """Handle a HTTP PUT request.
+
+        Calls the put method of each other adapter that has been loaded, and returns the responses
+        in a dictionary.
+        """
         logging.debug("IAC DUMMY PUT")
         body = decode_request_body(request)
         response = {}
@@ -58,7 +70,9 @@ class IacDummyAdapter(ApiAdapter):
     def initialize(self, adapters):
         """Initialize the adapter after it has been loaded.
 
-        Receive a dictionary of all loaded adapters so that they may be interrogated by this adapter
+        Receive a dictionary of all loaded adapters so that they may be accessed by this adapter.
+        Remove itself from the dictionary so that it does not reference itself, as doing so
+        could end with an endless recursive loop.
         """
         self.adapters = dict(adapters)
         for key, value in self.adapters.items():
