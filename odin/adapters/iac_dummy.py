@@ -24,7 +24,7 @@ class IacDummyAdapter(ApiAdapter):
 
         logging.debug("IAC Dummy Adapter Loaded")
 
-    @response_types('application/json', default='application/json')
+    @response_types("application/json", default="application/json")
     def get(self, path, request):
         """Handle a HTTP GET Request
 
@@ -33,18 +33,18 @@ class IacDummyAdapter(ApiAdapter):
         """
         logging.debug("IAC DUMMY GET")
         response = {}
-        request = ApiAdapterRequest(None, accept='application/json')
+        request = ApiAdapterRequest(None, accept="application/json")
         for key, value in self.adapters.items():
             logging.debug("Calling Get of %s", key)
             response[key] = value.get(path=path, request=request).data
         logging.debug("Full response: %s", response)
-        content_type = 'application/json'
+        content_type = "application/json"
         status_code = 200
 
         return ApiAdapterResponse(response, content_type=content_type, status_code=status_code)
 
-    @request_types('application/json', 'application/vnd.odin-native')
-    @response_types('application/json', default='application/json')
+    @request_types("application/json", "application/vnd.odin-native")
+    @response_types("application/json", default="application/json")
     def put(self, path, request):
         """Handle a HTTP PUT request.
 
@@ -59,7 +59,7 @@ class IacDummyAdapter(ApiAdapter):
         for key, value in self.adapters.items():
             logging.debug("Calling Put of %s", key)
             response[key] = value.put(path="", request=request).data
-        content_type = 'application/json'
+        content_type = "application/json"
         status_code = 200
 
         logging.debug(response)

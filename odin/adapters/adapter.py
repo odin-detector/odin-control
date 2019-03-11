@@ -95,7 +95,7 @@ class ApiAdapterRequest(object):
     Designed to emulate the HTTP Request Object used in the Get and Put requests
     of most emulators, for internal communication between adapters.
     """
-    def __init__(self, data, content_type='application/vnd.odin-native',
+    def __init__(self, data, content_type="application/vnd.odin-native",
                  accept="application/json", remote_ip="LOCAL"):
         """Initialize the Adapter Request body and headers.
 
@@ -114,7 +114,7 @@ class ApiAdapterRequest(object):
     def set_content_type(self, content_type):
         """Set the content type header for the request
 
-        The content type is filtered by the decorator 'request_types'. If
+        The content type is filtered by the decorator "request_types". If
         it does not match the server will return a 415 error code.
         """
         self.content_type = content_type
@@ -123,11 +123,11 @@ class ApiAdapterRequest(object):
     def set_response_type(self, response_type):
         """Set the type of response accepted by the request
 
-        The response type is filtered by the decorator 'response_types'. If
+        The response type is filtered by the decorator "response_types". If
         it does not match the server will return a 406 error code.
         """
         self.response_type = response_type
-        self.headers['Accept'] = response_type
+        self.headers["Accept"] = response_type
 
     def set_remote_ip(self, ip):
         """Set the Remote IP of the request
@@ -148,7 +148,7 @@ class ApiAdapterResponse(object):
     status code.
     """
 
-    def __init__(self, data, content_type='text/plain', status_code=200):
+    def __init__(self, data, content_type="text/plain", status_code=200):
         """Initialise the APiAdapterResponse object.
 
         :param data: data to return from data

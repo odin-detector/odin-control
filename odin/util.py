@@ -17,7 +17,7 @@ def decode_request_body(request):
 
     try:
         body_type = request.headers["Content-Type"]
-        if body_type == 'application/json':
+        if body_type == "application/json":
             body = json_decode(request.body)
         else:
             body = request.body
@@ -51,6 +51,6 @@ def convert_unicode_to_string(obj):
         # Obj is a list. We need to recurse over each object in the list
         return [convert_unicode_to_string(element) for element in obj]
     elif isinstance(obj, unicode):
-        return obj.encode('utf-8')
+        return obj.encode("utf-8")
     # Obj is none of the above, just return it
     return obj

@@ -22,7 +22,7 @@ class IacDummyTargetAdapter(ApiAdapter):
         self.param_tree = ParameterTree(self.options)
         logging.debug("IAC Dummy Target Adapter Loaded")
 
-    @response_types('application/json', default='application/json')
+    @response_types("application/json", default="application/json")
     def get(self, path, request):
         """Handle a HTTP GET Request.
 
@@ -33,14 +33,14 @@ class IacDummyTargetAdapter(ApiAdapter):
             response = self.param_tree.get(path)
             status_code = 200
         except ParameterTreeError as e:
-            response = {'error': str(e)}
+            response = {"error": str(e)}
             status_code = 400
 
-        content_type = 'application/json'
+        content_type = "application/json"
         return ApiAdapterResponse(response, content_type=content_type, status_code=status_code)
 
-    @request_types('application/json', 'application/vnd.odin-native')
-    @response_types('application/json', default='application/json')
+    @request_types("application/json", "application/vnd.odin-native")
+    @response_types("application/json", default="application/json")
     def put(self, path, request):
         """Handle a HTTP PUT Request.
 
@@ -49,9 +49,9 @@ class IacDummyTargetAdapter(ApiAdapter):
         """
         data = decode_request_body(request)
         logging.debug("Data: %s, type: %s", data, type(data))
-        response = {'response': 'IAC Adapter Target: PUT on path {}'.format(path)}
+        response = {"response": "IAC Adapter Target: PUT on path {}".format(path)}
         response["data"] = data
-        content_type = 'application/json'
+        content_type = "application/json"
         status_code = 200
 
         logging.debug(response)
