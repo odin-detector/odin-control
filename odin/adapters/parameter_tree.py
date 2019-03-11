@@ -120,7 +120,7 @@ class ParameterAccessor(object):
         :param value: value to set
         """
 
-        # Raise an error if this parameter is not witeable
+        # Raise an error if this parameter is not writeable
         if not self.metadata["writeable"]:
             raise ParameterTreeError("Parameter {} is read-only".format(self.path))
 
