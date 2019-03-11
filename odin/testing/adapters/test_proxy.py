@@ -298,7 +298,7 @@ class TestProxyAdapter():
         response = self.adapter.get(missing_path, self.request)
 
         assert_true('error' in response.data)
-        assert_equal('The path {} is invalid'.format(missing_path), response.data['error'])
+        assert_equal('Invalid path: {}'.format(missing_path), response.data['error'])
 
     def test_adapter_put_bad_path(self):
 
@@ -306,7 +306,7 @@ class TestProxyAdapter():
         response = self.adapter.put(missing_path, self.request)
 
         assert_true('error' in response.data)
-        assert_equal('The path {} is invalid'.format(missing_path), response.data['error'])
+        assert_equal('Invalid path: {}'.format(missing_path), response.data['error'])
 
     def test_adapter_put_bad_type(self):
 

@@ -7,7 +7,8 @@ else:                         # pragma: no cover
 
 from nose.tools import *
 
-from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, ApiAdapterRequest, request_types, response_types
+from odin.adapters.adapter import (ApiAdapter, ApiAdapterResponse, ApiAdapterRequest,
+                                   request_types, response_types, wants_metadata)
 
 class TestApiAdapter():
 
@@ -110,6 +111,22 @@ class TestAdapterRequest():
             "Content-Type": content_type,
             "Accept": request_type})
 
+    def test_wants_metadata(self):
+
+        request = Mock()
+        for metadata_state in (True, False):
+            request.headers = {
+                'Accept': 'application/json;metadata={}'.format(str(metadata_state))
+            }
+            assert_equal(wants_metadata(request), metadata_state)
+
+            request.headers = {
+                'Accept': 'application/json;metadata={}'.format(str(metadata_state).lower())
+            }
+            assert_equal(wants_metadata(request), metadata_state)
+
+        request.headers = {'Accept:' 'application/json;metadata=wibble'}
+        assert_equal(wants_metadata(request), False)
 
 class TestApiAdapterResponse():
 

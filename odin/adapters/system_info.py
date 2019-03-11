@@ -6,12 +6,13 @@ information about the system to clients.
 Tim Nicholls, STFC Application Engineering
 """
 import logging
-import tornado
 import platform
 import time
+import tornado
 from future.utils import with_metaclass
 
-from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
+from odin.adapters.adapter import (ApiAdapter, ApiAdapterResponse,
+                                   request_types, response_types, wants_metadata)
 from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
 from odin._version import get_versions
 
@@ -46,10 +47,10 @@ class SystemInfoAdapter(ApiAdapter):
         :return: an ApiAdapterResponse object containing the appropriate response
         """
         try:
-            response = self.system_info.get(path)
+            response = self.system_info.get(path, wants_metadata(request))
             status_code = 200
-        except ParameterTreeError as e:
-            response = {'error': str(e)}
+        except ParameterTreeError as param_error:
+            response = {'error': str(param_error)}
             status_code = 400
 
         logging.debug(response)
@@ -125,21 +126,55 @@ class SystemInfo(with_metaclass(Singleton, object)):
         version_info = get_versions()
 
         # Extract platform information and store in parameter tree
-        (system, node, release, version, machine, processor) = platform.uname()
+        (system, node, release, version, _, processor) = platform.uname()
         platform_tree = ParameterTree({
-            'system': system,
-            'node': node,
-            'release': release,
-            'version': version,
-            'processor': processor
+            'name': 'platform',
+            'description': "Information about the underlying platform",
+            'system': (lambda: system, {
+                "name": "system",
+                "description": "operating system name",
+            }),
+            'node': (lambda: node, {
+                "name": "node",
+                "description": "node (host) name",
+            }),
+            'release': (lambda: release, {
+                "name": "release",
+                "description": "operating system release",
+            }),
+            'version': (lambda: version, {
+                "name": "version",
+                "description": "operating system version",
+            }),
+            'processor': (lambda: processor, {
+                "name": "processor",
+                "description": "processor (CPU) name",
+            }),
         })
 
         # Store all information in a parameter tree
         self.param_tree = ParameterTree({
-            'odin_version': version_info['version'],
-            'tornado_version': tornado.version,
+            'name': 'system_info',
+            'description': 'Information about the system hosting this odin server instance',
+            'odin_version': (lambda: version_info['version'], {
+                "name": "odin version",
+                "description": "ODIN server version",
+            }),
+            'tornado_version': (lambda: tornado.version, {
+                "name": "tornado version",
+                "description": "version of tornado used in this server",
+            }),
+            'python_version': (lambda: platform.python_version(), {
+                "name": "python version",
+                "description": "version of python running this server",
+            }),
             'platform': platform_tree,
-            'server_uptime': (self.get_server_uptime, None),
+            'server_uptime': (self.get_server_uptime, {
+                "name": "server uptime",
+                "description": "time since the ODIN server started",
+                "units": "s",
+                "display_precision": 2,
+            }),
         })
 
     def get_server_uptime(self):
@@ -149,11 +184,11 @@ class SystemInfo(with_metaclass(Singleton, object)):
         """
         return time.time() - self.init_time
 
-    def get(self, path):
+    def get(self, path, with_metadata=False):
         """Get the parameter tree.
 
         This method returns the parameter tree for use by clients via the SystemInfo adapter.
 
         :param path: path to retrieve from tree
         """
-        return self.param_tree.get(path)
+        return self.param_tree.get(path, with_metadata)
