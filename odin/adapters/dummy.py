@@ -1,7 +1,11 @@
 """ Dummy adapter class for the ODIN server.
 
-This class implements a dummy adapter for the ODIN server, demonstrating the
+The "DummyAdapter" class implements a dummy adapter for the ODIN server, demonstrating the
 basic adapter implementation and providing a loadable adapter for testing
+
+The "IacDummyAdapter" class implements a dummy adapter for the ODIN server that can
+demonstrate the inter adapter communication, and how an adapter might use the dictionary of
+loaded adapters to communicate with them.
 
 Tim Nicholls, STFC Application Engineering
 """
@@ -13,7 +17,6 @@ from tornado.concurrent import run_on_executor
 
 from odin.adapters.adapter import (ApiAdapter, ApiAdapterRequest,
                                    ApiAdapterResponse, request_types, response_types)
-from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
 from odin.util import decode_request_body
 
 
