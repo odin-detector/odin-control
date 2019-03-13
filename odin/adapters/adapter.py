@@ -31,7 +31,7 @@ class ApiAdapter(object):
     def initialize(self, adapters):
         """Initialize the ApiAdapter after it has been registered by the API Route.
 
-        This is an abstract implimentation of the initialize mechinism that allows
+        This is an abstract implementation of the initialize mechinism that allows
         an adapter to receive a list of loaded adapters, for Inter-adapter communication.
         :param adapters: a dictionary of the adapters loaded by the API route.
         """
@@ -92,8 +92,8 @@ class ApiAdapter(object):
 class ApiAdapterRequest(object):
     """API Adapter Request object.
 
-    Designed to emulate the HTTP Request Object used in the Get and Put requests
-    of most emulators, for internal communication between adapters.
+    Emulate the HTTPServerRequest class passed as an argument to adatper HTTP
+    verb methods(GET, PUT etc), for internal communication between adapters.
     """
     def __init__(self, data, content_type="application/vnd.odin-native",
                  accept="application/json", remote_ip="LOCAL"):
@@ -267,6 +267,7 @@ def response_types(*oargs, **okwargs):
             return func(_self, path, request)
         return wrapper
     return decorator
+
 
 def wants_metadata(request):
     """
