@@ -1,9 +1,9 @@
-""" Dummy adapter class for the ODIN server.
+""" Dummy adapter classes for the ODIN server.
 
-The "DummyAdapter" class implements a dummy adapter for the ODIN server, demonstrating the
+The DummyAdapter class implements a dummy adapter for the ODIN server, demonstrating the
 basic adapter implementation and providing a loadable adapter for testing
 
-The "IacDummyAdapter" class implements a dummy adapter for the ODIN server that can
+The IacDummyAdapter class implements a dummy adapter for the ODIN server that can
 demonstrate the inter adapter communication, and how an adapter might use the dictionary of
 loaded adapters to communicate with them.
 
@@ -169,7 +169,7 @@ class IacDummyAdapter(ApiAdapter):
         Call the get method of each other adapter that is loaded and return the responses
         in a dictionary.
         """
-        logging.debug("IAC DUMMY GET")
+        logging.debug("IAC Dummy Get")
         response = {}
         request = ApiAdapterRequest(None, accept="application/json")
         for key, value in self.adapters.items():
@@ -212,10 +212,7 @@ class IacDummyAdapter(ApiAdapter):
         Remove itself from the dictionary so that it does not reference itself, as doing so
         could end with an endless recursive loop.
         """
-        self.adapters = dict(adapters)
-        for key, value in self.adapters.items():
-            if value is self:
-                del self.adapters[key]
-                break
+
+        self.adapters = dict((k, v) for k, v in adapters.items() if v is not self)
 
         logging.debug("Received following dict of Adapters: %s", self.adapters)

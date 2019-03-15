@@ -92,8 +92,8 @@ class ApiAdapter(object):
 class ApiAdapterRequest(object):
     """API Adapter Request object.
 
-    Emulate the HTTPServerRequest class passed as an argument to adatper HTTP
-    verb methods(GET, PUT etc), for internal communication between adapters.
+    Emulate the HTTPServerRequest class passed as an argument to adapter HTTP
+    verb methods (GET, PUT etc), for internal communication between adapters.
     """
     def __init__(self, data, content_type="application/vnd.odin-native",
                  accept="application/json", remote_ip="LOCAL"):
