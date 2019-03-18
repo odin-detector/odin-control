@@ -301,7 +301,7 @@ class ProxyAdapter(ApiAdapter):
 
         return ApiAdapterResponse(response, status_code=status_code)
 
-    @request_types('application/json')
+    @request_types("application/json", "application/vnd.odin-native")
     @response_types('application/json', default='application/json')
     def put(self, path, request):
         """

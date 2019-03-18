@@ -73,7 +73,7 @@ class SystemStatusAdapter(ApiAdapter):
         return ApiAdapterResponse(response, content_type=content_type,
                                   status_code=status_code)
 
-    @request_types('application/json')
+    @request_types("application/json", "application/vnd.odin-native")
     @response_types('application/json', default='application/json')
     def put(self, path, request):
         """Handle an HTTP PUT request.

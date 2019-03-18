@@ -259,3 +259,15 @@ class ApiRoute(Route):
                 getattr(adapter, 'cleanup')()
             except AttributeError:
                 logging.debug("Adapter %s has no cleanup method", adapter_name)
+
+    def initialize_adapters(self):
+        """Initialize all the adapters after they have been registered by the route.
+
+        This calls the initialize method present in any registered adapters, passing
+        the dictionary of listed adapters to each, for inter adapter communication.
+        """
+        for adapter_name, adapter in self.adapters.items():
+            try:
+                getattr(adapter, 'initialize')(self.adapters)
+            except AttributeError:
+                logging.debug("Adapter %s has no Initialize method", adapter_name)

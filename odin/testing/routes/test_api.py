@@ -54,6 +54,20 @@ class TestApiRoute():
 
         assert_false(raised)
 
+    def test_register_adapter_no_initialize(self):
+        adapter_name = 'dummy_no_clean'
+        adapter_config = AdapterConfig(adapter_name, 'odin.adapters.dummy.DummyAdapter')
+        self.api_route.register_adapter(adapter_config)
+        self.api_route.adapters[adapter_name].initialize = Mock(side_effect=AttributeError())
+
+        raised = False
+        try:
+            self.api_route.initialize_adapters()
+        except:
+            raised = True
+
+        assert_false(raised)
+
 class TestApiHandler():
 
     @classmethod
