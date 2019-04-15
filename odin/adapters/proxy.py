@@ -12,7 +12,9 @@ import tornado
 import tornado.httpclient
 from tornado.escape import json_decode
 
-from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
+from odin.adapters.adapter import (
+    ApiAdapter, ApiAdapterResponse,
+    request_types, response_types, wants_metadata)
 from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
 
 TIMEOUT_CONFIG_NAME = 'request_timeout'
@@ -44,18 +46,20 @@ class ProxyTarget(object):
         self.error_string = 'OK'
         self.last_update = 'unknown'
         self.data = {}
+        self.metadata = {}
         self.counter = 0
 
         # Build a parameter tree representation of the proxy target status
         self.status_param_tree = ParameterTree({
-            'url': (self._get_url, None),
-            'status_code': (self._get_status_code, None),
-            'error': (self._get_error_string, None),
-            'last_update': (self._get_last_update, None),
+            'url': (lambda: self.url, None),
+            'status_code': (lambda: self.status_code, None),
+            'error': (lambda: self.error_string, None),
+            'last_update': (lambda: self.last_update, None),
         })
 
         # Build a parameter tree representation of the proxy target data
-        self.data_param_tree = ParameterTree((self._get_data, None))
+        self.data_param_tree = ParameterTree((lambda: self.data, None))
+        self.meta_param_tree = ParameterTree((lambda: self.metadata, None))
 
         # Create an HTTP client instance and set up default request headers
         self.http_client = tornado.httpclient.HTTPClient()
@@ -65,8 +69,9 @@ class ProxyTarget(object):
         }
 
         self.remote_get()  # init the data tree
+        self.remote_get(get_metadata=True)  # init the metadata
 
-    def update(self, request, path):
+    def update(self, request, path, get_metadata=False):
         """
         Update the Proxy Target `ParameterTree` with data from the proxied adapter,
         after issuing a GET or a PUT request to it. It also updates the status code
@@ -103,11 +108,15 @@ class ProxyTarget(object):
                 self.name,
                 self.status_code,
                 self.error_string
-                )
+            )
             self.last_update = tornado.httputil.format_timestamp(time.time())
             return
 
-        data_ref = self.data  # reference for modification
+        if(get_metadata):
+            logging.debug("WANT METADATA FROM TARGET")
+            data_ref = self.metadata
+        else:
+            data_ref = self.data  # reference for modification
         if path:
             # if the path exists, we need to split it so we can navigate the data
             path_elems = path.split('/')
@@ -120,17 +129,17 @@ class ProxyTarget(object):
         for key in response_body:
             new_elem = response_body[key]
             data_ref[key] = new_elem
-        logging.debug(
-            "Proxy target %s fetch succeeded: %d %s",
-            self.name,
-            self.status_code,
-            self.data_param_tree.get(path)
-            )
+        # logging.debug(
+        #     "Proxy target %s fetch succeeded: %d %s",
+        #     self.name,
+        #     self.status_code,
+        #     self.data_param_tree.get(path)
+        # )
 
         # Update the timestamp of the last request in standard format
         self.last_update = tornado.httputil.format_timestamp(time.time())
 
-    def remote_get(self, path=''):
+    def remote_get(self, path='', get_metadata=False):
         """
         Get data from the remote target.
 
@@ -143,10 +152,13 @@ class ProxyTarget(object):
         request = tornado.httpclient.HTTPRequest(
             url=self.url + path,
             method="GET",
-            headers=self.request_headers,
+            headers=self.request_headers.copy(),
             request_timeout=self.request_timeout
         )
-        self.update(request, path)
+        if get_metadata:
+            request.headers["Accept"] += ";metadata=True"
+        logging.debug("Headers: %s", request.headers)
+        self.update(request, path, get_metadata)
 
     def remote_set(self, path, data):
         """
@@ -261,13 +273,21 @@ class ProxyAdapter(ApiAdapter):
         else:
             logging.error("Failed to resolve targets for ProxyAdapter")
 
+        status_tree = {}
         # Construct the parameter tree returned by this adapter
-        tree = {'status': {}}
+        tree = {}
+        meta_tree = {}
         for target in self.targets:
-            tree['status'][target.name] = target.status_param_tree
+            status_tree[target.name] = target.status_param_tree
+            
             tree[target.name] = target.data_param_tree
+            meta_tree[target.name] = target.meta_param_tree
 
+        tree['status'] = status_tree
+        meta_tree['status'] = status_tree
+        
         self.param_tree = ParameterTree(tree)
+        self.meta_param_tree = ParameterTree(meta_tree)
 
     @request_types('application/json')
     @response_types('application/json', default='application/json')
@@ -281,6 +301,8 @@ class ProxyAdapter(ApiAdapter):
         :param request: HTTP request object
         :return: an ApiAdapterResponse object containing the appropriate response
         """
+
+        get_metadata = wants_metadata(request)
         # Update the target specified in the path, or all targets if none specified
         if "/" in path:
             path_elem, target_path = path.split('/', 1)
@@ -288,12 +310,16 @@ class ProxyAdapter(ApiAdapter):
             path_elem = path
             target_path = ""
         for target in self.targets:
-            if path_elem == '' or path_elem == target.name:
-                target.remote_get(target_path)
+            if path_elem == "" or path_elem == target.name:
+                target.remote_get(target_path, get_metadata)
 
         # Build the response from the adapter parameter tree
         try:
-            response = self.param_tree.get(path)
+            if(get_metadata):
+                logging.debug("Getting Metadata")
+                response = self.meta_param_tree.get(path)
+            else:
+                response = self.param_tree.get(path)
             status_code = 200
         except ParameterTreeError as param_tree_err:
             response = {'error': str(param_tree_err)}

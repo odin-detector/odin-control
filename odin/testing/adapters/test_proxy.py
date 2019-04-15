@@ -16,38 +16,39 @@ from tornado.httpserver import HTTPServer
 import tornado.gen
 
 from odin.adapters.proxy import ProxyTarget, ProxyAdapter
+from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
+from odin.adapters.adapter import wants_metadata
 from odin.testing.utils import LogCaptureFilter
+from odin.util import convert_unicode_to_string
 
 class ProxyTestHandler(RequestHandler):
 
-    data = {'one': 1,
-            'two': 2.0,
-            'pi': 3.14,
-            'more':
-            {
-                'three': 3.0,
-                'replace': 'Replace Me!',
-                'even_more':{
-                    'extra_val': 5.5
-                }
+    data = {
+        'one': (1, None),  # this allows for auto generated metadata for testing purposes
+        'two': 2.0,
+        'pi': 3.14,
+        'more':
+        {
+            'three': 3.0,
+            'replace': 'Replace Me!',
+            'even_more': {
+                'extra_val': 5.5
             }
         }
+    }
+    param_tree = ParameterTree(data)
 
     def initialize(self, server):
         server.access_count += 1
 
     def get(self, path=''):
         try:
-            data_ref = self.data
-            if path:
-                path_elems = path.split('/')
-                for elem in path_elems[:-1]:
-                    data_ref = data_ref[elem]
-                self.write(data_ref)
-            else:
-                self.write(ProxyTestHandler.data)
-                
-        except KeyError as key_e:
+            logging.debug("TEST WANTS METADATA? %s", wants_metadata(self.request))
+            data_ref = self.param_tree.get(path, wants_metadata(self.request))
+            self.write(data_ref)
+
+        except ParameterTreeError as param_e:
+            print("PARAMETER TREE ERROW: " + param_e.message)
             self.set_status(404)
             self.write_error(404)
             # return a 404 error (not found)
@@ -57,24 +58,18 @@ class ProxyTestHandler(RequestHandler):
     
     def put(self, path):
         
-        response_body = response_body = tornado.escape.json_decode(self.request.body)
+        response_body = convert_unicode_to_string(tornado.escape.json_decode(self.request.body))
+        print("REQUEST BODY: {}".format(response_body))
         try:
-            data_ref = self.data
-            if path:
-                path_elems = path.split('/')
-                for elem in path_elems[:-1]:
-                    data_ref = data_ref[elem]
-                for key in response_body:
-                    new_elem = response_body[key]
-                    data_ref[key] = new_elem
-                self.write(data_ref)
-            else:
-                self.write(ProxyTestHandler.data)
-                
-        except KeyError as key_e:
+            self.param_tree.set(path, response_body)
+            data_ref = self.param_tree.get(path)
+
+            self.write(data_ref)
+
+        except ParameterTreeError:
             self.set_status(404)
             self.write_error(404)
-        
+
         except Exception as other_e:
             print(other_e.message)
             self.write_error(500)
@@ -157,7 +152,7 @@ class TestProxyTarget():
         self.proxy_target.last_update = ''
 
         self.proxy_target.remote_get()
-        assert_equal(self.proxy_target.data, ProxyTestHandler.data)
+        assert_equal(self.proxy_target.data, ProxyTestHandler.param_tree.get(""))
         assert_equal(self.proxy_target.status_code, 200)
         assert_not_equal(self.proxy_target.last_update, '')
 
@@ -252,8 +247,27 @@ class TestProxyAdapter():
         for tgt in range(self.num_targets):
             node_str = 'node_{}'.format(tgt)
             assert_true(node_str in response.data)
-            assert_equal(response.data[node_str], ProxyTestHandler.data)
-    
+            assert_equal(response.data[node_str], ProxyTestHandler.param_tree.get(''))
+
+    def test_adapter_get_metadata(self):
+        self.request.headers["Accept"] += ";metadata=True"
+        response = self.adapter.get(self.path, self.request)
+
+        assert_true("status" in response.data)
+        for tgt in range(self.num_targets):
+            node_str = 'node_{}'.format(tgt)
+            assert_true(node_str in response.data)
+            assert_true("one" in response.data[node_str])
+            assert_true("type" in response.data[node_str]['one'])
+
+    def test_adapter_get_status_metadata(self):
+        self.request.headers["Accept"] += ";metadata=True"
+        response = self.adapter.get(self.path, self.request)
+
+        assert_true("status" in response.data)
+        assert_true("node_0" in response.data["status"])
+        assert_true("type" in response.data['status']['node_0']['error'])
+
     def test_adapter_put(self):
 
         response = self.adapter.put(self.path, self.request)
@@ -265,7 +279,7 @@ class TestProxyAdapter():
         for tgt in range(self.num_targets):
             node_str = 'node_{}'.format(tgt)
             assert_true(node_str in response.data)
-            assert_equal(response.data[node_str], ProxyTestHandler.data)
+            assert_equal(convert_unicode_to_string(response.data[node_str]), ProxyTestHandler.param_tree.get(''))
 
     def test_adapter_get_proxy_path(self):
 
@@ -285,12 +299,11 @@ class TestProxyAdapter():
     def test_adapter_put_proxy_path(self):
 
         node = self.adapter.targets[0].name
-        path = "more/replace"
+        path = "more/"
         self.request.body = '{"replace": "been replaced"}'
         response = self.adapter.put("{}/{}".format(node, path), self.request)
-
-        assert_equal(self.adapter.param_tree.get('')['status'][node]['status_code'], 200)
-        assert_equal(response.data["replace"], "been replaced")
+        assert_equal(response.status_code, 200)
+        assert_equal(convert_unicode_to_string(response.data["more"]["replace"]), "been replaced")
 
     def test_adapter_get_bad_path(self):
 
