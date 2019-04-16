@@ -7,7 +7,7 @@ if sys.version_info[0] == 3:  # pragma: no cover
 else:                         # pragma: no cover
     from mock import Mock, patch
 
-from nose.tools import *
+from nose.tools import assert_true, assert_equal, assert_not_equal, assert_in
 
 from tornado.testing import AsyncHTTPTestCase, bind_unused_port
 from tornado.ioloop import IOLoop
@@ -20,6 +20,7 @@ from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
 from odin.adapters.adapter import wants_metadata
 from odin.testing.utils import LogCaptureFilter
 from odin.util import convert_unicode_to_string
+
 
 class ProxyTestHandler(RequestHandler):
 
@@ -43,12 +44,10 @@ class ProxyTestHandler(RequestHandler):
 
     def get(self, path=''):
         try:
-            logging.debug("TEST WANTS METADATA? %s", wants_metadata(self.request))
             data_ref = self.param_tree.get(path, wants_metadata(self.request))
             self.write(data_ref)
 
         except ParameterTreeError as param_e:
-            print("PARAMETER TREE ERROW: " + param_e.message)
             self.set_status(404)
             self.write_error(404)
             # return a 404 error (not found)
@@ -74,7 +73,7 @@ class ProxyTestHandler(RequestHandler):
             print(other_e.message)
             self.write_error(500)
 
-                
+
 class ProxyTestServer(object):
 
     def __init__(self,):

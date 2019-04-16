@@ -96,7 +96,7 @@ class ProxyTarget(object):
                 self.name,
                 self.status_code,
                 self.error_string
-                )
+            )
             self.last_update = tornado.httputil.format_timestamp(time.time())
             return
 
@@ -113,7 +113,6 @@ class ProxyTarget(object):
             return
 
         if(get_metadata):
-            logging.debug("WANT METADATA FROM TARGET")
             data_ref = self.metadata
         else:
             data_ref = self.data  # reference for modification
@@ -129,12 +128,6 @@ class ProxyTarget(object):
         for key in response_body:
             new_elem = response_body[key]
             data_ref[key] = new_elem
-        # logging.debug(
-        #     "Proxy target %s fetch succeeded: %d %s",
-        #     self.name,
-        #     self.status_code,
-        #     self.data_param_tree.get(path)
-        # )
 
         # Update the timestamp of the last request in standard format
         self.last_update = tornado.httputil.format_timestamp(time.time())
@@ -157,7 +150,6 @@ class ProxyTarget(object):
         )
         if get_metadata:
             request.headers["Accept"] += ";metadata=True"
-        logging.debug("Headers: %s", request.headers)
         self.update(request, path, get_metadata)
 
     def remote_set(self, path, data):
@@ -177,48 +169,6 @@ class ProxyTarget(object):
             request_timeout=self.request_timeout
         )
         self.update(request, path)
-
-    def _get_status_code(self):
-        """
-        Get the target request status code.
-
-        This internal method is used to retrieve the status code
-        of the last target update request for use in the parameter
-        tree.
-        """
-        return self.status_code
-
-    def _get_error_string(self):
-        """
-        Get the target request error string.
-
-        This internal method is used to retrieve the error string
-        of the last target update request for use in the parameter
-        tree.
-        """
-        return self.error_string
-
-    def _get_last_update(self):
-        """
-        Get the target request last update timestamp.
-
-        This internal method is used to retrieve the timestamp
-        of the last target update request for use in the parameter
-        tree.
-        """
-        return self.last_update
-
-    def _get_data(self):
-        """
-        Get the target request data.
-
-        This internal method is used to retrieve the target updated during last call to update(),
-        for use in the parameter tree.
-        """
-        return self.data
-
-    def _get_url(self):
-        return self.url
 
 
 class ProxyAdapter(ApiAdapter):
@@ -253,7 +203,7 @@ class ProxyAdapter(ApiAdapter):
                 logging.error(
                     "Illegal timeout specified for ProxyAdapter: %s",
                     self.options[TIMEOUT_CONFIG_NAME]
-                    )
+                )
 
         # Parse the list of target-URL pairs from the options, instantiating a ProxyTarget
         # object for each target specified.
@@ -273,19 +223,20 @@ class ProxyAdapter(ApiAdapter):
         else:
             logging.error("Failed to resolve targets for ProxyAdapter")
 
-        status_tree = {}
+        status_dict = {}
         # Construct the parameter tree returned by this adapter
         tree = {}
         meta_tree = {}
         for target in self.targets:
-            status_tree[target.name] = target.status_param_tree
-            
+            status_dict[target.name] = target.status_param_tree
+
             tree[target.name] = target.data_param_tree
             meta_tree[target.name] = target.meta_param_tree
 
-        tree['status'] = status_tree
-        meta_tree['status'] = status_tree
-        
+        self.status_tree = ParameterTree(status_dict)
+        tree['status'] = self.status_tree
+        meta_tree['status'] = self.status_tree.get("", True)
+
         self.param_tree = ParameterTree(tree)
         self.meta_param_tree = ParameterTree(meta_tree)
 
@@ -316,8 +267,11 @@ class ProxyAdapter(ApiAdapter):
         # Build the response from the adapter parameter tree
         try:
             if(get_metadata):
-                logging.debug("Getting Metadata")
+                if path_elem == "" or path_elem == "status":
+                    # update status tree with metadata
+                    self.meta_param_tree.set('status', self.status_tree.get("", True))
                 response = self.meta_param_tree.get(path)
+
             else:
                 response = self.param_tree.get(path)
             status_code = 200
