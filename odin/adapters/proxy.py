@@ -10,7 +10,8 @@ import logging
 import time
 import tornado
 import tornado.httpclient
-from tornado.escape import json_decode
+from tornado.escape import json_encode
+from odin.util import decode_request_body
 
 from odin.adapters.adapter import (
     ApiAdapter, ApiAdapterResponse,
@@ -67,7 +68,7 @@ class ProxyTarget(object):
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
-
+        logging.debug("TARGET SET: %s", self.url)
         self.remote_get()  # init the data tree
         self.remote_get(get_metadata=True)  # init the metadata
 
@@ -78,6 +79,7 @@ class ProxyTarget(object):
         and error string if the HTTP request fails.
         """
 
+        # logging.debug("PROXY UPDATE PATH: %s", path)
         try:
             # Request data to/from the target
             response = self.http_client.fetch(request)
@@ -161,6 +163,8 @@ class ProxyTarget(object):
         target data and status information according to the response.
         """
         # create request to PUT data, send to the target
+        if isinstance(data, dict):
+            data = json_encode(data)
         request = tornado.httpclient.HTTPRequest(
             url=self.url + path,
             method="PUT",
@@ -296,7 +300,7 @@ class ProxyAdapter(ApiAdapter):
         # Update the target specified in the path, or all targets if none specified
 
         try:
-            json_decode(request.body)  # ensure request body is JSON. Will throw a TypeError if not
+            body = decode_request_body(request)  # ensure request body is JSON. Will throw a TypeError if not
             if "/" in path:
                 path_elem, target_path = path.split('/', 1)
             else:
@@ -304,7 +308,7 @@ class ProxyAdapter(ApiAdapter):
                 target_path = ""
             for target in self.targets:
                 if path_elem == '' or path_elem == target.name:
-                    target.remote_set(target_path, request.body)
+                    target.remote_set(target_path, body)
             response = self.param_tree.get(path)
             status_code = 200
         except ParameterTreeError as param_tree_err:
