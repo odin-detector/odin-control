@@ -13,8 +13,6 @@ import logging
 from concurrent import futures
 import time
 from tornado.ioloop import PeriodicCallback
-from tornado.concurrent import run_on_executor
-import threading
 
 from odin.adapters.adapter import (ApiAdapter, ApiAdapterRequest,
                                    ApiAdapterResponse, request_types, response_types)
@@ -27,9 +25,6 @@ class DummyAdapter(ApiAdapter):
     This dummy adapter implements the basic operation of an adapter including initialisation
     and HTTP verb methods (GET, PUT, DELETE) with various request and response types allowed.
     """
-
-    # Thread executor used for background tasks
-    executor = futures.ThreadPoolExecutor(max_workers=1)
 
     def __init__(self, **kwargs):
         """Initialize the DummyAdapter object.
@@ -57,10 +52,8 @@ class DummyAdapter(ApiAdapter):
             )
             self.background_task.start()
 
-        logging.debug("Main thread has id %d", threading.get_ident())
         logging.debug('DummyAdapter loaded')
 
-    #@run_on_executor
     def background_task_callback(self):
         """Run the adapter background task.
 
@@ -69,13 +62,9 @@ class DummyAdapter(ApiAdapter):
 
         :param task_interval: time to sleep until task is run again
         """
-        logging.debug("%s: background task running in thread %d, count = %d", 
-            self.name, threading.get_ident(), self.background_task_counter)
+        logging.debug("%s: background task running, count = %d", 
+            self.name, self.background_task_counter)
         self.background_task_counter += 1
-
-        if self.background_task_counter > 10:
-            self.background_task.stop()
-            logging.debug("Stopping background task")
 
     @response_types('application/json', default='application/json')
     def get(self, path, request):
