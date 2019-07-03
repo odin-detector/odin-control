@@ -17,7 +17,7 @@ class TestDummyAdapter():
     @classmethod
     def setup_class(cls):
 
-        cls.adapter = DummyAdapter()
+        cls.adapter = DummyAdapter(background_task_enable=True)
         cls.path = '/dummy/path'
         cls.request = Mock()
         cls.request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
