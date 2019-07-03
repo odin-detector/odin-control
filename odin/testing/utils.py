@@ -14,6 +14,7 @@ from tempfile import NamedTemporaryFile
 
 if sys.version_info[0] == 3:  # pragma: no cover
     from configparser import SafeConfigParser
+    import asyncio
 else:                         # pragma: no cover
     from ConfigParser import SafeConfigParser
 
@@ -56,6 +57,7 @@ class OdinTestServer(object):
     server_host = 'localhost'
     server_port = 8888
     server_api_version = 0.1
+    server_event_loop = None
     server_thread = None
     server_conf_file = None
 
@@ -95,14 +97,23 @@ class OdinTestServer(object):
         cls.server_conf_file.file.flush()
 
         server_args = ['--config={}'.format(cls.server_conf_file.name)]
-        cls.server_thread = threading.Thread(target=server.main, args=(server_args,))
+
+        cls.server_thread = threading.Thread(target=cls.run_server, args=(server_args,))
         cls.server_thread.start()
+
+    @classmethod
+    def run_server(cls, server_args):
+
+        if sys.version_info[0] == 3:  # pragma: no cover
+            asyncio.set_event_loop(asyncio.new_event_loop())
+
+        cls.server_event_loop = IOLoop.current()
+        server.main(server_args)
 
     @classmethod
     def stop_server(cls):
         if cls.server_thread is not None:
-            ioloop = IOLoop.instance()
-            ioloop.add_callback(ioloop.stop)
+            cls.server_event_loop.add_callback(cls.server_event_loop.stop)
             cls.server_thread.join()
             cls.server_thread = None
 
