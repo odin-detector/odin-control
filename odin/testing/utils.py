@@ -13,10 +13,10 @@ import os
 from tempfile import NamedTemporaryFile
 
 if sys.version_info[0] == 3:  # pragma: no cover
-    from configparser import SafeConfigParser
+    from configparser import ConfigParser
     import asyncio
 else:                         # pragma: no cover
-    from ConfigParser import SafeConfigParser
+    from ConfigParser import SafeConfigParser as ConfigParser
 
 from tornado.ioloop import IOLoop
 
@@ -53,35 +53,34 @@ class LogCaptureFilter(logging.Filter):
 
 class OdinTestServer(object):
 
-    launch_server = True
-    server_host = 'localhost'
     server_port = 8888
+    server_addr = '127.0.0.1'
     server_api_version = 0.1
-    server_event_loop = None
-    server_thread = None
-    server_conf_file = None
 
-    @classmethod
-    def start_server(cls, adapter_config=None, access_logging=None):
+    def __init__(self, server_port=server_port, adapter_config=None, access_logging=None):
 
-        cls.server_conf_file = NamedTemporaryFile(mode='w+')
-        parser = SafeConfigParser()
+        self.server_thread = None
+        self.server_event_loop = None
+        self.log_capture_filter = None
+
+        self.server_conf_file = NamedTemporaryFile(mode='w+')
+        parser = ConfigParser()
 
         file_dir = os.path.dirname(os.path.abspath(__file__))
         static_path = os.path.join(file_dir, 'static')
 
         parser.add_section('server')
         parser.set('server', 'debug_mode', '1')
-        parser.set('server', 'http_port', str(cls.server_port))
-        parser.set('server', 'http_addr', '127.0.0.1')
-        parser.set('server', 'static_path', static_path)
-        
+        parser.set('server', 'http_port', str(server_port))
+        parser.set('server', 'http_addr', self.server_addr)
+        parser.set('server', 'static_path', static_path)      
+
         if adapter_config is not None:
             adapters = ', '.join([adapter for adapter in adapter_config])
             parser.set('server', 'adapters', adapters)
 
         if access_logging is not None:
-            parser.set("server", 'access_logging', 'debug')
+            parser.set("server", 'access_logging', access_logging)
 
         parser.add_section('tornado')
         parser.set('tornado', 'logging', 'debug')
@@ -93,50 +92,41 @@ class OdinTestServer(object):
                 for param in adapter_config[adapter]:
                     parser.set(section_name, param, str(adapter_config[adapter][param]))
 
-        parser.write(cls.server_conf_file)
-        cls.server_conf_file.file.flush()
+        parser.write(self.server_conf_file)
+        self.server_conf_file.file.flush()
 
-        server_args = ['--config={}'.format(cls.server_conf_file.name)]
+        self.log_capture_filter = LogCaptureFilter()
 
-        cls.server_thread = threading.Thread(target=cls.run_server, args=(server_args,))
-        cls.server_thread.start()
+        server_args = ['--config={}'.format(self.server_conf_file.name)]
+        self.server_thread = threading.Thread(target=self._run_server, args=(server_args,))
+        self.server_thread.start()
+        time.sleep(0.2)
 
-    @classmethod
-    def run_server(cls, server_args):
+    def __del__(self):
 
+        self.stop()
+
+    def _run_server(self, server_args):
         if sys.version_info[0] == 3:  # pragma: no cover
             asyncio.set_event_loop(asyncio.new_event_loop())
 
-        cls.server_event_loop = IOLoop.current()
+        self.server_event_loop = IOLoop.current()
         server.main(server_args)
 
-    @classmethod
-    def stop_server(cls):
-        if cls.server_thread is not None:
-            cls.server_event_loop.add_callback(cls.server_event_loop.stop)
-            cls.server_thread.join()
-            cls.server_thread = None
+    def stop(self):
 
-        if cls.server_conf_file is not None:
-            cls.server_conf_file.close()
-            cls.server_conf_file = None
+        if self.server_thread is not None:
+            self.server_event_loop.add_callback(self.server_event_loop.stop)
+            self.server_thread.join()
+            self.server_thread = None
 
-    @classmethod
-    def setup_class(cls, adapter_config=None, access_logging=None):
-        if cls.launch_server:
-            cls.log_capture_filter = LogCaptureFilter()
-            cls.start_server(adapter_config, access_logging)
-            time.sleep(0.2)
-
-    @classmethod
-    def teardown_class(cls):
-        if cls.launch_server:
-            cls.stop_server()
+        if self.server_conf_file is not None:
+            self.server_conf_file.close()
 
     def build_url(self, resource, api_version=None):
         if api_version is None:
             api_version = self.server_api_version
         return 'http://{}:{}/api/{}/{}'.format(
-            self.server_host, self.server_port,
+            self.server_addr, self.server_port,
             api_version, resource
         )
