@@ -117,7 +117,7 @@ def test_config_parser():
     yield cp
 
 class AdapterTestConfig():
-
+    """Container for the configuration needed to test Adapter configuration."""
     def __init__(self):
         self.adapters = ['dummy', 'dummy2']
         self.options = {
@@ -134,23 +134,12 @@ class AdapterTestConfig():
 
 @pytest.fixture(scope="class")
 def adapter_test_config():
+    """Simple test fixture to generate a test configuration container."""
     return AdapterTestConfig()
 
 @pytest.fixture(scope="class")
 def test_config_file(adapter_test_config):
     """Test fixture to generate a valid configuration file."""
-    #test_config_adapters = ['dummy', 'dummy2']
-    # test_config_adapter_options = {
-    #     'dummy' : {
-    #         'module'     : 'odin.adapters.dummy.DummyAdapter',
-    #         'test_param' : '13.46',
-    #     },
-    #     'dummy2' : {
-    #         'module'     : 'odin.adapters.dummy.DummyAdapter',
-    #         'other_param' : 'wibble',
-    #     },
-    # }
-
     test_config_server_options = {
         'debug_mode' : '1',
         'http_port'  : '8888',
