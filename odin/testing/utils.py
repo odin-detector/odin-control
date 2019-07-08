@@ -51,6 +51,15 @@ class LogCaptureFilter(logging.Filter):
         return True
 
 
+def log_message_seen(caplog, level, message):
+
+    for record in caplog.records:
+        if record.levelno == level and message in record.getMessage():
+            return True
+
+    return False
+
+
 class OdinTestServer(object):
 
     server_port = 8888
