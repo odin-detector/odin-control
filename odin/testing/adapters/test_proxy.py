@@ -210,7 +210,7 @@ class TestProxyTarget():
         assert 'Connection refused' in proxy_target.error_string
 
 
-class ProxyAdapterTestFixure():
+class ProxyAdapterTestFixture():
     """Container class used in fixtures for testing proxy adapters."""
 
     def __init__(self):
@@ -262,8 +262,8 @@ class ProxyAdapterTestFixure():
 
 @pytest.fixture(scope="class")
 def proxy_adapter_test():
-
-    proxy_adapter_test = ProxyAdapterTestFixure()
+    """Fixture used in testing the ProxyAdapter class."""
+    proxy_adapter_test = ProxyAdapterTestFixture()
     yield proxy_adapter_test
     
     proxy_adapter_test.stop()
