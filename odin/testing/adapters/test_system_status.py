@@ -6,6 +6,7 @@ Tim Nicholls, STFC Application Engineering Group.
 import sys
 import platform
 import psutil
+import logging
 
 import pytest
 
@@ -17,6 +18,7 @@ else:                         # pragma: no cover
 from odin.adapters.system_status import SystemStatusAdapter, SystemStatus, Singleton
 from odin.adapters.parameter_tree import ParameterTreeError
 
+from odin.testing.utils import log_message_seen
 
 class SystemStatusTestFixture():
     """Container class used in fixtures for testing the SystemStatus class."""
@@ -144,7 +146,7 @@ class TestSystemStatus():
         Singleton._instances = {}
         Singleton._instances = dict(stash_singleton)
 
-    def test_num_processes_change(self, test_system_status):
+    def test_num_processes_change(self, test_system_status, caplog):
         """Test that monitoring processes correctly detects a change in the number of processes."""
         test_system_status.stash_method = test_system_status.system_status.find_processes
         test_system_status.stash_processes = dict(test_system_status.system_status._processes)
@@ -156,11 +158,39 @@ class TestSystemStatus():
         patched_processes = list(current_processes)
         patched_processes.append(current_processes[0])
 
+
         test_system_status.system_status.find_processes = Mock(return_value = patched_processes)
+
+        logging.getLogger().setLevel(logging.DEBUG)
         test_system_status.system_status.monitor_processes()
-        # monitor_process will detect change in number of processes
+        # monitor_process will detect change in number of processes and log a debug message
+
+        assert log_message_seen(
+            caplog, logging.DEBUG, "Number of processes named python is now")
+
         test_system_status.system_status.find_processes = test_system_status.stash_method
         test_system_status.system_status._processes = test_system_status.stash_processes
+
+
+    def test_find_processes_handles_children(self, test_system_status):
+        """Test that process monitoring correctly handles child processes."""
+        test_system_status.stash_method = test_system_status.system_status.find_processes_by_name
+        test_system_status.stash_processes = dict(test_system_status.system_status._processes)
+
+        current_processes = test_system_status.system_status.find_processes_by_name('python')
+        patched_processes = list(current_processes)
+        patched_processes[0].children = Mock(return_value = [patched_processes[-1]])
+
+        test_system_status.system_status.find_processes_by_name = Mock(
+            return_value = patched_processes)
+
+        test_system_status.system_status.monitor_processes()
+
+        test_system_status.system_status.find_processes_by_name = test_system_status.stash_method
+        test_system_status.system_status._processes = test_system_status.stash_processes
+
+        test_system_status.system_status.monitor_processes()
+
 
     def test_monitor_process_cpu_affinity(self, test_system_status):
         """Test that monitoring processes can cope with psutil reporting CPU affinity or not."""
