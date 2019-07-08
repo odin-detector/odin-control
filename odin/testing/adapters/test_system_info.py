@@ -1,6 +1,11 @@
+""" Unit tests for the ODIN SystemInfo adapter.
+
+Tim Nicholls, STFC Application Engineering Group.
+"""
+
 import sys
 
-from nose.tools import *
+import pytest
 
 if sys.version_info[0] == 3:  # pragma: no cover
     from unittest.mock import Mock
@@ -9,117 +14,169 @@ else:                         # pragma: no cover
 
 from odin.adapters.system_info import SystemInfoAdapter, SystemInfo
 
+@pytest.fixture(scope="class")
+def test_system_info():
+    """Fixture for use in testing the SystemInfo class."""
+    test_system_info = SystemInfo()
+    yield test_system_info
+
+
 class TestSystemInfo():
+    """Test cases for the SystemInfo class."""
 
-    @classmethod
-    def setup_class(cls):
-
-        cls.system_info = SystemInfo()
-
-    def test_system_info_single_instance(self):
-
+    def test_system_info_single_instance(self, test_system_info):
+        """Test that the SystemInfo class exhibits singleton behaviour."""
         new_instance = SystemInfo()
-        assert_equal(self.system_info, new_instance)
+        assert test_system_info == new_instance
 
-    def test_system_info_get(self):
+    def test_system_info_get(self, test_system_info):
+        """Test the calling the GET method of system info returns a dict."""
+        result = test_system_info.get('')
+        assert type(result) is dict
 
-        result = self.system_info.get('')
-        assert_equal(type(result), dict)
+
+class SystemInfoAdapterTestFixture():
+    """Container class used in fixtures for testing SystemInfoAdapter."""
+    def __init__(self):
+
+        self.adapter = SystemInfoAdapter()
+        self.path = ''
+        self.request = Mock()
+        self.request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
+
+
+@pytest.fixture(scope="class")
+def test_sysinfo_adapter():
+    """Fixture used in SystemInfoAdapter test cases."""
+    test_sysinfo_adapter = SystemInfoAdapterTestFixture()
+    yield test_sysinfo_adapter
+
 
 class TestSystemInfoAdapter():
+    """Test cases for the SystemInfoAdapter class.
+    """
 
-    @classmethod
-    def setup_class(cls):
+    def test_adapter_get(self, test_sysinfo_adapter):
+        """Test that a GET call to the adapter returns the appropriate response."""
+        response = test_sysinfo_adapter.adapter.get(
+            test_sysinfo_adapter.path, test_sysinfo_adapter.request)
 
-        cls.adapter = SystemInfoAdapter()
-        cls.path = ''
-        cls.request = Mock()
-        cls.request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
+        assert type(response.data) == dict
+        assert 'odin_version' in response.data
+        assert response.status_code == 200
 
-    def test_adapter_get(self):
-        response = self.adapter.get(self.path, self.request)
-
-        assert_equal(type(response.data), dict)
-        assert_true('odin_version' in response.data)
-        assert_equal(response.status_code, 200)
-
-    def test_adapter_get_bad_path(self):
+    def test_adapter_get_bad_path(self, test_sysinfo_adapter):
+        """Test that a GET call to the adapter with a bad path returns an appropriate error."""
         bad_path = '/bad/path'
         expected_response = {'error': 'Invalid path: {}'.format(bad_path)}
-        response = self.adapter.get(bad_path, self.request)
-        assert_equal(response.data, expected_response)
-        assert_equal(response.status_code, 400)
 
-    def test_adapter_put(self):
+        response = test_sysinfo_adapter.adapter.get(bad_path, test_sysinfo_adapter.request)
 
-        expected_response = {'response': 'SystemInfoAdapter: PUT on path {}'.format(self.path)}
-        response = self.adapter.put(self.path, self.request)
-        assert_equal(response.data, expected_response)
-        assert_equal(response.status_code, 200)
+        assert response.data == expected_response
+        assert response.status_code == 400
 
-    def test_adapter_delete(self):
-        response = self.adapter.delete(self.path, self.request)
-        assert_equal(response.data, 'SystemInfoAdapter: DELETE on path {}'.format(self.path))
-        assert_equal(response.status_code, 200)
+    def test_adapter_put(self, test_sysinfo_adapter):
+        """Test that a PUT call to the adapter returns the appropriate response."""
+        expected_response = {
+            'response': 'SystemInfoAdapter: PUT on path {}'.format(test_sysinfo_adapter.path)
+        }
 
-    def test_adapter_put_bad_content_type(self):
+        response = test_sysinfo_adapter.adapter.put(
+            test_sysinfo_adapter.path, test_sysinfo_adapter.request)
+
+        assert response.data == expected_response
+        assert response.status_code == 200
+
+    def test_adapter_delete(self, test_sysinfo_adapter):
+        """Test that a DELETE call to the adapter returns an appropriate response."""
+        response = test_sysinfo_adapter.adapter.delete(
+            test_sysinfo_adapter.path, test_sysinfo_adapter.request)
+
+        assert response.data == 'SystemInfoAdapter: DELETE on path {}'.format(
+            test_sysinfo_adapter.path)
+        assert response.status_code == 200
+
+    def test_adapter_put_bad_content_type(self, test_sysinfo_adapter):
+        """Test that PUT call with a bad content type returns the appropriate error."""
         bad_request = Mock()
         bad_request.headers = {'Content-Type': 'text/plain'}
-        response = self.adapter.put(self.path, bad_request)
-        assert_equal(response.data, 'Request content type (text/plain) not supported')
-        assert_equal(response.status_code, 415)
 
-    def test_adapter_put_bad_accept_type(self):
+        response = test_sysinfo_adapter.adapter.put(test_sysinfo_adapter.path, bad_request)
+
+        assert response.data == 'Request content type (text/plain) not supported'
+        assert response.status_code == 415
+
+    def test_adapter_put_bad_accept_type(self, test_sysinfo_adapter):
+        """Test that a PUT call with a bad accept type returns the appropriate error."""
         bad_request = Mock()
         bad_request.headers = {'Accept': 'text/plain'}
-        response = self.adapter.put(self.path, bad_request)
-        assert_equal(response.data, 'Requested content types not supported')
-        assert_equal(response.status_code, 406)
+
+        response = test_sysinfo_adapter.adapter.put(test_sysinfo_adapter.path, bad_request)
+
+        assert response.data == 'Requested content types not supported'
+        assert response.status_code == 406
 
 
-class TestSystemInfoAdapterMetadata():
+class SystemInfoAdapterMetadataTestFixture():
+    """Container class used in fixtures for testing SystemInfoAdapter metadata."""
 
-    @classmethod
-    def setup_class(cls):
+    def __init__(self):
 
-        cls.adapter = SystemInfoAdapter()
-        cls.path = ''
-        cls.request = Mock()
-        cls.request.headers = {
+        self.adapter = SystemInfoAdapter()
+        self.path = ''
+        self.request = Mock()
+        self.request.headers = {
            'Accept': 'application/json;metadata=True', 
            'Content-Type': 'application/json' 
         }
-        cls.response = cls.adapter.get(cls.path, cls.request)
-        cls.top_level_metadata = ('name', 'description')
+        self.response = self.adapter.get(self.path, self.request)
+        self.top_level_metadata = ('name', 'description')
 
-    def test_adapter_has_toplevel_metadata(self):
 
-        for field in self.top_level_metadata:
-            assert_true(field in self.response.data)
+@pytest.fixture(scope="class")
+def test_sysinfo_metadata():
+    """Fixture used in SystemInfoAdapter metadata test cases."""
+    test_sysinfo_adapter = SystemInfoAdapterMetadataTestFixture()
+    yield test_sysinfo_adapter
 
-    def test_adapter_params_have_toplevel_metadata(self):
 
-        for (param, val) in self.response.data.items():
-            if param not in self.top_level_metadata:
-                for field in self.top_level_metadata:
-                    assert_true(field in val)
+class TestSystemInfoAdapterMetadata():
+    """Test cases for SystemInfoAdapter metadata behaviour."""
 
-    def test_adapter_params_have_metadata(self):
+    def test_adapter_has_toplevel_metadata(self, test_sysinfo_metadata):
+        """Test that the adapter has the appropriate top-level metadata."""
+        for field in test_sysinfo_metadata.top_level_metadata:
+            assert field in test_sysinfo_metadata.response.data
 
-        for (param, val) in self.response.data.items():
-            if param not in self.top_level_metadata and param != 'platform':
-                assert_true('value' in val)
-                assert_true('type' in val)
-                assert_true('writeable' in val)
+    def test_adapter_params_have_toplevel_metadata(self, test_sysinfo_metadata):
+        """Test that all parameters exposed by the adapter also have top-level metadata."""
+        for (param, val) in test_sysinfo_metadata.response.data.items():
+            if param not in test_sysinfo_metadata.top_level_metadata:
+                for field in test_sysinfo_metadata.top_level_metadata:
+                    assert field in val
 
-    def test_subtree_has_metadata(self):
+    def test_adapter_params_have_metadata(self, test_sysinfo_metadata):
+        """
+        Test that all parameters exposed by the adapter have value, type and writeable 
+        metadata fields.
+        """
+        for (param, val) in test_sysinfo_metadata.response.data.items():
+            if param not in test_sysinfo_metadata.top_level_metadata and param != 'platform':
+                assert 'value' in val
+                assert 'type' in val
+                assert 'writeable' in val
 
-        subtree = self.response.data['platform']
-        for field in self.top_level_metadata:
-            assert_true(field in subtree)
+    def test_subtree_has_metadata(self, test_sysinfo_metadata):
+        """
+        Test that the platform subtree within the adapter parameters also has the appropriate
+        metadata.
+        """
+        subtree = test_sysinfo_metadata.response.data['platform']
+        for field in test_sysinfo_metadata.top_level_metadata:
+            assert field in subtree
 
         for (param, val) in subtree.items():
-            if param not in self.top_level_metadata:
-                assert_true('value' in val)
-                assert_true('type' in val)
-                assert_true('writeable' in val)
+            if param not in test_sysinfo_metadata.top_level_metadata:
+                assert 'value' in val
+                assert 'type' in val
+                assert 'writeable' in val
