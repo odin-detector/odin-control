@@ -9,8 +9,7 @@ import re
 import pytest
 
 from odin.http.routes.default import DefaultRoute
-from odin.testing.utils import LogCaptureFilter
-
+from tests.utils import LogCaptureFilter
 
 class TestDefaultRoute():
     """Test DefaultRoute class."""

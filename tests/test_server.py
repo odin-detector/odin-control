@@ -9,9 +9,10 @@ if sys.version_info[0] == 3:  # pragma: no cover
 else:                         # pragma: no cover
     from mock import Mock
     
-from odin.testing.utils import OdinTestServer, LogCaptureFilter
 from odin.http.server import HttpServer
 from odin import server
+
+from tests.utils import OdinTestServer, LogCaptureFilter
 
 @pytest.fixture(scope="class")
 def odin_test_server():

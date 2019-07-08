@@ -18,7 +18,7 @@ else:                         # pragma: no cover
 from odin.adapters.system_status import SystemStatusAdapter, SystemStatus, Singleton
 from odin.adapters.parameter_tree import ParameterTreeError
 
-from odin.testing.utils import log_message_seen
+from tests.utils import log_message_seen
 
 class SystemStatusTestFixture():
     """Container class used in fixtures for testing the SystemStatus class."""

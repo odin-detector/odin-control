@@ -21,7 +21,7 @@ from tornado.httpserver import HTTPServer
 import tornado.gen
 
 from odin.adapters.proxy import ProxyTarget, ProxyAdapter
-from odin.testing.utils import LogCaptureFilter, log_message_seen
+from tests.utils import LogCaptureFilter, log_message_seen
 
 class ProxyTestHandler(RequestHandler):
     """ Tornado request handler for use in test server needed for proxy tests."""
