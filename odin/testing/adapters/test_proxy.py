@@ -123,7 +123,6 @@ class ProxyTestServer(object):
 
         self.server_ioloop.add_callback(stop_server)
         self.server_thread.join()
-        self.server_ioloop.close(all_fds=True)
 
     def get_access_count(self):
         """Return the server access count."""
