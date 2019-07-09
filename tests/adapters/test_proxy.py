@@ -6,11 +6,13 @@ Tim Nicholls, STFC Application Engineering Group.
 import sys
 import threading
 import logging
+import time
 
 import pytest
 
 if sys.version_info[0] == 3:  # pragma: no cover
     from unittest.mock import Mock, patch
+    import asyncio
 else:                         # pragma: no cover
     from mock import Mock, patch
 
@@ -89,40 +91,38 @@ class ProxyTestServer(object):
     """ Tornado test server for use in proxy testing."""
     def __init__(self,):
         """Initialise the server."""
-        self.server_ioloop = IOLoop()
         self.access_count = 0
+        self.server_event_loop = None
+
+        self.server_thread = threading.Thread(target=self._run_server)
+        self.server_thread.start()
+        time.sleep(0.2)
+
+    def _run_server(self):
+
+        if sys.version_info[0] == 3:
+            asyncio.set_event_loop(asyncio.new_event_loop())
+
+        self.server_event_loop = IOLoop.current()
 
         @tornado.gen.coroutine
         def init_server():
-            """Initiliase the server, running in a co-routine."""
-            sock, self.port = bind_unused_port()
-            app = Application([('/(.*)', ProxyTestHandler, dict(server=self))])
-            self.server = HTTPServer(app)
-            self.server.add_socket(sock)
-        self.server_ioloop.run_sync(init_server)
+            self.sock, self.port = bind_unused_port()
+            self.app = Application([('/(.*)', ProxyTestHandler, dict(server=self))])
+            self.server = HTTPServer(self.app)
+            self.server.add_socket(self.sock)
+        self.server_event_loop.run_sync(init_server)
 
-        self.server_thread = threading.Thread(target=self.server_ioloop.start)
+        self.server_event_loop.start()
 
-    def start(self):
-        """Start the server thread."""
-        self.server_thread.start()
 
     def stop(self):
         """Stop the server, using a lazy callback added to the server IOLoop."""
-        def stop_server():
 
-            self.server.stop()
-
-            @tornado.gen.coroutine
-            def slow_stop():
-                for _ in range(5):
-                    yield
-                self.server_ioloop.stop()
-            
-            self.server_ioloop.add_callback(slow_stop)
-
-        self.server_ioloop.add_callback(stop_server)
-        self.server_thread.join()
+        if self.server_thread is not None:
+            self.server_event_loop.add_callback(self.server_event_loop.stop)
+            self.server_thread.join()
+            self.server_thread = None
 
     def get_access_count(self):
         """Return the server access count."""
@@ -138,7 +138,6 @@ class ProxyTargetTestFixture(object):
     def __init__(self):
         """Initialise the fixture, starting the test server and defining a target."""
         self.test_server = ProxyTestServer()
-        self.test_server.start()
         self.port = self.test_server.port
 
         self.name = 'test_target'
@@ -208,7 +207,6 @@ class TestProxyTarget():
         assert proxy_target.status_code == 502
         assert 'Connection refused' in proxy_target.error_string
 
-
 class ProxyAdapterTestFixture():
     """Container class used in fixtures for testing proxy adapters."""
 
@@ -224,7 +222,6 @@ class ProxyAdapterTestFixture():
         for _ in range(self.num_targets):
 
             test_server = ProxyTestServer()
-            test_server.start()
             self.test_servers.append(test_server)
             self.ports.append(test_server.port)
 
