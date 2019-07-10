@@ -9,6 +9,9 @@ install_requires = [
     'psutil>=5.0',
 ]
 
+if sys.version_info[0] == 2:
+    install_requires.append('futures')
+
 setup(
     name="odin",
     version=versioneer.get_version(),
