@@ -105,24 +105,22 @@ class ProxyTestServer(object):
 
         self.server_event_loop = IOLoop.current()
 
-        @tornado.gen.coroutine
-        def init_server():
-            self.sock, self.port = bind_unused_port()
-            self.app = Application([('/(.*)', ProxyTestHandler, dict(server=self))])
-            self.server = HTTPServer(self.app)
-            self.server.add_socket(self.sock)
-        self.server_event_loop.run_sync(init_server)
+        self.sock, self.port = bind_unused_port()
+        self.app = Application([('/(.*)', ProxyTestHandler, dict(server=self))])
+        self.server = HTTPServer(self.app)
+        self.server.add_socket(self.sock)
 
-        self.server_event_loop.start()
-
+        if sys.version_info[0] == 3 or not self.server_event_loop._running:
+            self.server_event_loop.start()
 
     def stop(self):
-        """Stop the server, using a lazy callback added to the server IOLoop."""
+        """Stop the server, using a callback added to the server IOLoop."""
 
         if self.server_thread is not None:
             self.server_event_loop.add_callback(self.server_event_loop.stop)
             self.server_thread.join()
             self.server_thread = None
+            self.server.stop()
 
     def get_access_count(self):
         """Return the server access count."""
