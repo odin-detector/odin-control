@@ -4,7 +4,7 @@ import versioneer
 
 install_requires = [
     'tornado>=4.3',
-    'pyzmq>=15.2.0',
+    'pyzmq>=17.0',
     'future',
     'psutil>=5.0',
 ]
