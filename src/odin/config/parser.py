@@ -10,9 +10,10 @@ from functools import partial
 import tornado.options
 
 if sys.version_info[0] == 3:                  # pragma: no cover
-    from configparser import SafeConfigParser
+    from configparser import ConfigParser as NativeConfigParser
 else:                                         # pragma: no cover
-    from ConfigParser import SafeConfigParser
+    from ConfigParser import SafeConfigParser as NativeConfigParser
+    NativeConfigParser.read_file = NativeConfigParser.readfp
 
 
 class ConfigError(Exception):
@@ -58,7 +59,7 @@ class ConfigParser(object):
         # Create CLI argument and file configuration parsers. This class uses the python
         # argparse module for command-line arguments rather than the Tornado options implementation.
         self.arg_parser = ArgumentParser()
-        self.file_parser = SafeConfigParser()
+        self.file_parser = NativeConfigParser()
         self.file_parsed = False
 
         # Define a --version option to return the ODIN server version
@@ -209,7 +210,7 @@ class ConfigParser(object):
 
             try:
                 with open(config_file) as config_fp:
-                    self.file_parser.readfp(config_fp)
+                    self.file_parser.read_file(config_fp)
             except Exception as e:
                 raise ConfigError('Failed to parse configuration file: {}'.format(e))
 
