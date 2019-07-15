@@ -279,7 +279,7 @@ class ProxyAdapter(ApiAdapter):
 
         # Build the response from the adapter parameter tree
         try:
-            if(get_metadata):
+            if get_metadata:
                 if path_elem == "" or path_elem == "status":
                     # update status tree with metadata
                     self.meta_param_tree.set('status', self.status_tree.get("", True))
