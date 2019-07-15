@@ -103,15 +103,14 @@ class ProxyTestServer(object):
         if sys.version_info[0] == 3:
             asyncio.set_event_loop(asyncio.new_event_loop())
 
-        self.server_event_loop = IOLoop.current()
+        self.server_event_loop = IOLoop()
 
         self.sock, self.port = bind_unused_port()
         self.app = Application([('/(.*)', ProxyTestHandler, dict(server=self))])
         self.server = HTTPServer(self.app)
         self.server.add_socket(self.sock)
 
-        if sys.version_info[0] == 3 or not self.server_event_loop._running:
-            self.server_event_loop.start()
+        self.server_event_loop.start()
 
     def stop(self):
         """Stop the server, using a callback added to the server IOLoop."""
