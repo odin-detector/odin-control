@@ -68,7 +68,6 @@ class ProxyTarget(object):
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
-        logging.debug("TARGET SET: %s", self.url)
         self.remote_get()  # init the data tree
         self.remote_get(get_metadata=True)  # init the metadata
 
@@ -79,7 +78,6 @@ class ProxyTarget(object):
         and error string if the HTTP request fails.
         """
 
-        # logging.debug("PROXY UPDATE PATH: %s", path)
         try:
             # Request data to/from the target
             response = self.http_client.fetch(request)
@@ -94,19 +92,30 @@ class ProxyTarget(object):
             self.status_code = http_err.code
             self.error_string = http_err.message
             logging.error(
-                "Proxy target %s fetch failed: %d %s",
+                "Proxy target %s fetch failed: %d %s\nRequest: %s",
+                self.name,
+                self.status_code,
+                self.error_string,
+                request.body
+            )
+            self.last_update = tornado.httputil.format_timestamp(time.time())
+            return
+        except tornado.ioloop.TimeoutError as time_err:
+            self.status_code = 408
+            self.error_string = str(time_err)
+            logging.error(
+                "Proxy Target %s fetch failed: %d %s",
                 self.name,
                 self.status_code,
                 self.error_string
             )
             self.last_update = tornado.httputil.format_timestamp(time.time())
             return
-
         except IOError as other_err:
             self.status_code = 502
             self.error_string = str(other_err)
             logging.error(
-                "Proxy target %s fetch failed: %d %s",
+                "Proxy Target %s fetch failed: %d %s",
                 self.name,
                 self.status_code,
                 self.error_string
@@ -114,7 +123,7 @@ class ProxyTarget(object):
             self.last_update = tornado.httputil.format_timestamp(time.time())
             return
 
-        if(get_metadata):
+        if get_metadata:
             data_ref = self.metadata
         else:
             data_ref = self.data  # reference for modification

@@ -58,7 +58,6 @@ class ProxyTestHandler(RequestHandler):
     def put(self, path):
         
         response_body = convert_unicode_to_string(tornado.escape.json_decode(self.request.body))
-        print("REQUEST BODY: {}".format(response_body))
         try:
             self.param_tree.set(path, response_body)
             data_ref = self.param_tree.get(path)
