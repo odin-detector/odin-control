@@ -1,8 +1,9 @@
+dist: xenial
 language: python
 sudo: false
 python:
 - 2.7
-- 3.5
+- 3.7
 addons:
   apt:
     packages:
@@ -10,12 +11,9 @@ addons:
   code_climate:
     repo_token: cff0747bc9e271cfb6e363047e9119e13e09df9b4fe7a20295bbac64175d40ed
 install:
-- pip install -r requirements.txt
-- python setup.py install
+- pip install tox-travis
 - pip install coveralls
-script:
-- python setup.py nosetests
-- coverage report -m
+script: tox
 after_success:
 - coveralls
 notifications:
