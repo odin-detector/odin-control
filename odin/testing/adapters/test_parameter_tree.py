@@ -578,7 +578,8 @@ class TestParameterTreeMetadata():
                 cls.intCallableRwParamGet, cls.intCallableRwParamSet, cls.int_rw_param_metadata
             ),
             'intEnumParam': (0, {"allowed_values": cls.int_enum_param_allowed_values}),
-            'valueParam': (24601,)
+            'valueParam': (24601,),
+            'minNoMaxParam': (1, {'min': 0})
         }
         cls.metadata_tree = ParameterTree(cls.metadata_tree_dict)
 
@@ -648,6 +649,14 @@ class TestParameterTreeMetadata():
         new_value = 90210
         self.metadata_tree.set("valueParam", new_value)
         set_param = self.metadata_tree.get("valueParam", with_metadata=True)["valueParam"]
+        assert_equal(set_param["value"], new_value)
+        assert_equal(set_param["writeable"], True)
+
+    def test_rw_param_min_no_max(self):
+
+        new_value = 2
+        self.metadata_tree.set("minNoMaxParam", new_value)
+        set_param = self.metadata_tree.get("minNoMaxParam", with_metadata=True)["minNoMaxParam"]
         assert_equal(set_param["value"], new_value)
         assert_equal(set_param["writeable"], True)
 
