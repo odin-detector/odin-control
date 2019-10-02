@@ -12,8 +12,7 @@ Tim Nicholls, STFC Application Engineering
 import logging
 from concurrent import futures
 import time
-from tornado.ioloop import IOLoop
-from tornado.concurrent import run_on_executor
+from tornado.ioloop import PeriodicCallback
 
 from odin.adapters.adapter import (ApiAdapter, ApiAdapterRequest,
                                    ApiAdapterResponse, request_types, response_types)
@@ -26,9 +25,6 @@ class DummyAdapter(ApiAdapter):
     This dummy adapter implements the basic operation of an adapter including initialisation
     and HTTP verb methods (GET, PUT, DELETE) with various request and response types allowed.
     """
-
-    # Thread executor used for background tasks
-    executor = futures.ThreadPoolExecutor(max_workers=1)
 
     def __init__(self, **kwargs):
         """Initialize the DummyAdapter object.
@@ -51,12 +47,14 @@ class DummyAdapter(ApiAdapter):
             logging.debug(
                 "Launching background task with interval %.2f secs", task_interval
             )
-            self.background_task(task_interval)
+            self.background_task = PeriodicCallback(
+                self.background_task_callback, task_interval * 1000
+            )
+            self.background_task.start()
 
         logging.debug('DummyAdapter loaded')
 
-    @run_on_executor
-    def background_task(self, task_interval):
+    def background_task_callback(self):
         """Run the adapter background task.
 
         This simply increments the background counter and sleeps for the specified interval,
@@ -64,10 +62,9 @@ class DummyAdapter(ApiAdapter):
 
         :param task_interval: time to sleep until task is run again
         """
-        logging.debug("%s: background task running", self.name)
+        logging.debug("%s: background task running, count = %d", 
+            self.name, self.background_task_counter)
         self.background_task_counter += 1
-        time.sleep(task_interval)
-        IOLoop.instance().add_callback(self.background_task, task_interval)
 
     @response_types('application/json', default='application/json')
     def get(self, path, request):
@@ -139,7 +136,8 @@ class DummyAdapter(ApiAdapter):
         trivially setting the background task counter back to zero for test
         purposes.
         """
-        logging.debug("DummyAdapter cleanup: resetting background test counter")
+        logging.debug("DummyAdapter cleanup: stopping background task")
+        self.background_task.stop()
         self.background_task_counter = 0
 
 
