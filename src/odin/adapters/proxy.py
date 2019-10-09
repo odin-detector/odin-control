@@ -318,6 +318,7 @@ class ProxyAdapter(ApiAdapter):
             for target in self.targets:
                 if path_elem == '' or path_elem == target.name:
                     target.remote_set(target_path, body)
+
             response = self.param_tree.get(path)
             status_code = 200
         except ParameterTreeError as param_tree_err:

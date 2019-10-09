@@ -199,6 +199,7 @@ def request_types(*oargs):
             """Inner method wrapper."""
             # Validate the Content-Type header in the request against allowed types
             if 'Content-Type' in request.headers:
+                logging.debug("Request content type: %s", request.headers['Content-Type'])
                 if request.headers['Content-Type'] not in oargs:
                     return ApiAdapterResponse(
                         'Request content type ({}) not supported'.format(

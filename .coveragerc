@@ -1,2 +1,10 @@
 [run]
 omit = *_version*
+
+[paths]
+source=
+    src/
+    .tox/py*/lib/python*/site-packages/
+
+[report]
+omit = *_version*
