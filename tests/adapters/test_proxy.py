@@ -10,12 +10,6 @@ import time
 
 import pytest
 
-if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest.mock import Mock, patch
-    import asyncio
-else:                         # pragma: no cover
-    from mock import Mock, patch
-
 from tornado.testing import AsyncHTTPTestCase, bind_unused_port
 from tornado.ioloop import IOLoop
 from tornado.web import Application, RequestHandler
@@ -23,70 +17,69 @@ from tornado.httpserver import HTTPServer
 import tornado.gen
 
 from odin.adapters.proxy import ProxyTarget, ProxyAdapter
+from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
+from odin.adapters.adapter import wants_metadata
+from odin.util import convert_unicode_to_string
 from tests.utils import LogCaptureFilter, log_message_seen
+
+if sys.version_info[0] == 3:  # pragma: no cover
+    from unittest.mock import Mock, patch
+    import asyncio
+else:                         # pragma: no cover
+    from mock import Mock, patch
+
 
 class ProxyTestHandler(RequestHandler):
     """ Tornado request handler for use in test server needed for proxy tests."""
 
     # Data structure served by request handler
-    data = {'one': 1,
-            'two': 2.0,
-            'pi': 3.14,
-            'more':
-            {
-                'three': 3.0,
-                'replace': 'Replace Me!',
-                'even_more':{
-                    'extra_val': 5.5
-                }
+    data = {
+        'one': (1, None),  # this allows for auto generated metadata for testing purposes
+        'two': 2.0,
+        'pi': 3.14,
+        'more':
+        {
+            'three': 3.0,
+            'replace': 'Replace Me!',
+            'even_more': {
+                'extra_val': 5.5
             }
         }
+    }
+    param_tree = ParameterTree(data)
 
     def initialize(self, server):
         """Increment the server access count every time the request handler is invoked."""
         server.access_count += 1
 
     def get(self, path=''):
-        """Handle GET requests to the test 0server."""
+        """Handle GET requests to the test server."""
         try:
-            data_ref = self.data
-            if path:
-                path_elems = path.split('/')
-                for elem in path_elems[:-1]:
-                    data_ref = data_ref[elem]
-                self.write(data_ref)
-            else:
-                self.write(ProxyTestHandler.data)                
-        except KeyError:
+            data_ref = self.param_tree.get(path, wants_metadata(self.request))
+            self.write(data_ref)
+        except ParameterTreeError:
             self.set_status(404)
             self.write_error(404)
         except Exception as other_e:
-            logging.error("ProxyTestHandler GET failed:", str(other_e))
-            self.write_error(500)
-    
-    def put(self, path):
-        """Handle PUT requests to the test server."""
-        response_body = response_body = tornado.escape.json_decode(self.request.body)
-        try:
-            data_ref = self.data
-            if path:
-                path_elems = path.split('/')
-                for elem in path_elems[:-1]:
-                    data_ref = data_ref[elem]
-                for key in response_body:
-                    new_elem = response_body[key]
-                    data_ref[key] = new_elem
-                self.write(data_ref)
-            else:
-                self.write(ProxyTestHandler.data)
-        except KeyError:
-            self.set_status(404)
-            self.write_error(404)        
-        except Exception as other_e:
-            logging.error("ProxyTestHandler PUT failed:", str(other_e))
+            logging.error("ProxyTestHandler GET failed: %s", str(other_e))
             self.write_error(500)
 
-                
+    def put(self, path):
+        """Handle PUT requests to the test server."""
+        response_body = convert_unicode_to_string(tornado.escape.json_decode(self.request.body))
+        try:
+            self.param_tree.set(path, response_body)
+            data_ref = self.param_tree.get(path)
+
+            self.write(data_ref)
+        except ParameterTreeError:
+            self.set_status(404)
+            self.write_error(404)
+        except Exception as other_e:
+            logging.error("ProxyTestHandler PUT failed: %s", str(other_e))
+            self.write_error(500)
+
+
 class ProxyTestServer(object):
     """ Tornado test server for use in proxy testing."""
     def __init__(self,):
@@ -150,15 +143,16 @@ class ProxyTargetTestFixture(object):
     def stop(self):
         """Stop the test server and proxy HTTP client."""
         self.proxy_target.http_client.close()
-        self.test_server.stop()       
+        self.test_server.stop()
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture
 def test_proxy_target():
     """Fixture used in ProxyTarget test cases."""
     test_proxy_target = ProxyTargetTestFixture()
     yield test_proxy_target
     test_proxy_target.stop()
+
 
 class TestProxyTarget():
     """Test cases for the ProxyTarget class."""
@@ -174,7 +168,7 @@ class TestProxyTarget():
         test_proxy_target.proxy_target.last_update = ''
 
         test_proxy_target.proxy_target.remote_get()
-        assert test_proxy_target.proxy_target.data == ProxyTestHandler.data
+        assert test_proxy_target.proxy_target.data == ProxyTestHandler.param_tree.get("")
         assert test_proxy_target.proxy_target.status_code == 200
         assert test_proxy_target.proxy_target.last_update != ''
 
@@ -187,22 +181,36 @@ class TestProxyTarget():
     def test_proxy_target_http_get_error_404(self, test_proxy_target):
         """Test that a proxy target GET to a bad URL returns a 404 not found error."""
         bad_url = test_proxy_target.url + 'notfound/'
-        proxy_target = ProxyTarget(test_proxy_target.name, bad_url, 
-            test_proxy_target.request_timeout)
+        proxy_target = ProxyTarget(test_proxy_target.name, bad_url,
+                                   test_proxy_target.request_timeout)
         proxy_target.remote_get('notfound')
-        
+
         assert proxy_target.status_code == 404
         assert 'Not Found' in proxy_target.error_string
+
+    def test_proxy_target_timeout_error(self, test_proxy_target):
+        """Test that a porxy target GET request that times out is handled correctly"""
+        mock_fetch = Mock()
+        mock_fetch.side_effect = tornado.ioloop.TimeoutError('timeout')
+        proxy_target = ProxyTarget(test_proxy_target.name, test_proxy_target.url,
+                                   test_proxy_target.request_timeout)
+        proxy_target.http_client.fetch = mock_fetch
+
+        proxy_target.remote_get()
+
+        assert proxy_target.status_code == 408
+        assert 'timeout' in proxy_target.error_string
 
     def test_proxy_target_other_error(self, test_proxy_target):
         """Test that a proxy target GET request to a non-existing server returns a 502 error."""
         bad_url = 'http://127.0.0.1:{}'.format(test_proxy_target.port + 1)
         proxy_target = ProxyTarget(test_proxy_target.name, bad_url,
-            test_proxy_target.request_timeout)
+                                   test_proxy_target.request_timeout)
         proxy_target.remote_get()
 
         assert proxy_target.status_code == 502
         assert 'Connection refused' in proxy_target.error_string
+
 
 class ProxyAdapterTestFixture():
     """Container class used in fixtures for testing proxy adapters."""
@@ -233,7 +241,7 @@ class ProxyAdapterTestFixture():
         self.adapter = ProxyAdapter(**self.adapter_kwargs)
 
         self.path = ''
-        self.request = Mock
+        self.request = Mock()
         self.request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
         self.request.body = '{"pi":2.56}'
 
@@ -243,7 +251,7 @@ class ProxyAdapterTestFixture():
 
     def stop(self):
         """Stop the proxied test servers, ensuring any client connections to them are closed."""
-        for target in self.adapter.targets: 
+        for target in self.adapter.targets:
             target.http_client.close()
         for test_server in self.test_servers:
             test_server.stop()
@@ -253,13 +261,15 @@ class ProxyAdapterTestFixture():
         for test_server in self.test_servers:
             test_server.clear_access_count()
 
+
 @pytest.fixture(scope="class")
 def proxy_adapter_test():
     """Fixture used in testing the ProxyAdapter class."""
     proxy_adapter_test = ProxyAdapterTestFixture()
     yield proxy_adapter_test
-    
+
     proxy_adapter_test.stop()
+
 
 class TestProxyAdapter():
     """Test cases for testing the ProxyAdapter class."""
@@ -275,16 +285,37 @@ class TestProxyAdapter():
         """
         response = proxy_adapter_test.adapter.get(
             proxy_adapter_test.path, proxy_adapter_test.request)
-        
+
         assert 'status' in response.data
-        
-        assert len(response.data) ==  proxy_adapter_test.num_targets+1
-        
+
+        assert len(response.data) == proxy_adapter_test.num_targets + 1
+
         for tgt in range(proxy_adapter_test.num_targets):
             node_str = 'node_{}'.format(tgt)
             assert node_str in response.data
             assert response.data[node_str], ProxyTestHandler.data
-    
+
+    def test_adapter_get_metadata(self, proxy_adapter_test):
+        request = proxy_adapter_test.request
+        request.headers['Accept'] = "{};{}".format(request.headers['Accept'], "metadata=True")
+        response = proxy_adapter_test.adapter.get(proxy_adapter_test.path, request)
+
+        assert "status" in response.data
+        for target in range(proxy_adapter_test.num_targets):
+            node_str = 'node_{}'.format(target)
+            assert node_str in response.data
+            assert "one" in response.data[node_str]
+            assert "type" in response.data[node_str]['one']
+
+    def test_adapter_get_status_metadata(self, proxy_adapter_test):
+        request = proxy_adapter_test.request
+        request.headers['Accept'] = "{};{}".format(request.headers['Accept'], "metadata=True")
+        response = proxy_adapter_test.adapter.get(proxy_adapter_test.path, request)
+
+        assert 'status' in response.data
+        assert 'node_0' in response.data['status']
+        assert 'type' in response.data['status']['node_0']['error']
+
     def test_adapter_put(self, proxy_adapter_test):
         """
         Test that a PUT request to the proxy adapter returns the appropriate data for all
@@ -295,12 +326,12 @@ class TestProxyAdapter():
 
         assert 'status' in response.data
 
-        assert len(response.data) == proxy_adapter_test.num_targets+1
+        assert len(response.data) == proxy_adapter_test.num_targets + 1
 
         for tgt in range(proxy_adapter_test.num_targets):
             node_str = 'node_{}'.format(tgt)
             assert node_str in response.data
-            assert response.data[node_str] == ProxyTestHandler.data
+            assert convert_unicode_to_string(response.data[node_str]) == ProxyTestHandler.param_tree.get("")
 
     def test_adapter_get_proxy_path(self, proxy_adapter_test):
         """Test that a GET to a sub-path within a targer succeeds and return the correct data."""
@@ -314,30 +345,31 @@ class TestProxyAdapter():
 
     def test_adapter_get_proxy_path_trailing_slash(self, proxy_adapter_test):
         """
-        Test that a PUT to a sub-path with a trailing slash in the URL within a targer succeeds 
+        Test that a PUT to a sub-path with a trailing slash in the URL within a targer succeeds
         and returns the correct data.
         """
         node = proxy_adapter_test.adapter.targets[0].name
         path = "more/even_more/"
         response = proxy_adapter_test.adapter.get(
             "{}/{}".format(node, path), proxy_adapter_test.request)
-        
+
         assert response.data["even_more"] == ProxyTestHandler.data["more"]["even_more"]
         assert proxy_adapter_test.adapter.param_tree.get('')['status'][node]['status_code'] == 200
 
     def test_adapter_put_proxy_path(self, proxy_adapter_test):
         """
-        Test that a PUT to a sub-path withouta trailing slash in the URL within a targer succeeds 
+        Test that a PUT to a sub-path without a trailing slash in the URL within a targer succeeds
         and returns the correct data.
         """
         node = proxy_adapter_test.adapter.targets[0].name
-        path = "more/replace"
+        path = "more"
         proxy_adapter_test.request.body = '{"replace": "been replaced"}'
         response = proxy_adapter_test.adapter.put(
             "{}/{}".format(node, path), proxy_adapter_test.request)
 
+        logging.debug("Response: %s", response.data)
         assert proxy_adapter_test.adapter.param_tree.get('')['status'][node]['status_code'] == 200
-        assert response.data["replace"] == "been replaced"
+        assert convert_unicode_to_string(response.data["more"]["replace"]) == "been replaced"
 
     def test_adapter_get_bad_path(self, proxy_adapter_test):
         """Test that a GET to a bad path within a target returns the appropriate error."""

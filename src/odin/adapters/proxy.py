@@ -92,7 +92,7 @@ class ProxyTarget(object):
             self.status_code = http_err.code
             self.error_string = http_err.message
             logging.error(
-                "Proxy target %s fetch failed: %d %s\nRequest: %s",
+                "HTTP Error: Proxy target %s fetch failed: %d %s Request: %s",
                 self.name,
                 self.status_code,
                 self.error_string,
@@ -104,7 +104,7 @@ class ProxyTarget(object):
             self.status_code = 408
             self.error_string = str(time_err)
             logging.error(
-                "Proxy Target %s fetch failed: %d %s",
+                "Timeout Error: Proxy Target %s fetch failed: %d %s",
                 self.name,
                 self.status_code,
                 self.error_string
@@ -115,7 +115,7 @@ class ProxyTarget(object):
             self.status_code = 502
             self.error_string = str(other_err)
             logging.error(
-                "Proxy Target %s fetch failed: %d %s",
+                "IO Error: Proxy Target %s fetch failed: %d %s",
                 self.name,
                 self.status_code,
                 self.error_string
