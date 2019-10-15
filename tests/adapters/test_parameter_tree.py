@@ -661,7 +661,8 @@ class ParameterTreeMetadataTestFixture():
                 self.intCallableRwParamGet, self.intCallableRwParamSet, self.int_rw_param_metadata
             ),
             'intEnumParam': (0, {"allowed_values": self.int_enum_param_allowed_values}),
-            'valueParam': (24601,)
+            'valueParam': (24601,),
+            'minNoMaxParam': (1, {'min': 0})
         }
         self.metadata_tree = ParameterTree(self.metadata_tree_dict)
 
@@ -755,6 +756,15 @@ class TestParameterTreeMetadata():
         test_tree_metadata.metadata_tree.set("valueParam", new_value)
         set_param = test_tree_metadata.metadata_tree.get(
             "valueParam", with_metadata=True)["valueParam"]
+        assert set_param["value"] == new_value
+        assert set_param["writeable"] == True
+
+    def test_rw_param_min_no_max(self, test_tree_metadata):
+        """Test that a parameter with a minimum but no maximum works as expected."""
+        new_value = 2
+        test_tree_metadata.metadata_tree.set("minNoMaxParam", new_value)
+        set_param = test_tree_metadata.metadata_tree.get(
+            "minNoMaxParam", with_metadata=True)["minNoMaxParam"]
         assert set_param["value"] == new_value
         assert set_param["writeable"] == True
 
