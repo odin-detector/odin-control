@@ -154,7 +154,7 @@ class ParameterAccessor(object):
 
         # Raise an error if the parameter has a maximum value specified in metadata and the
         # value to set is above this
-        if "min" in self.metadata and value > self.metadata["max"]:
+        if "max" in self.metadata and value > self.metadata["max"]:
             raise ParameterTreeError(
                 "{} is above the maximum value {} for {}".format(
                     value, self.metadata["max"], self.path
