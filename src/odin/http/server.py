@@ -14,7 +14,6 @@ from tornado.log import access_log
 
 from odin.http.routes.api import ApiRoute
 from odin.http.routes.default import DefaultRoute
-from odin.http.routes.async_test import AsyncTestRoute
 
 
 class HttpServer(object):
@@ -54,10 +53,6 @@ class HttpServer(object):
         self.api_route.initialize_adapters()
 
         handlers = self.api_route.get_handlers()
-
-        # Add the async test handler DELETEME
-        async_route = AsyncTestRoute()
-        handlers += async_route.get_handlers()
 
         # Create a default route for static content and get handlers
         default_route = DefaultRoute(static_path)
