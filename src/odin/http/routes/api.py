@@ -25,7 +25,7 @@ def validate_api_request(required_version):
     is registered with the application dispatcher; responds with a 400 error if not
     """
     def decorator(func):
-        def wrapper(_self, *args, **kwargs):
+        async def wrapper(_self, *args, **kwargs):
             # Extract version as first argument
             version = args[0]
             subsystem = args[1]
@@ -41,7 +41,7 @@ def validate_api_request(required_version):
                     status_code=400)
                 )
             else:
-                return func(_self, subsystem, *rem_args, **kwargs)
+                return await func(_self, subsystem, *rem_args, **kwargs)
         return wrapper
     return decorator
 
@@ -124,17 +124,22 @@ class ApiHandler(tornado.web.RequestHandler):
         self.route = route
 
     @validate_api_request(_api_version)
-    def get(self, subsystem, path=''):
+    async def get(self, subsystem, path=''):
         """Handle an API GET request.
 
         :param subsystem: subsystem element of URI, defining adapter to be called
         :param path: remaining URI path to be passed to adapter method
         """
-        response = self.route.adapter(subsystem).get(path, self.request)
+        adapter = self.route.adapter(subsystem)
+        if adapter.is_async:
+            response = await adapter.get(path, self.request)
+        else:
+            response = adapter.get(path, self.request)
+            
         self.respond(response)
 
     @validate_api_request(_api_version)
-    def put(self, subsystem, path=''):
+    async def put(self, subsystem, path=''):
         """Handle an API PUT request.
 
         :param subsystem: subsystem element of URI, defining adapter to be called
@@ -144,7 +149,7 @@ class ApiHandler(tornado.web.RequestHandler):
         self.respond(response)
 
     @validate_api_request(_api_version)
-    def delete(self, subsystem, path=''):
+    async def delete(self, subsystem, path=''):
         """Handle an API DELETE request.
 
         :param subsystem: subsystem element of URI, defining adapter to be called

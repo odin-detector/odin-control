@@ -16,6 +16,8 @@ class ApiAdapter(object):
     implement them, returning an error message and 400 code.
     """
 
+    is_async = False
+    
     def __init__(self, **kwargs):
         """Initialise the ApiAdapter object.
 
