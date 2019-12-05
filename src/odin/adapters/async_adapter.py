@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse
+from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
 
 class AsyncApiAdapter(ApiAdapter):
 
@@ -11,6 +11,7 @@ class AsyncApiAdapter(ApiAdapter):
 
         super(AsyncApiAdapter, self).__init__(**kwargs)
 
+    @response_types('application/json', default='application/json')
     async def get(self, path, request):
 
         logging.info("in AsyncApiAdapter GET before sleep")
