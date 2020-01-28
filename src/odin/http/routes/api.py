@@ -13,43 +13,12 @@ import json
 import tornado.web
 
 from odin.http.routes.route import Route
-from odin.adapters.adapter import ApiAdapterResponse
-
-_api_version = 0.1
-
-
-def validate_api_request(required_version):
-    """Validate an API request to the ApiHandler.
-
-    This decorator checks that API version in the URI of a requst is correct and that the subsystem
-    is registered with the application dispatcher; responds with a 400 error if not
-    """
-    def decorator(func):
-        async def wrapper(_self, *args, **kwargs):
-            # Extract version as first argument
-            version = args[0]
-            subsystem = args[1]
-            rem_args = args[2:]
-            if version != str(required_version):
-                _self.respond(ApiAdapterResponse(
-                    "API version {} is not supported".format(version),
-                    status_code=400)
-                )
-            elif not _self.route.has_adapter(subsystem):
-                _self.respond(ApiAdapterResponse(
-                    "No API adapter registered for subsystem {}".format(subsystem),
-                    status_code=400)
-                )
-            else:
-                return await func(_self, subsystem, *rem_args, **kwargs)
-        return wrapper
-    return decorator
-
-
-class ApiError(Exception):
-    """Simple exception class for API-related errors."""
-
-    pass
+from odin.util import PY3
+from odin.http.handlers.base import ApiError, API_VERSION
+if PY3:
+    from odin.http.handlers.async_api import AsyncApiHandler as ApiHandler
+else:
+    from odin.http.handlers.api import ApiHandler
 
 
 class ApiVersionHandler(tornado.web.RequestHandler):
@@ -67,7 +36,7 @@ class ApiVersionHandler(tornado.web.RequestHandler):
             self.write('Requested content types not supported')
             return
 
-        self.write(json.dumps({'api': _api_version}))
+        self.write(json.dumps({'api': API_VERSION}))
 
 
 class ApiAdapterListHandler(tornado.web.RequestHandler):
@@ -91,9 +60,8 @@ class ApiAdapterListHandler(tornado.web.RequestHandler):
 
         :param version: API version
         """
-
         # Validate the API version explicity - can't use the validate_api_request decorator here
-        if version != str(_api_version):
+        if version != str(API_VERSION):
             self.set_status(400)
             self.write("API version {} is not supported".format(version))
             return
@@ -106,79 +74,6 @@ class ApiAdapterListHandler(tornado.web.RequestHandler):
             return
 
         self.write({'adapters': [adapter for adapter in self.route.adapters]})
-
-
-class ApiHandler(tornado.web.RequestHandler):
-    """API handler to transform requests into appropriate adapter calls.
-
-    This handler maps incoming API requests into the appropriate calls to methods
-    in registered adapters. HTTP GET, PUT and DELETE verbs are supported. The class
-    also enforces a uniform response with the appropriate Content-Type header.
-    """
-
-    def initialize(self, route):
-        """Initialize the API handler.
-
-        :param route: ApiRoute object calling the handler (allows adapters to be resolved)
-        """
-        self.route = route
-
-    @validate_api_request(_api_version)
-    async def get(self, subsystem, path=''):
-        """Handle an API GET request.
-
-        :param subsystem: subsystem element of URI, defining adapter to be called
-        :param path: remaining URI path to be passed to adapter method
-        """
-        adapter = self.route.adapter(subsystem)
-        if adapter.is_async:
-            response = await adapter.get(path, self.request)
-        else:
-            response = adapter.get(path, self.request)
-            
-        self.respond(response)
-
-    @validate_api_request(_api_version)
-    async def put(self, subsystem, path=''):
-        """Handle an API PUT request.
-
-        :param subsystem: subsystem element of URI, defining adapter to be called
-        :param path: remaining URI path to be passed to adapter method
-        """
-        response = self.route.adapter(subsystem).put(path, self.request)
-        self.respond(response)
-
-    @validate_api_request(_api_version)
-    async def delete(self, subsystem, path=''):
-        """Handle an API DELETE request.
-
-        :param subsystem: subsystem element of URI, defining adapter to be called
-        :param path: remaining URI path to be passed to adapter method
-        """
-        response = self.route.adapter(subsystem).delete(path, self.request)
-        self.respond(response)
-
-    def respond(self, response):
-        """Respond to an API request.
-
-        This method transforms an ApiAdapterResponse object into the appropriate request handler
-        response, setting the HTTP status code and content type for a response to an API request
-        and validating the content of the response against the appropriate type.
-
-        :param response: ApiAdapterResponse object containing response
-        """
-        self.set_status(response.status_code)
-        self.set_header('Content-Type', response.content_type)
-
-        data = response.data
-
-        if response.content_type == 'application/json':
-            if not isinstance(response.data, (str, dict)):
-                raise ApiError(
-                    'A response with content type application/json must have str or dict data'
-                )
-
-        self.write(data)
 
 
 class ApiRoute(Route):
