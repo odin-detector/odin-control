@@ -253,7 +253,6 @@ class ProxyAdapter(ApiAdapter):
         self.param_tree = ParameterTree(tree)
         self.meta_param_tree = ParameterTree(meta_tree)
 
-    @request_types('application/json')
     @response_types('application/json', default='application/json')
     def get(self, path, request):
         """
