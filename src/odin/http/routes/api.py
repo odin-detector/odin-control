@@ -67,7 +67,7 @@ class ApiVersionHandler(tornado.web.RequestHandler):
             self.write('Requested content types not supported')
             return
 
-        self.write(json.dumps({'api': _api_version}))
+        self.write(json.dumps({'value': _api_version}))
 
 
 class ApiAdapterListHandler(tornado.web.RequestHandler):
