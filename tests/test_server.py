@@ -152,16 +152,15 @@ class TestBadServerConfig(object):
 
 class TestOdinServerAccessLogging():
     """Class for testing a bad access logging level congiguration."""
-    def test_bad_access_log_level(self):
+    def test_bad_access_log_level(self, caplog):
         """Test that a bad access logging level generates an error."""
-        log_capture_filter = LogCaptureFilter()
         bad_level='wibble'
         http_server = HttpServer(adapters=[], access_logging=bad_level)
-        
+
         msg_seen = False
         expected_msg = 'Access logging level {} not recognised'.format(bad_level)
-        for msg in log_capture_filter.log_error():
-            if msg == expected_msg:
+        for record in caplog.records:
+            if record.msg == expected_msg:
                 msg_seen = True
         assert msg_seen
 
@@ -175,13 +174,12 @@ def no_adapter_server():
 class TestOdinServerMissingAdapters(object):
     """Class to test a server with no adapters loaded."""
 
-    def test_server_missing_adapters(self, no_adapter_server):
+    def test_server_missing_adapters(self, no_adapter_server, caplog):
         """Test that a server with no adapters loaded generates a warning message."""
         no_adapters_msg_seen = False
-        for msg in no_adapter_server.log_capture_filter.log_warning():
-            if msg == 'Failed to resolve API adapters: No adapters specified in configuration':
+        for record in caplog.get_records("setup"):
+            if record.message == 'Failed to resolve API adapters: No adapters specified in configuration':
                 no_adapters_msg_seen = True
-
         assert no_adapters_msg_seen
 
 class MockHandler(object):
