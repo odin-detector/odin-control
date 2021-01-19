@@ -22,38 +22,9 @@ from tornado.ioloop import IOLoop
 
 from odin import server
 
+def log_message_seen(caplog, level, message, when="call"):
 
-class LogCaptureFilter(logging.Filter):
-
-    def __init__(self, *args, **kwargs):
-
-        logging.Filter.__init__(self, *args, **kwargs)
-        self.messages = {logging.DEBUG: [],
-                         logging.INFO: [],
-                         logging.WARNING: [],
-                         logging.ERROR: [],
-                         logging.CRITICAL: []
-                         }
-
-        root_logger = logging.getLogger()
-        if len(root_logger.handlers) == 0:
-            root_logger.addHandler(logging.handlers.MemoryHandler(100))  # pragma: nocover
-
-        root_logger.handlers[0].addFilter(self)
-
-        for level in self.messages:
-            msg_getter_name = 'log_{}'.format(logging.getLevelName(level).lower())
-            setattr(self, msg_getter_name, lambda self=self, level=level: self.messages[level])
-
-    def filter(self, record):
-
-        self.messages[record.levelno].append(record.getMessage())
-        return True
-
-
-def log_message_seen(caplog, level, message):
-
-    for record in caplog.records:
+    for record in caplog.get_records(when):
         if record.levelno == level and message in record.getMessage():
             return True
 
@@ -70,7 +41,6 @@ class OdinTestServer(object):
 
         self.server_thread = None
         self.server_event_loop = None
-        self.log_capture_filter = None
 
         self.server_conf_file = NamedTemporaryFile(mode='w+')
         parser = ConfigParser()
@@ -82,7 +52,7 @@ class OdinTestServer(object):
         parser.set('server', 'debug_mode', '1')
         parser.set('server', 'http_port', str(server_port))
         parser.set('server', 'http_addr', self.server_addr)
-        parser.set('server', 'static_path', static_path)      
+        parser.set('server', 'static_path', static_path)
 
         if adapter_config is not None:
             adapters = ', '.join([adapter for adapter in adapter_config])
@@ -103,8 +73,6 @@ class OdinTestServer(object):
 
         parser.write(self.server_conf_file)
         self.server_conf_file.file.flush()
-
-        self.log_capture_filter = LogCaptureFilter()
 
         server_args = ['--config={}'.format(self.server_conf_file.name)]
         self.server_thread = threading.Thread(target=self._run_server, args=(server_args,))
