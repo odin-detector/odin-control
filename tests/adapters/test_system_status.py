@@ -192,6 +192,22 @@ class TestSystemStatus():
         test_system_status.system_status.monitor_processes()
 
 
+    def test_find_processes_matches_cmdline(self, test_system_status):
+        """Test that finding processes by name can match against the command line also."""
+        num_mocked_processes = 3
+        with patch('psutil.Process', spec=True) as mocked_process:
+            mocked_process.name.side_effect = ['python', 'python', 'tornado']
+            mocked_process.cmdline.side_effect = [
+                ['python', 'dummy.py'], ['python', 'test.py'], ['tornado', 'python']
+            ]
+            mocked_process.status.side_effect = [psutil.STATUS_RUNNING] * num_mocked_processes
+
+            with patch('psutil.process_iter', spec=True) as mocked_iter:
+                mocked_iter.return_value = [mocked_process] * num_mocked_processes
+                current_processes = test_system_status.system_status.find_processes_by_name('python')
+
+        assert len(current_processes) == num_mocked_processes
+
     def test_monitor_process_cpu_affinity(self, test_system_status):
         """Test that monitoring processes can cope with psutil reporting CPU affinity or not."""
 
