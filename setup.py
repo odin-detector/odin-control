@@ -9,8 +9,17 @@ install_requires = [
     'psutil>=5.0',
 ]
 
+extras_require = {
+    'test': [
+        'pytest', 'pytest-cov', 'requests', 'tox'
+    ]
+}
+
 if sys.version_info[0] == 2:
     install_requires.append('futures')
+    extras_require['test'].append('mock')
+else:
+    extras_require['test'].append('pytest-asyncio')
 
 setup(
     name="odin",
@@ -28,4 +37,5 @@ setup(
         ],
     },
     install_requires=install_requires,
+    extras_require=extras_require,
 )
