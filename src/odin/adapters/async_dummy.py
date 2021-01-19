@@ -69,7 +69,7 @@ class AsyncDummyAdapter(AsyncApiAdapter):
             await asyncio.sleep(self.async_sleep_duration)
         logging.info("In AsyncApiAdapter GET after sleep")
 
-        return ApiAdapterResponse({'response': "GET on path {}".format(path)})
+        return ApiAdapterResponse({'response': "AsyncDummyAdapter: GET on path {}".format(path)})
 
     @request_types('application/json', 'application/vnd.odin-native')
     @response_types('application/json', default='application/json')
@@ -94,7 +94,7 @@ class AsyncDummyAdapter(AsyncApiAdapter):
         logging.info("In AsyncApiAdapter PUT after sleep")
 
         body = decode_request_body(request)
-        response = {'response': 'AsyncApiAdapter: PUT on path {}'.format(path)}
+        response = {'response': 'AsyncDummyAdapter: PUT on path {}'.format(path)}
         response.update(body)
         content_type = 'application/json'
         status_code = 200
