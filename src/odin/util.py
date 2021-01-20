@@ -54,3 +54,38 @@ def convert_unicode_to_string(obj):
         return obj.encode("utf-8")
     # Obj is none of the above, just return it
     return obj
+
+
+if PY3:
+    import asyncio
+
+    def wrap_result(result, is_async=True):
+        """
+        Conditionally wrap a result in an aysncio Future if being used in async code.
+
+        This is to allow common functions for e.g. request validation, to be used in both
+        async and sync code across python variants.
+
+        param is_async: optional flag for if desired outcome is a result wrapped in a future
+
+        :return: either the result or a Future wrapping the result
+        """
+        if is_async:
+            f = asyncio.Future()
+            f.set_result(result)
+            return f
+        else:
+            return result
+else:
+    def wrap_result(result, is_async=True):
+        """
+        Conditionally wrap a result in an aysncio Future if being used in async code.
+
+        This is to allow common functions for e.g. request validation, to be used in both
+        async and sync code across python variants.
+
+        param is_async: optional flag for if desired outcome is a result wrapped in a future
+
+        :return: for this python 2 implementation, always returns just the result
+        """
+        return result
