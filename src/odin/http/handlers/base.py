@@ -9,6 +9,7 @@ Tim Nicholls, STFC Detector Systems Software Group.
 import tornado.web
 
 from odin.adapters.adapter import ApiAdapterResponse
+from odin.util import wrap_result
 API_VERSION = 0.1
 
 
@@ -32,12 +33,12 @@ def validate_api_request(required_version):
                 _self.respond(ApiAdapterResponse(
                     "API version {} is not supported".format(version),
                     status_code=400))
-                return None
+                return wrap_result(None)
             if not _self.route.has_adapter(subsystem):
                 _self.respond(ApiAdapterResponse(
                     "No API adapter registered for subsystem {}".format(subsystem),
                     status_code=400))
-                return None
+                return wrap_result(None)
             return func(_self, subsystem, *rem_args, **kwargs)
         return wrapper
     return decorator
