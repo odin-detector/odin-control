@@ -308,7 +308,8 @@ class ProxyAdapter(ApiAdapter):
         # Update the target specified in the path, or all targets if none specified
 
         try:
-            body = decode_request_body(request)  # ensure request body is JSON. Will throw a TypeError if not
+            # Ensure request body is JSON. Will throw a TypeError if not
+            body = decode_request_body(request)
             if "/" in path:
                 path_elem, target_path = path.split('/', 1)
             else:

@@ -7,6 +7,9 @@ from tornado.escape import json_decode
 
 PY3 = sys.version_info >= (3,)
 
+if PY3:
+    unicode = str
+
 
 def decode_request_body(request):
     """Extract the body from a request.

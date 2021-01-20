@@ -19,6 +19,7 @@ from odin.util import decode_request_body
 asyncio_get_running_loop = asyncio.get_running_loop \
     if sys.version_info >= (3, 7) else asyncio.get_event_loop
 
+
 class AsyncDummyAdapter(AsyncApiAdapter):
     """Dummy asynchronous adatper class for the ODIN server.
 
