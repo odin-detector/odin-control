@@ -5,18 +5,24 @@ import pytest
 
 if sys.version_info[0] == 3:  # pragma: no cover
     from unittest.mock import Mock
+    import asyncio
+    async_allowed = True
 else:                         # pragma: no cover
     from mock import Mock
+    async_allowed = False
 
-from odin.http.routes.api import ApiRoute, ApiHandler, ApiError, API_VERSION
+from odin.http.handlers.base import BaseApiHandler, API_VERSION, ApiError, validate_api_request
+from odin.http.routes.api import ApiHandler
+from odin.adapters.adapter import ApiAdapterResponse
 from odin.config.parser import AdapterConfig
+from odin.util import wrap_result
 
 
-class ApiTestHandler(object):
+class TestHandler(object):
     """Class to create appropriate mocked objects to allow the ApiHandler to be tested."""
 
-    def __init__(self):
-        """Initialise the ApiTestHandler."""
+    def __init__(self, handler_cls, async_adapter=async_allowed):
+        """Initialise the TestHandler."""
         # Initialise attribute to receive output of patched write() method
         self.write_data = None
 
@@ -39,20 +45,25 @@ class ApiTestHandler(object):
         # Create a mock route and a default adapter for a subsystem
         self.route = Mock()
         self.subsystem = 'default'
+        self.path = 'default/path'
         self.route.adapters = {}
         self.route.adapter = lambda subsystem: self.route.adapters[subsystem]
         self.route.has_adapter = lambda subsystem: subsystem in self.route.adapters
 
-        self.route.adapters[self.subsystem] = Mock()
-        self.route.adapters[self.subsystem].get.return_value = self.json_dict_response
-        self.route.adapters[self.subsystem].put.return_value = self.json_dict_response
-        self.route.adapters[self.subsystem].delete.return_value = self.json_dict_response
+        # Create a mock API adapter that returns appropriate responses
+        api_adapter_mock = Mock()
+        api_adapter_mock.is_async = async_adapter
+        api_adapter_mock.get.return_value = wrap_result(self.json_dict_response, async_adapter)
+        api_adapter_mock.put.return_value = wrap_result(self.json_dict_response, async_adapter)
+        api_adapter_mock.delete.return_value = wrap_result(self.json_dict_response, async_adapter)
+        self.route.adapters[self.subsystem] = api_adapter_mock
 
         # Create the handler and mock its write method with the local version
-        self.handler = ApiHandler(self.app, self.request, route=self.route)
+        self.handler = handler_cls(self.app, self.request, route=self.route)
         self.handler.write = self.mock_write
+        self.handler.dummy_get = self.dummy_get
 
-        self.path = 'default/path'
+        self.respond = self.handler.respond
 
     def mock_write(self, chunk):
         """Mock write function to be used with the handler."""
@@ -60,9 +71,37 @@ class ApiTestHandler(object):
             self.write_data = json.dumps(chunk)
         else:
             self.write_data = chunk
-            
-@pytest.fixture(scope="class")
-def test_api_handler():
-    """Simple test fixture that creates a test API handler.""" 
-    test_api_handler = ApiTestHandler()
+
+    @validate_api_request(API_VERSION)
+    def dummy_get(self, subsystem, path=''):
+        """Dummy HTTP GET verb method to allow the request validation decorator to be tested."""
+        response = ApiAdapterResponse(
+            {'subsystem': subsystem, 'path': path },
+            content_type='application/json',
+            status_code=200
+        )
+        self.respond(response)
+
+if async_allowed:
+    fixture_params = [True, False]
+    fixture_ids = ["async", "sync"]
+else:
+    fixture_params = [False]
+    fixture_ids = ["sync"]
+
+@pytest.fixture(scope="class", params=fixture_params, ids=fixture_ids)
+def test_api_handler(request):
+    """
+    Parameterised test fixture for testing the APIHandler class.
+
+    The fixture parameters and id lists are set depending on whether async code is
+    allowed on the current platform (e.g. python 2 vs 3).
+    """
+    test_api_handler = TestHandler(ApiHandler, request.param)
     yield test_api_handler
+
+@pytest.fixture(scope="class")
+def test_base_handler():
+    """Test fixture for testing the BaseHandler class."""
+    test_base_handler = TestHandler(BaseApiHandler)
+    yield test_base_handler
