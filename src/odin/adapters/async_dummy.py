@@ -8,6 +8,7 @@ Tim Nicholls, STFC Detector Systems Software Group.
 """
 import asyncio
 import logging
+import sys
 import time
 import concurrent.futures
 
@@ -15,6 +16,8 @@ from odin.adapters.adapter import ApiAdapterResponse, request_types, response_ty
 from odin.adapters.async_adapter import AsyncApiAdapter
 from odin.util import decode_request_body
 
+asyncio_get_running_loop = asyncio.get_running_loop \
+    if sys.version_info >= (3, 7) else asyncio.get_event_loop
 
 class AsyncDummyAdapter(AsyncApiAdapter):
     """Dummy asynchronous adatper class for the ODIN server.
@@ -63,7 +66,7 @@ class AsyncDummyAdapter(AsyncApiAdapter):
         logging.info("In AsyncApiAdapter GET before sleep")
 
         if self.wrap_sync_sleep:
-            loop = asyncio.get_running_loop()
+            loop = asyncio_get_running_loop()
             await loop.run_in_executor(self.executor, self.sync_task)
         else:
             await asyncio.sleep(self.async_sleep_duration)
@@ -87,7 +90,7 @@ class AsyncDummyAdapter(AsyncApiAdapter):
         """
         logging.info("In AsyncApiAdapter PUT before sleep")
         if self.wrap_sync_sleep:
-            loop = asyncio.get_running_loop()
+            loop = asyncio_get_running_loop()
             await loop.run_in_executor(self.executor, self.sync_task)
         else:
             await asyncio.sleep(self.async_sleep_duration)
