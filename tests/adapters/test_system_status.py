@@ -29,7 +29,7 @@ class SystemStatusTestFixture():
             self.lo_iface='lo0'
         else:
             self.lo_iface='lo'
-            
+
         self.interfaces="{}, bad".format(self.lo_iface)
         self.disks = "/, /bad"
         self.processes = "python, proc2"
@@ -139,7 +139,7 @@ class TestSystemStatus():
         Singleton._instances = {}
         temp_system_status = SystemStatus(
             interfaces=test_system_status.interfaces,
-            disks=test_system_status.disks, 
+            disks=test_system_status.disks,
             processes=test_system_status.processes,
         )
         assert pytest.approx(1.0) == temp_system_status._update_interval
@@ -243,15 +243,25 @@ class TestSystemStatus():
         with patch('psutil.Process.memory_info', spec=True) as mocked:
             mocked.side_effect = psutil.AccessDenied('')
             test_system_status.system_status.monitor_processes()
-        
+
     def test_find_processes_traps_accessdenied(self, test_system_status):
         """Test that finding processes can cope with being denied access to process info."""
         with patch('psutil.Process.cpu_percent', spec=True) as mocked:
             mocked.side_effect = psutil.AccessDenied('')
-            processes = test_system_status.system_status.find_processes('python') 
+            processes = test_system_status.system_status.find_processes('python')
             # If all processes are AccessDenied then the returned list will be empty
             assert not processes
-        
+
+    @pytest.mark.parametrize(
+        "test_exc", [psutil.AccessDenied, psutil.ZombieProcess, psutil.NoSuchProcess]
+    )
+    def test_find_processes_by_name_traps_exceptions(self, test_system_status, test_exc):
+        """Test the finding processes by name traps various psutil exception cases."""
+        with patch('psutil.Process.name', spec=True) as mocked:
+            mocked.side_effect = test_exc('')
+            processes = test_system_status.system_status.find_processes_by_name('python')
+            # If all process lookups result in an exception, the returned list will be empty
+            assert not processes
 
 class SystemStatusAdapterTestFixture():
     """Container class used in fixtures for testing SystemStatusAdapter."""
@@ -300,7 +310,7 @@ class TestSystemStatusAdapter():
 
         response = test_sysstatus_adapter.adapter.put(
             test_sysstatus_adapter.path, test_sysstatus_adapter.request)
-        
+
         assert response.data == expected_response
         assert response.status_code == 200
 
