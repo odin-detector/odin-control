@@ -208,18 +208,29 @@ class TestSystemStatus():
 
         assert len(current_processes) == num_mocked_processes
 
-    def test_monitor_process_cpu_affinity(self, test_system_status):
-        """Test that monitoring processes can cope with psutil reporting CPU affinity or not."""
+    def test_monitor_process_cpu_affinity(self, test_system_status, monkeypatch):
+        """Test that monitoring processes reports CPU affinity where implemented."""
 
-        test_system_status.stash_proc = test_system_status.system_status._processes['python'][0]
+        cpu_affinity_vals = [1, 2, 3]
 
-        setattr(test_system_status.system_status._processes['python'][0], 'cpu_affinity', lambda: [1,2,3])
+        monkeypatch.setattr(
+            psutil.Process, 'cpu_affinity', lambda _: cpu_affinity_vals, raising=False
+        )
         test_system_status.system_status.monitor_processes()
 
-        delattr(test_system_status.system_status._processes['python'][0], 'cpu_affinity')
+        for (pid, status) in test_system_status.system_status._process_status['python'].items():
+            assert status['cpu_affinity'] == cpu_affinity_vals
+
+    def test_monitor_process_no_cpu_affinity(self, test_system_status, monkeypatch):
+        """Test that monitoring processes handles systems without CPU affinity support."""
+        try:
+            monkeypatch.delattr(psutil.Process, 'cpu_affinity')
+        except AttributeError:
+            pass
         test_system_status.system_status.monitor_processes()
 
-        test_system_status.system_status._processes['python'][0] = test_system_status.stash_proc
+        for (pid, status) in test_system_status.system_status._process_status['python'].items():
+            assert status['cpu_affinity'] is None
 
     def test_monitor_process_traps_nosuchprocess(self, test_system_status):
         """Test that monitoring processes can cope with processing disappearing."""
