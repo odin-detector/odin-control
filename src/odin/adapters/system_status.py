@@ -294,7 +294,6 @@ class SystemStatus(with_metaclass(Singleton, object)):
 
             num_processes_old = len(self._processes[process_name])
             self._processes[process_name] = self.find_processes(process_name)
-
             if len(self._processes[process_name]) != num_processes_old:
                 self._log.debug(
                     "Number of processes named %s is now %d",
