@@ -3,11 +3,14 @@
 This module implements utility methods for Odin Server.
 """
 import sys
+from tornado import version_info
 from tornado.escape import json_decode
+from tornado.ioloop import IOLoop
 
 PY3 = sys.version_info >= (3,)
 
 if PY3:
+    import asyncio
     unicode = str
 
 
@@ -59,36 +62,36 @@ def convert_unicode_to_string(obj):
     return obj
 
 
-if PY3:
-    import asyncio
+def wrap_result(result, is_async=True):
+    """
+    Conditionally wrap a result in an aysncio Future if being used in async code on python 3.
 
-    def wrap_result(result, is_async=True):
-        """
-        Conditionally wrap a result in an aysncio Future if being used in async code.
+    This is to allow common functions for e.g. request validation, to be used in both
+    async and sync code across python variants.
 
-        This is to allow common functions for e.g. request validation, to be used in both
-        async and sync code across python variants.
+    param is_async: optional flag for if desired outcome is a result wrapped in a future
 
-        param is_async: optional flag for if desired outcome is a result wrapped in a future
-
-        :return: either the result or a Future wrapping the result
-        """
-        if is_async:
-            f = asyncio.Future()
-            f.set_result(result)
-            return f
-        else:
-            return result
-else:
-    def wrap_result(result, is_async=True):
-        """
-        Conditionally wrap a result in an aysncio Future if being used in async code.
-
-        This is to allow common functions for e.g. request validation, to be used in both
-        async and sync code across python variants.
-
-        param is_async: optional flag for if desired outcome is a result wrapped in a future
-
-        :return: for this python 2 implementation, always returns just the result
-        """
+    :return: either the result or a Future wrapping the result
+    """
+    if is_async and PY3:
+        f = asyncio.Future()
+        f.set_result(result)
+        return f
+    else:
         return result
+
+
+def run_in_executor(executor, func, *args):
+
+    if PY3:
+        try:
+            asyncio.get_event_loop()
+        except RuntimeError:
+            asyncio.set_event_loop(asyncio.new_event_loop())
+
+    if version_info[0] <= 4:
+        future = executor.submit(func, *args)
+    else:
+        future = IOLoop.current().run_in_executor(executor, func, *args)
+
+    return future
