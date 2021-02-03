@@ -7,6 +7,7 @@ from tornado import version_info
 
 if sys.version_info[0] == 3:  # pragma: no cover
     from unittest.mock import Mock
+    import asyncio
 else:                         # pragma: no cover
     from mock import Mock
 
@@ -69,8 +70,19 @@ class TestUtil():
                           }
         assert result == expected_result
 
-    def test_run_in_executor(self):
+    @pytest.mark.parametrize("is_async", [True, False], ids=["async", "sync"])
+    def test_wrap_result(self, is_async):
+        """Test that the wrap_result utility correctly wraps results in a future when needed."""
+        result = 321
+        wrapped_result = util.wrap_result(result, is_async)
+        if sys.version_info[0] == 3 and is_async:
+            assert isinstance(wrapped_result, asyncio.Future)
+            assert wrapped_result.result() == result
+        else:
+            assert wrapped_result == result
 
+    def test_run_in_executor(self):
+        """Test that the run_in_executor utility can correctly nest asynchronous tasks."""
         # Container for task results modified by inner functions
         task_result = {
             'count': 0,
