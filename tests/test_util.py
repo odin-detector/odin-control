@@ -3,6 +3,7 @@ import pytest
 import time
 import concurrent.futures
 import tornado.concurrent
+from tornado import version_info
 
 if sys.version_info[0] == 3:  # pragma: no cover
     from unittest.mock import Mock
@@ -92,14 +93,19 @@ class TestUtil():
         executor = concurrent.futures.ThreadPoolExecutor()
 
         num_loops = 10
-        future = util.run_in_executor(executor, outer_task, 10)
+        future = util.run_in_executor(executor, outer_task, num_loops)
 
         wait_count = 0
         while not task_result['inner_completed'] and wait_count < 100:
             time.sleep(0.01)
             wait_count += 1
 
-        assert isinstance(future, tornado.concurrent.Future)
+        if version_info[0] <= 4:
+            future_type = concurrent.futures.Future
+        else:
+            future_type = tornado.concurrent.Future
+
+        assert isinstance(future, future_type)
         assert task_result['inner_completed'] is True
         assert task_result['count'] == num_loops
         assert task_result['outer_completed'] is True
