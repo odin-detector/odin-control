@@ -2,9 +2,9 @@ import pytest
 import sys
 
 if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest.mock import Mock, patch
+    from unittest.mock import Mock, MagicMock, patch
 else:                         # pragma: no cover
-    from mock import Mock, patch
+    from mock import Mock, MagicMock, patch
 
 from odin.adapters.metadata_writer import MetadataWriterAdapter
 
@@ -98,6 +98,8 @@ class TestMetadataWriterAdapter():
     def test_metadata_write_metadata(self, test_metadata_adapter):
         # how we mocking out the file?
         with patch("odin.adapters.metadata_writer.h5py") as mock_h5py:
+            mock_file = MagicMock()
+            mock_h5py.File.return_value = mock_file
 
             test_metadata_adapter.put_path = "write"
 
@@ -109,4 +111,4 @@ class TestMetadataWriterAdapter():
                 test_metadata_adapter.adapter.metadata_writer.file_name, 'r+'
             )
 
-            # mock_h5py.File.create_group.assert_called_with('metadata')
+            mock_file.create_group.assert_called_with('metadata')
