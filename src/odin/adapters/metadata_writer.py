@@ -5,6 +5,7 @@ from odin.adapters.adapter import (ApiAdapter, ApiAdapterRequest, ApiAdapterResp
 from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
 from odin.util import decode_request_body
 from os import path
+from json.decoder import JSONDecodeError
 
 import h5py
 
@@ -24,7 +25,7 @@ class MetadataWriterAdapter(ApiAdapter):
         super(MetadataWriterAdapter, self).__init__(**kwargs)
 
         file_name = self.options.get(CONFIG_FILE_NAME, DEFAULT_FILE_NAME)
-        metadata = {'test': {"test_1": "One"}}
+        metadata = {}
         self.metadata_writer = MetadataWriter(file_name, metadata)
 
 
@@ -37,8 +38,13 @@ class MetadataWriterAdapter(ApiAdapter):
         :param request: Additional request parameters
         :return: The requested resource, or an error message and code if the request was invalid.
         """
-        response = self.metadata_writer.get(path, with_metadata)
-        status_code = self.metadata_writer.status_code
+        try:
+            response = self.metadata_writer.get(path, with_metadata)
+            status_code = 200
+        except ParameterTreeError as err:
+            response = {'error': str(err)}
+            status_code = 400
+
         return ApiAdapterResponse(response, content_type='application/json', status_code=status_code)
 
     @request_types("application/json", "application/vnd.odin-native")
@@ -50,10 +56,15 @@ class MetadataWriterAdapter(ApiAdapter):
         :param path: the URI path to the resource
         :param data: the data to PUT to the resource
         """
-        data = decode_request_body(request)
-        self.metadata_writer.set(path, data)
-        response = self.metadata_writer.get(path)
-        status_code = self.metadata_writer.status_code
+        try:
+            data = decode_request_body(request)
+            self.metadata_writer.set(path, data)
+            response = self.metadata_writer.get(path)
+            status_code = 200
+        except (ParameterTreeError, JSONDecodeError) as err:
+            response = {'error': str(err)}
+            status_code = 400
+
         return ApiAdapterResponse(response, content_type='application/json', status_code=status_code)
 
 
@@ -71,6 +82,10 @@ class MetadataWriter(object):
         self.status_message = ""
 
     def populate_param_tree(self):
+        """
+        Creates the required Parameter tree. Done in its own method as the tree may need rebuilding
+        when adding new nodes to the metadata
+        """
         self.param_tree = ParameterTree({
             "name": "Metadata Writer",
             "file": (lambda: self.file_name, self.set_file),
@@ -78,15 +93,6 @@ class MetadataWriter(object):
             "metadata": self.metadata,
             "write": (None, self.write_metadata)
         })
-
-    # @property
-    # def status_code(self):
-    #     """
-    #     Resets potential error code when accessed to avoid duplicate error codes being returned
-    #     """
-    #     code = self._status_code
-    #     self.status_code = 200
-    #     return code
 
     def get(self, path, with_metadata=False):
         """
@@ -102,28 +108,9 @@ class MetadataWriter(object):
 
     def set(self, path, data):
 
-        # logging.debug("PATH: %s", path)
-        if path.startswith("metadata"):
-            logging.debug("Writing to metadata tree")
-            try:
-                self.param_tree.set(path, data)
-            except ParameterTreeError:
-                logging.debug("Param Tree Error. Need to add to metadata tree")
-                path = path.split('/')[1:]
-                logging.debug(path)
-                for part_path in path:
-                    # extend data dict to have full path, for recurisve merge
-                    data = {part_path: data}
-                logging.debug(data)
-                met_dict = self.metadata.get('')
-                logging.debug("Metadata Dict: %s", met_dict)
-                new_met_dict = self.recursive_merge_dicts(met_dict, data)
-
-                logging.debug("New Tree: %s", new_met_dict)
-                self.metadata = ParameterTree(new_met_dict)
-                logging.debug("New Metadata ParamTree: %s", self.metadata.get(""))
-                self.populate_param_tree()
-                
+        if path.split("/")[0] == "metadata":
+            # modifying the metadata tree, special case required in case nodes are being added
+            self.set_metadata(path, data)
         else:
             self.param_tree.set(path, data)
 
@@ -142,21 +129,30 @@ class MetadataWriter(object):
         """
         self.dir = dir
 
-    # def set_metadata(self, metadata):
-    #     """
-    #     Modifies the metadata dictionary by merging the provided dictionary into it. Can handle
-    #     nested dictionaries if required.
-    #     """
+    def set_metadata(self, path, data):
+        """
+        Modifies the metadata tree by merging the provided dictionary into it. Can handle
+        nested dictionaries if required.
+        """
 
-    #     if not isinstance(metadata, dict):
-    #         self.status_code = 400
-    #         self.status_message = "Expected dict, got {}".format(metadata)
-    #         return
+        logging.debug("Writing to metadata tree")
+        try:
+            # try the standard way in case its just modifying existing nodes
+            self.param_tree.set(path, data)
+        except ParameterTreeError:
+            # param tree error here probably means trying to add new nodes to metadata tree
+            path = path.split('/')[1:]
+            logging.debug(path)
+            for part_path in reversed(path):
+                # extend data dict to have full path, for recurisve merge
+                data = {part_path: data}
+            met_dict = self.metadata.get('')
+            new_met_dict = self.recursive_merge_dicts(met_dict, data)
 
-    #     for key in metadata:
-    #         node = self.metadata.get(key, None)
-    #         new_data = metadata[key]
-    #         # self.metadata[key] = self.recursive_merge_dicts(node, new_data, key)
+            self.metadata = ParameterTree(new_met_dict)
+            logging.debug("New Metadata ParamTree: %s", self.metadata.get(""))
+            # gotta remake the entire tree cause it caches the metadata tree I think?
+            self.populate_param_tree()
 
     def recursive_merge_dicts(self, node, new_data):
         """
@@ -191,14 +187,12 @@ class MetadataWriter(object):
         except IOError as err:
 
             logging.error("Failed to open file: %s", err)
-            self.status_code = 400
-            self.status_message = "Failed to open h5 file"
             return
         try:
             metadata_group = hdf_file.create_group("metadata")
         except ValueError:
             metadata_group = hdf_file["metadata"]
-        self.add_metadata_to_group(self.metadata, metadata_group)
+        self.add_metadata_to_group(self.metadata.get(""), metadata_group)
 
         hdf_file.close()
 
