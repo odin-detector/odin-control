@@ -207,6 +207,8 @@ class ApiMethodDecoratorsTestFixture(object):
         self.response_type_json = 'application/json'
         self.response_data_json = {'response': 'JSON response'}
 
+        self.is_async = False
+
     @request_types('application/json', 'text/plain')
     @response_types('application/json', 'text/plain', default='application/json')
     def decorated_method(self, path, request):
