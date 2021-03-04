@@ -6,6 +6,7 @@ Tim Nicholls, STFC Application Engineering Group
 
 import logging
 
+from odin.util import wrap_result
 
 class ApiAdapter(object):
     """
@@ -202,9 +203,10 @@ def request_types(*oargs):
             # Validate the Content-Type header in the request against allowed types
             if 'Content-Type' in request.headers:
                 if request.headers['Content-Type'] not in oargs:
-                    return ApiAdapterResponse(
+                    response = ApiAdapterResponse(
                         'Request content type ({}) not supported'.format(
                             request.headers['Content-Type']), status_code=415)
+                    return wrap_result(response, _self.is_async)
             return func(_self, path, request)
         return wrapper
     return decorator
@@ -256,10 +258,10 @@ def response_types(*oargs, **okwargs):
                 # If it was not possible to resolve a response type or there was not default
                 # given, return an error code 406
                 if response_type is None:
-                    return ApiAdapterResponse(
+                    response = ApiAdapterResponse(
                         "Requested content types not supported", status_code=406
                     )
-
+                    return wrap_result(response, _self.is_async)
             else:
                 response_type = okwargs['default'] if 'default' in okwargs else 'text/plain'
                 request.headers['Accept'] = response_type
