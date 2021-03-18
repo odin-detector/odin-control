@@ -33,7 +33,8 @@ setup(
     package_dir={'': 'src'},
     entry_points={
         'console_scripts': [
-            'odin_server = odin.server:main',
+            'odin_server = odin.server:main_deprecate',
+            'odin_control = odin.server:main',
         ],
     },
     install_requires=install_requires,
