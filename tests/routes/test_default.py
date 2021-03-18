@@ -9,7 +9,7 @@ import re
 import pytest
 
 from odin.http.routes.default import DefaultRoute
-from tests.utils import LogCaptureFilter
+from tests.utils import log_message_seen
 
 class TestDefaultRoute():
     """Test DefaultRoute class."""
@@ -33,10 +33,5 @@ class TestDefaultRoute():
         def_route = DefaultRoute(path)
         assert path in def_route.default_handler_args['path']
 
-        msg_seen = False
-        for record in caplog.records:
-            if (record.levelno == logging.WARNING and
-                'Default handler static path does not exist' in record.getMessage()):
-                msg_seen = True
-
-        assert msg_seen
+        assert log_message_seen(caplog, logging.WARNING,
+            'Default handler static path does not exist')
