@@ -22,17 +22,17 @@ else:
     extras_require['test'].append('pytest-asyncio')
 
 setup(
-    name="odin",
+    name="odin_control",
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    description='ODIN detector server',
-    url='https://github.com/timcnicholls/odin',
+    description='ODIN detector control system',
+    url='https://github.com/odin-detector/odin-control',
     author='Tim Nicholls',
     author_email='tim.nicholls@stfc.ac.uk',
     packages=find_packages('src'),
-    package_dir={'':'src'},
+    package_dir={'': 'src'},
     entry_points={
-        'console_scripts' : [
+        'console_scripts': [
             'odin_server = odin.server:main',
         ],
     },
