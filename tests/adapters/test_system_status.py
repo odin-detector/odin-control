@@ -20,31 +20,83 @@ from odin.adapters.parameter_tree import ParameterTreeError
 
 from tests.utils import log_message_seen
 
+
 class SystemStatusTestFixture():
     """Container class used in fixtures for testing the SystemStatus class."""
 
-    def __init__(self):
+    def __init__(self, scoped_patcher):
         """Initialise a SystemStatus instance with an appropriate configuration."""
         if platform.system() == 'Darwin':
-            self.lo_iface='lo0'
+            self.lo_iface = 'lo0'
         else:
-            self.lo_iface='lo'
-            
-        self.interfaces="{}, bad".format(self.lo_iface)
+            self.lo_iface = 'lo'
+
+        self.interfaces = "{}, bad".format(self.lo_iface)
         self.disks = "/, /bad"
-        self.processes = "python, proc2"
         self.rate = 0.001
+
+        self.mocked_proc_name = "mock_proc"
+        self.processes = ", ".join([self.mocked_proc_name, "proc2"])
+
+        self.mocked_procs = []
+        self.parent_process = 1
+        self.child_process = 0
+        self.cpu_affinity_vals = [1, 2, 3]
+
+        for idx, (name, cmdline) in enumerate(
+            [
+                (self.mocked_proc_name, "one two"),
+                (self.mocked_proc_name, "four five"),
+                ("bash", self.mocked_proc_name + " etc"),
+            ]
+        ):
+            proc = Mock()
+            proc.pid = 1000 + idx
+            proc.name.return_value = name
+            proc.cmdline.return_value = cmdline.split()
+            proc.cpu_percent.return_value = 1.23
+            if idx == self.parent_process:
+                proc.children.return_value = [self.mocked_procs[self.child_process]]
+            else:
+                proc.children.return_value = None
+            if idx > 0:
+                proc.cpu_affinity.return_value = self.cpu_affinity_vals
+            else:
+                delattr(proc, 'cpu_affinity')
+            proc.status.return_value = psutil.STATUS_RUNNING
+
+            self.mocked_procs.append(proc)
+
+        self.num_mocked_procs = len(self.mocked_procs)
+
+        def mock_process_iter(attrs=None, ad_value=None):
+
+            procs_to_yield = min(self.num_mocked_procs, len(self.mocked_procs))
+
+            for proc in self.mocked_procs[:procs_to_yield]:
+                yield proc
+
+        scoped_patcher.setattr(psutil, "process_iter", mock_process_iter)
 
         self.system_status = SystemStatus(
             interfaces=self.interfaces, disks=self.disks, processes=self.processes, rate=self.rate)
 
 
-@pytest.fixture(scope="class")
+#@pytest.fixture(scope="class")
+@pytest.fixture()
 def test_system_status():
     """Fixture used in SystemStatus test cases."""
-    test_system_status = SystemStatusTestFixture()
+
+    # Create a class-scoped monkey patcher to be used in the main fixture
+    from _pytest.monkeypatch import MonkeyPatch
+    scoped_patcher = MonkeyPatch()
+
+    # Create the test fixture and yield to the tests
+    test_system_status = SystemStatusTestFixture(scoped_patcher)
     yield test_system_status
 
+    # Undo the patcher
+    scoped_patcher.undo()
 
 class TestSystemStatus():
     """Test cases for the SystemStatus class."""
@@ -96,6 +148,7 @@ class TestSystemStatus():
         assert type(result) is dict
 
     def test_system_status_monitor(self, test_system_status):
+        test_system_status.num_mocked_procs = 2
         """Test that monitoring the status of the system does not raise an exception."""
         test_system_status.system_status.monitor()
 
@@ -139,7 +192,7 @@ class TestSystemStatus():
         Singleton._instances = {}
         temp_system_status = SystemStatus(
             interfaces=test_system_status.interfaces,
-            disks=test_system_status.disks, 
+            disks=test_system_status.disks,
             processes=test_system_status.processes,
         )
         assert pytest.approx(1.0) == temp_system_status._update_interval
@@ -148,83 +201,93 @@ class TestSystemStatus():
 
     def test_num_processes_change(self, test_system_status, caplog):
         """Test that monitoring processes correctly detects a change in the number of processes."""
-        test_system_status.stash_method = test_system_status.system_status.find_processes
-        test_system_status.stash_processes = dict(test_system_status.system_status._processes)
-        test_system_status.system_status._processes = {}
-        test_system_status.system_status._processes['python'] = \
-            test_system_status.stash_processes['python']
 
-        current_processes = test_system_status.system_status.find_processes('python')
-        patched_processes = list(current_processes)
-        patched_processes.append(current_processes[0])
+        # Ensure that the process monitoring has run once
+        test_system_status.system_status.monitor_processes()
 
-
-        test_system_status.system_status.find_processes = Mock(return_value = patched_processes)
-
+        # Reduce the number of processes to find and monitor again -
+        test_system_status.num_mocked_procs -= 1
         logging.getLogger().setLevel(logging.DEBUG)
         test_system_status.system_status.monitor_processes()
+
         # monitor_process will detect change in number of processes and log a debug message
-
         assert log_message_seen(
-            caplog, logging.DEBUG, "Number of processes named python is now")
-
-        test_system_status.system_status.find_processes = test_system_status.stash_method
-        test_system_status.system_status._processes = test_system_status.stash_processes
-
+            caplog, logging.DEBUG, "Number of processes named mock_proc is now")
 
     def test_find_processes_handles_children(self, test_system_status):
         """Test that process monitoring correctly handles child processes."""
-        test_system_status.stash_method = test_system_status.system_status.find_processes_by_name
-        test_system_status.stash_processes = dict(test_system_status.system_status._processes)
+        mocked_procs = test_system_status.system_status._processes[
+            test_system_status.mocked_proc_name]
+        assert mocked_procs[test_system_status.parent_process] \
+            == mocked_procs[test_system_status.child_process]
 
-        current_processes = test_system_status.system_status.find_processes_by_name('python')
-        patched_processes = list(current_processes)
-        patched_processes[0].children = Mock(return_value = [patched_processes[-1]])
+    def test_find_processes_matches_cmdline(self, test_system_status):
+        """Test that finding processes by name can match against the command line also."""
+        num_procs_found = len(test_system_status.system_status.find_processes_by_name(
+            test_system_status.mocked_proc_name
+        ))
+        assert num_procs_found == test_system_status.num_mocked_procs
 
-        test_system_status.system_status.find_processes_by_name = Mock(
-            return_value = patched_processes)
+    def test_monitor_process_cpu_affinity(self, test_system_status, monkeypatch):
+        """Test that monitoring processes reports CPU affinity where implemented."""
 
         test_system_status.system_status.monitor_processes()
+        cpu_affinity_vals = [status['cpu_affinity'] for status in
+            test_system_status.system_status._process_status[
+                test_system_status.mocked_proc_name
+            ].values()
+        ]
+        assert test_system_status.cpu_affinity_vals in cpu_affinity_vals
 
-        test_system_status.system_status.find_processes_by_name = test_system_status.stash_method
-        test_system_status.system_status._processes = test_system_status.stash_processes
-
+    def test_monitor_process_no_cpu_affinity(self, test_system_status, monkeypatch):
+        """Test that monitoring processes handles systems without CPU affinity support."""
+        try:
+            monkeypatch.delattr(psutil.Process, 'cpu_affinity')
+        except AttributeError:
+            pass
         test_system_status.system_status.monitor_processes()
 
-
-    def test_monitor_process_cpu_affinity(self, test_system_status):
-        """Test that monitoring processes can cope with psutil reporting CPU affinity or not."""
-
-        test_system_status.stash_proc = test_system_status.system_status._processes['python'][0]
-
-        setattr(test_system_status.system_status._processes['python'][0], 'cpu_affinity', lambda: [1,2,3])
         test_system_status.system_status.monitor_processes()
-
-        delattr(test_system_status.system_status._processes['python'][0], 'cpu_affinity')
-        test_system_status.system_status.monitor_processes()
-
-        test_system_status.system_status._processes['python'][0] = test_system_status.stash_proc
+        cpu_affinity_vals = [status['cpu_affinity'] for status in
+            test_system_status.system_status._process_status[
+                test_system_status.mocked_proc_name
+            ].values()
+        ]
+        assert None in cpu_affinity_vals
 
     def test_monitor_process_traps_nosuchprocess(self, test_system_status):
         """Test that monitoring processes can cope with processing disappearing."""
-        with patch('psutil.Process.memory_info', spec=True) as mocked:
-            mocked.side_effect = psutil.NoSuchProcess('')
-            test_system_status.system_status.monitor_processes()
+        test_system_status.mocked_procs[0].memory_info.side_effect = psutil.NoSuchProcess('')
+        test_system_status.system_status.monitor_processes()
 
     def test_monitor_process_traps_accessdenied(self, test_system_status):
         """Test that monitoring processes can cope with being denied access to process info."""
-        with patch('psutil.Process.memory_info', spec=True) as mocked:
-            mocked.side_effect = psutil.AccessDenied('')
-            test_system_status.system_status.monitor_processes()
-        
+        test_system_status.mocked_procs[0].memory_info.side_effect = psutil.AccessDenied('')
+        test_system_status.system_status.monitor_processes()
+
     def test_find_processes_traps_accessdenied(self, test_system_status):
         """Test that finding processes can cope with being denied access to process info."""
-        with patch('psutil.Process.cpu_percent', spec=True) as mocked:
-            mocked.side_effect = psutil.AccessDenied('')
-            processes = test_system_status.system_status.find_processes('python') 
-            # If all processes are AccessDenied then the returned list will be empty
-            assert not processes
-        
+        for proc in test_system_status.mocked_procs:
+            proc.cpu_percent.side_effect = psutil.AccessDenied('')
+        processes = test_system_status.system_status.find_processes(
+            test_system_status.mocked_proc_name
+        )
+        # If all processes are AccessDenied then the returned list will be empty
+        assert not processes
+
+    @pytest.mark.parametrize(
+        "test_exc", [psutil.AccessDenied, psutil.ZombieProcess, psutil.NoSuchProcess]
+    )
+    def test_find_processes_by_name_traps_exceptions(self, test_system_status, test_exc):
+        """Test the finding processes by name traps various psutil exception cases."""
+        for proc in test_system_status.mocked_procs:
+            proc.name.side_effect = test_exc('')
+        processes = test_system_status.system_status.find_processes_by_name(
+            test_system_status.mocked_proc_name
+        )
+        # If all process lookups result in an exception, the returned list will be empty
+        assert not processes
+
 
 class SystemStatusAdapterTestFixture():
     """Container class used in fixtures for testing SystemStatusAdapter."""
@@ -242,6 +305,7 @@ def test_sysstatus_adapter():
     """Fixture used in testing the SystemStatusAdapter class."""
     test_sysstatus_adapter = SystemStatusAdapterTestFixture()
     yield test_sysstatus_adapter
+
 
 class TestSystemStatusAdapter():
     """Test cases for the SystemStatusAdapter class."""
@@ -273,7 +337,7 @@ class TestSystemStatusAdapter():
 
         response = test_sysstatus_adapter.adapter.put(
             test_sysstatus_adapter.path, test_sysstatus_adapter.request)
-        
+
         assert response.data == expected_response
         assert response.status_code == 200
 
