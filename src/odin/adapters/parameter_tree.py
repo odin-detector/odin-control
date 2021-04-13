@@ -180,7 +180,7 @@ class ParameterTree(object):
 
     METADATA_FIELDS = ["name", "description"]
 
-    def __init__(self, tree):
+    def __init__(self, tree, mutable=False):
         """Initialise the ParameterTree object.
 
         This constructor recursively initialises the ParameterTree object, based on the parameter
@@ -212,6 +212,8 @@ class ParameterTree(object):
 
         # Recursively check and initialise the tree
         self._tree = self.__recursive_build_tree(tree)
+        # Flag, if set to true, allows nodes to be replaced and new nodes created
+        self.mutable = mutable
 
     @property
     def callbacks(self):
@@ -321,23 +323,23 @@ class ParameterTree(object):
         else:
             merge_parent[int(levels[-1])] = merged
 
-    def add_callback(self, path, callback):
-        """Add a callback to a given path in the tree - DEPRECATED.
+    # def add_callback(self, path, callback):
+    #     """Add a callback to a given path in the tree - DEPRECATED.
 
-        This now deprecated method adds a callback to the specified path in the
-        tree. Originally intended to allow set() calls to update values in the
-        underlying object or device represented by the tree, this has been
-        replaced by the symmetric read/write ParameterAccessor mechanism. Its
-        remaining function could be to allow side-effects during set() calls.
+    #     This now deprecated method adds a callback to the specified path in the
+    #     tree. Originally intended to allow set() calls to update values in the
+    #     underlying object or device represented by the tree, this has been
+    #     replaced by the symmetric read/write ParameterAccessor mechanism. Its
+    #     remaining function could be to allow side-effects during set() calls.
 
-        :param path: path to add callback for
-        :param callback: method to be called when the appropriate set() call is made
-        """
-        warnings.warn(
-            "Callbacks in parameter trees are deprecated, use parameter accessors instead",
-            DeprecationWarning
-        )
-        self._callbacks.append([path, callback])
+    #     :param path: path to add callback for
+    #     :param callback: method to be called when the appropriate set() call is made
+    #     """
+    #     warnings.warn(
+    #         "Callbacks in parameter trees are deprecated, use parameter accessors instead",
+    #         DeprecationWarning
+    #     )
+    #     self._callbacks.append([path, callback])
 
     def __recursive_build_tree(self, node, path=''):
         """Recursively build and expand out a tree or node.
@@ -452,7 +454,7 @@ class ParameterTree(object):
 
         :param node: tree node to populate and return
         :param new_data: dict of new data to be merged in at this path in the tree
-        :param cur_path: current oath in the tree
+        :param cur_path: current path in the tree
         :returns: the update node at this point in the tree
         """
         # Recurse down tree if this is a branch node
@@ -481,7 +483,7 @@ class ParameterTree(object):
             node.set(new_data)
         else:
             # Validate type of new node matches existing
-            if type(node) is not type(new_data):
+            if not self.mutable and type(node) is not type(new_data):  # this mutable flags feels a bit like a sledgehammer
                 raise ParameterTreeError('Type mismatch updating {}: got {} expected {}'.format(
                     cur_path[:-1], type(new_data).__name__, type(node).__name__
                 ))

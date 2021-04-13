@@ -6,6 +6,7 @@ Tim Nicholls, STFC Application Engingeering
 from copy import deepcopy
 
 import pytest
+import logging  # dont leave this here
 
 from odin.adapters.parameter_tree import ParameterAccessor, ParameterTree, ParameterTreeError
 
@@ -247,13 +248,13 @@ class ParameterTreeTestFixture(object):
         }
         self.nested_tree = ParameterTree(self.nested_dict)
 
-        self.callback_tree = deepcopy(self.nested_tree)
-        self.callback_tree.add_callback('branch/', self.branch_callback)
+        # self.callback_tree = deepcopy(self.nested_tree)
+        # self.callback_tree.add_callback('branch/', self.branch_callback)
 
-        self.branch_callback_count = 0
+        # self.branch_callback_count = 0
 
         self.complex_tree_branch = ParameterTree(deepcopy(self.nested_dict))
-        self.complex_tree_branch.add_callback('', self.branch_callback)
+        # self.complex_tree_branch.add_callback('', self.branch_callback)
 
         self.complex_tree = ParameterTree({
             'intParam': self.int_value,
@@ -337,36 +338,36 @@ class TestParameterTree():
         branch_vals = test_param_tree.nested_tree.get('branch/')
         assert branch_vals['branch'] == test_param_tree.nested_dict['branch']
 
-    def test_callback_modifies_branch_value(self, test_param_tree):
-        """Test that the modifying a branch below a callback does change the branch."""
-        branch_data = deepcopy(test_param_tree.nested_dict['branch'])
-        branch_data['branchIntParam'] = 90210
+    # def test_callback_modifies_branch_value(self, test_param_tree):
+    #     """Test that the modifying a branch below a callback does change the branch."""
+    #     branch_data = deepcopy(test_param_tree.nested_dict['branch'])
+    #     branch_data['branchIntParam'] = 90210
 
-        test_param_tree.callback_tree.set('branch', branch_data)
+    #     test_param_tree.callback_tree.set('branch', branch_data)
 
-        modified_branch_vals = test_param_tree.callback_tree.get('branch')
-        assert modified_branch_vals['branch'] == branch_data
-        assert test_param_tree.branch_callback_count == len(branch_data)
+    #     modified_branch_vals = test_param_tree.callback_tree.get('branch')
+    #     assert modified_branch_vals['branch'] == branch_data
+    #     assert test_param_tree.branch_callback_count == len(branch_data)
 
-    def test_callback_modifies_single_branch_value(self, test_param_tree):
-        """Test that modifying a single branch value below a callback works correctly."""
-        int_param = 22603
-        test_param_tree.callback_tree.set('branch/branchIntParam', int_param)
+    # def test_callback_modifies_single_branch_value(self, test_param_tree):
+    #     """Test that modifying a single branch value below a callback works correctly."""
+    #     int_param = 22603
+    #     test_param_tree.callback_tree.set('branch/branchIntParam', int_param)
 
-        val = test_param_tree.callback_tree.get('branch/branchIntParam')
-        assert val['branchIntParam'] == int_param
+    #     val = test_param_tree.callback_tree.get('branch/branchIntParam')
+    #     assert val['branchIntParam'] == int_param
 
-    def test_callback_with_extra_branch_paths(self, test_param_tree):
-        """
-        Test that modifiying a branch in a callback tree with extra parameters raises an error.
-        """
-        branch_data = deepcopy(test_param_tree.nested_dict['branch'])
-        branch_data['extraParam'] = 'oops'
+    # def test_callback_with_extra_branch_paths(self, test_param_tree):
+    #     """
+    #     Test that modifiying a branch in a callback tree with extra parameters raises an error.
+    #     """
+    #     branch_data = deepcopy(test_param_tree.nested_dict['branch'])
+    #     branch_data['extraParam'] = 'oops'
 
-        with pytest.raises(ParameterTreeError) as excinfo:
-            test_param_tree.callback_tree.set('branch', branch_data)
+    #     with pytest.raises(ParameterTreeError) as excinfo:
+    #         test_param_tree.callback_tree.set('branch', branch_data)
 
-        assert 'Invalid path' in str(excinfo.value)
+    #     assert 'Invalid path' in str(excinfo.value)
 
     def test_complex_tree_calls_leaf_nodes(self, test_param_tree):
         """
@@ -458,16 +459,16 @@ class TestParameterTree():
     def test_list_tree_set_from_root(self, test_param_tree):
         """Test that it is possible to set a list tree from its root."""
         tree_data = {
-    	    'main' : [
+            'main' : [
                 {
                     'intParam': 0,
                     'floatParam': 0.00,
                     'boolParam': False,
                     'strParam':  "test",
                 },
-		        [1,2,3,4]
+                [1,2,3,4]
             ]
-	    }
+        }
 
         test_param_tree.list_tree.set("",tree_data)
         assert test_param_tree.list_tree.get("main") == tree_data
@@ -794,3 +795,110 @@ class TestParameterTreeMetadata():
         assert "{} is above the maximum value {} for {}".format(
                 high_value, test_tree_metadata.int_rw_param_metadata["max"], 
                 "intCallableRwParam") in str(excinfo.value)
+
+
+class ParameterTreeMutableTestFixture():
+
+    def __init__(self):
+        # param tree thats set to mutable, with some nodes i guess?
+        # make sure to test the different types of node being added/overwritten (inc param-accessor)
+        self.read_value = 64
+        self.write_value = "test"
+
+        self.param_tree_dict = {
+            'extra': 'wibble',
+            'bonus': 'win',
+            'nest': {
+                'double_nest': {
+                    'nested_val': 125,
+                    'dont_touch': "let me stay!",
+                    'write': (self.get_write, self.set_write)
+                }
+            },
+            'read': (self.get_read,)
+        }
+
+        self.param_tree = ParameterTree(self.param_tree_dict)
+        self.param_tree.mutable = True
+
+    def get_read(self):
+        return self.read_value
+
+    def get_write(self):
+        return self.write_value
+
+    def set_write(self, data):
+        self.write_value = data
+
+@pytest.fixture()
+def test_tree_mutable():
+    """Test fixture for use in testing parameter tree metadata."""
+    test_tree_mutable = ParameterTreeMutableTestFixture()
+    yield test_tree_mutable
+
+
+class TestParamTreeMutable():
+    """Class to test the behaviour of the Mutable flag for Param Tree"""
+
+    def test_mutable_put_differnt_data_type(self, test_tree_mutable):
+
+        new_data = 75
+        test_tree_mutable.param_tree.set('bonus', new_data)
+        val = test_tree_mutable.param_tree.get('bonus')
+        assert val['bonus'] == new_data
+
+    def test_mutable_put_new_branch_node(self, test_tree_mutable):
+
+        new_node = {"new": 65}
+        test_tree_mutable.param_tree.set('extra', new_node)
+
+        val = test_tree_mutable.param_tree.get('extra')
+        assert val['extra'] == new_node
+
+    def test_mutable_put_overwrite_param_accessor_read_only(self, test_tree_mutable):
+
+        new_node = {"Node": "Broke Accessor"}
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_tree_mutable.param_tree.set('read', new_node)
+        
+        assert "is read-only" in str(excinfo.value)
+
+    def test_mutable_put_overwrite_param_accessor_read_write(self, test_tree_mutable):
+
+        new_node = {"Node": "Broke Accessor"}
+        path = 'nest/double_nest/write'
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_tree_mutable.param_tree.set(path, new_node)
+
+        assert "Type mismatch setting" in str(excinfo.value)
+        # val = test_tree_mutable.param_tree.get(path)
+        # assert val['write'] == new_node
+
+    def test_mutable_put_replace_nested_path(self, test_tree_mutable):
+
+        new_node = {"double_nest": 294}
+        path = 'nest'
+
+        test_tree_mutable.param_tree.set(path, new_node)
+        val = test_tree_mutable.param_tree.get(path)
+        # logging.debug(test_tree_mutable.param_tree.get(""))
+        assert val[path] == new_node
+
+    def test_mutable_put_merge_nested_path(self, test_tree_mutable):
+
+        new_node = {
+            "double_nest": {
+                'nested_val': {
+                    "additional_val": "New value Here!",
+                    "add_int": 648
+                }
+            }
+        }
+        path = 'nest'
+
+        test_tree_mutable.param_tree.set(path, new_node)
+        val = test_tree_mutable.param_tree.get(path)
+        # logging.debug(test_tree_mutable.param_tree.get(""))
+        assert val[path]['double_nest']['nested_val'] == new_node['double_nest']['nested_val']
+        assert 'dont_touch' in val[path]['double_nest']
