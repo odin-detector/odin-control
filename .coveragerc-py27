@@ -1,0 +1,14 @@
+[run]
+omit =
+    *_version*
+    src/odin/adapters/async_adapter.py
+
+[paths]
+source=
+    src/
+    .tox/py*/lib/python*/site-packages/
+
+[report]
+omit =
+    *_version*
+    */async_*.py
