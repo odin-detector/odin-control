@@ -23,9 +23,9 @@ def shutdown_handler():  # pragma: no cover
 
 
 def main(argv=None):
-    """Run ODIN server.
+    """Run the odin-control server.
 
-    This function is the main entry point for the ODIN server. It parses configuration
+    This function is the main entry point for the odin-control server. It parses configuration
     options from the command line and any files, resolves adapters and launches the main
     API server before entering the IO processing loop.
 
@@ -75,6 +75,27 @@ def main(argv=None):
     logging.info('ODIN server shutdown')
 
     return 0
+
+
+def main_deprecate(argv=None):  # pragma: no cover
+    """Deprecated main entry point for running the odin control server.
+
+    This method adds an entry point for running odin control server that is run by the
+    deprecated odin_server command. It simply runs the main entry point as normal having
+    printing a deprecation warning.
+    """
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter('always', DeprecationWarning)
+        message = """
+
+The odin_server script entry point is deprecated and will be removed in future releases. Consider
+using \'odin_control\' instead
+
+            """
+        warnings.warn(message, DeprecationWarning, stacklevel=1)
+
+    main(argv)
 
 
 if __name__ == '__main__':  # pragma: no cover

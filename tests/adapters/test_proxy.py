@@ -20,7 +20,7 @@ from odin.adapters.proxy import ProxyTarget, ProxyAdapter
 from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
 from odin.adapters.adapter import wants_metadata
 from odin.util import convert_unicode_to_string
-from tests.utils import LogCaptureFilter, log_message_seen
+from tests.utils import log_message_seen
 
 if sys.version_info[0] == 3:  # pragma: no cover
     from unittest.mock import Mock, patch
