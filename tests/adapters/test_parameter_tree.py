@@ -902,3 +902,34 @@ class TestParamTreeMutable():
         # logging.debug(test_tree_mutable.param_tree.get(""))
         assert val[path]['double_nest']['nested_val'] == new_node['double_nest']['nested_val']
         assert 'dont_touch' in val[path]['double_nest']
+
+    def test_mutable_delete_method(self, test_tree_mutable):
+
+        path = 'nest/double_nest'
+
+        test_tree_mutable.param_tree.delete(path)
+        tree = test_tree_mutable.param_tree.get('')
+        # logging.debug(tree)
+        assert 'double_nest' not in tree['nest']
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_tree_mutable.param_tree.get(path)
+
+        assert "Invalid path" in str(excinfo.value)
+
+    def test_mutable_delete_immutable_tree(self, test_tree_mutable):
+
+        test_tree_mutable.param_tree.mutable = False
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            path = 'nest/double_nest'
+            test_tree_mutable.param_tree.delete(path)
+
+        assert "Invalid Delete Attempt" in str(excinfo.value)
+
+    def test_mutable_detele_entire_tree(self, test_tree_mutable):
+
+        path = ''
+
+        test_tree_mutable.param_tree.delete(path)
+        val = test_tree_mutable.param_tree.get(path)
+        assert not val

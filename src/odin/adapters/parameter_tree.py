@@ -9,7 +9,6 @@ James Hogge, Tim Nicholls, STFC Application Engineering Group.
 """
 import warnings
 
-
 class ParameterTreeError(Exception):
     """Simple error class for raising parameter tree parameter tree exceptions."""
 
@@ -323,23 +322,33 @@ class ParameterTree(object):
         else:
             merge_parent[int(levels[-1])] = merged
 
-    # def add_callback(self, path, callback):
-    #     """Add a callback to a given path in the tree - DEPRECATED.
+    def delete(self, path=''):
+        if not self.mutable:
+            raise ParameterTreeError("Invalid Delete Attempt: Tree Not Mutable")
+        
+        # Split the path by levels, truncating the last level if path ends in trailing slash
+        levels = path.split('/')
+        if levels[-1] == '':
+            del levels[-1]
 
-    #     This now deprecated method adds a callback to the specified path in the
-    #     tree. Originally intended to allow set() calls to update values in the
-    #     underlying object or device represented by the tree, this has been
-    #     replaced by the symmetric read/write ParameterAccessor mechanism. Its
-    #     remaining function could be to allow side-effects during set() calls.
+        subtree = self._tree
 
-    #     :param path: path to add callback for
-    #     :param callback: method to be called when the appropriate set() call is made
-    #     """
-    #     warnings.warn(
-    #         "Callbacks in parameter trees are deprecated, use parameter accessors instead",
-    #         DeprecationWarning
-    #     )
-    #     self._callbacks.append([path, callback])
+        if not levels:
+            for key in subtree.copy():  # copy to avoid runtime error
+                subtree.pop(key)
+            return
+
+        for level in levels[:-1]:
+            try:
+                if isinstance(subtree, dict):
+                    subtree = subtree[level]
+                else:
+                    subtree = subtree[int(level)]
+            except (KeyError, ValueError, IndexError):
+                raise ParameterTreeError("Invalid path: {}".format(path))
+        
+        subtree.pop(levels[-1])
+
 
     def __recursive_build_tree(self, node, path=''):
         """Recursively build and expand out a tree or node.
@@ -356,8 +365,6 @@ class ParameterTree(object):
         # If the node is a ParameterTree instance, replace with its own built tree
         if isinstance(node, ParameterTree):
             # Merge in callbacks in node if present
-            for callback in node.callbacks:
-                self.add_callback(path + callback[0], callback[1])
             return node.tree
 
         # Convert node tuple into the corresponding ParameterAccessor, depending on type of
