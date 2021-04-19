@@ -782,7 +782,7 @@ class ParameterTreeMutableTestFixture():
                     'dont_touch': "let me stay!",
                     'write': (self.get_write, self.set_write)
                 },
-                'list': [1, 2, 3, 4]
+                'list': [0, 1, {'list_test': "test"}, 3]
             },
             'read': (self.get_read,)
         }
@@ -911,3 +911,20 @@ class TestParamTreeMutable():
             test_tree_mutable.param_tree.delete(path)
 
         assert "Invalid path" in str(excinfo.value)
+
+    def test_mutable_delete_from_list(self, test_tree_mutable):
+
+        path = 'nest/list/3'
+
+        test_tree_mutable.param_tree.delete(path)
+        logging.debug(test_tree_mutable.param_tree.tree)
+        val = test_tree_mutable.param_tree.get('nest/list')
+        assert '3' not in val['list']
+
+    def test_mustable_delete_from_dict_in_list(self, test_tree_mutable):
+        path = 'nest/list/2/list_test'
+
+        test_tree_mutable.param_tree.delete(path)
+        logging.debug(test_tree_mutable.param_tree.tree)
+        val = test_tree_mutable.param_tree.get('nest/list')
+        assert {'list_test': "test"} not in val['list']

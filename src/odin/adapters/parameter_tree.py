@@ -206,21 +206,11 @@ class ParameterTree(object):
 
         :param tree: dict representing the parameter tree
         """
-        # Create empty callback list
-        self._callbacks = []
 
         # Recursively check and initialise the tree
         self._tree = self.__recursive_build_tree(tree)
         # Flag, if set to true, allows nodes to be replaced and new nodes created
         self.mutable = mutable
-
-    @property
-    def callbacks(self):
-        """Return callbacks list for this tree.
-
-        Used internally for recursive descent of parameter trees.
-        """
-        return self._callbacks
 
     @property
     def tree(self):
@@ -343,12 +333,12 @@ class ParameterTree(object):
                     subtree = subtree[level]
                 else:
                     subtree = subtree[int(level)]
-            subtree.pop(levels[-1])
+            if isinstance(subtree, list):
+                subtree.pop(int(levels[-1]))
+            else:
+                subtree.pop(levels[-1])
         except (KeyError, ValueError, IndexError):
             raise ParameterTreeError("Invalid path: {}".format(path))
-        
-
-
 
     def __recursive_build_tree(self, node, path=''):
         """Recursively build and expand out a tree or node.
@@ -364,7 +354,6 @@ class ParameterTree(object):
 
         # If the node is a ParameterTree instance, replace with its own built tree
         if isinstance(node, ParameterTree):
-            # Merge in callbacks in node if present
             return node.tree
 
         # Convert node tuple into the corresponding ParameterAccessor, depending on type of
@@ -456,8 +445,7 @@ class ParameterTree(object):
         This internal method recursively merges a tree with new values. Called by the set()
         method, this allows parameters to be updated in place with the specified values,
         calling the parameter setter in specified in an accessor. The type of any updated
-        parameters is checked against the existing parameter type. Any callbacks registed
-        at the current path at called.
+        parameters is checked against the existing parameter type.
 
         :param node: tree node to populate and return
         :param new_data: dict of new data to be merged in at this path in the tree
@@ -495,10 +483,5 @@ class ParameterTree(object):
                     cur_path[:-1], type(new_data).__name__, type(node).__name__
                 ))
             node = new_data
-
-        # Call any callbacks specified at this path
-        for callback in self._callbacks:
-            if cur_path.startswith(callback[0]):
-                callback[1](cur_path, new_data)
 
         return node
