@@ -278,10 +278,10 @@ class ParameterTreeTestFixture(object):
     def get_accessor_param(self):
         return self.accessor_params
 
-    def branch_callback(self, path, value):
-        self.branch_callback_count += 1
-        # print("branch_callback call #{}: on path {} with value {}".format(
-        #     self.branch_callback_count, path, value))
+    # def branch_callback(self, path, value):
+    #     self.branch_callback_count += 1
+    #     # print("branch_callback call #{}: on path {} with value {}".format(
+    #     #     self.branch_callback_count, path, value))
 
     def setup(self):
         TestParameterTree.branch_callback_count = 0
@@ -337,6 +337,18 @@ class TestParameterTree():
         """Test that getting a tree with trailing slash returns the correct dict."""
         branch_vals = test_param_tree.nested_tree.get('branch/')
         assert branch_vals['branch'] == test_param_tree.nested_dict['branch']
+
+    def test_callback_with_extra_branch_paths(self, test_param_tree):
+        """
+        Test that modifiying a branch in a callback tree with extra parameters raises an error.
+        """
+        branch_data = deepcopy(test_param_tree.nested_dict['branch'])
+        branch_data['extraParam'] = 'oops'
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_param_tree.complex_tree.set('branch', branch_data)
+
+        assert 'Invalid path' in str(excinfo.value)
 
     def test_complex_tree_calls_leaf_nodes(self, test_param_tree):
         """
