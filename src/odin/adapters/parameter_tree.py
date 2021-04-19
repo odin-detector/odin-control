@@ -337,17 +337,17 @@ class ParameterTree(object):
             for key in subtree.copy():  # copy to avoid runtime error
                 subtree.pop(key)
             return
-
-        for level in levels[:-1]:
-            try:
+        try:
+            for level in levels[:-1]:
                 if isinstance(subtree, dict):
                     subtree = subtree[level]
                 else:
                     subtree = subtree[int(level)]
-            except (KeyError, ValueError, IndexError):
-                raise ParameterTreeError("Invalid path: {}".format(path))
+            subtree.pop(levels[-1])
+        except (KeyError, ValueError, IndexError):
+            raise ParameterTreeError("Invalid path: {}".format(path))
         
-        subtree.pop(levels[-1])
+
 
 
     def __recursive_build_tree(self, node, path=''):

@@ -781,7 +781,8 @@ class ParameterTreeMutableTestFixture():
                     'nested_val': 125,
                     'dont_touch': "let me stay!",
                     'write': (self.get_write, self.set_write)
-                }
+                },
+                'list': [1, 2, 3, 4]
             },
             'read': (self.get_read,)
         }
@@ -851,7 +852,7 @@ class TestParamTreeMutable():
         test_tree_mutable.param_tree.set(path, new_node)
         val = test_tree_mutable.param_tree.get(path)
         # logging.debug(test_tree_mutable.param_tree.get(""))
-        assert val[path] == new_node
+        assert val[path]['double_nest'] == new_node['double_nest']
 
     def test_mutable_put_merge_nested_path(self, test_tree_mutable):
 
@@ -894,10 +895,19 @@ class TestParamTreeMutable():
 
         assert "Invalid Delete Attempt" in str(excinfo.value)
 
-    def test_mutable_detele_entire_tree(self, test_tree_mutable):
+    def test_mutable_delete_entire_tree(self, test_tree_mutable):
 
         path = ''
 
         test_tree_mutable.param_tree.delete(path)
         val = test_tree_mutable.param_tree.get(path)
         assert not val
+
+    def test_mutable_delete_invalid_path(self, test_tree_mutable):
+
+        path = 'nest/not_real'
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_tree_mutable.param_tree.delete(path)
+
+        assert "Invalid path" in str(excinfo.value)
