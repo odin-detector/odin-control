@@ -338,37 +338,6 @@ class TestParameterTree():
         branch_vals = test_param_tree.nested_tree.get('branch/')
         assert branch_vals['branch'] == test_param_tree.nested_dict['branch']
 
-    # def test_callback_modifies_branch_value(self, test_param_tree):
-    #     """Test that the modifying a branch below a callback does change the branch."""
-    #     branch_data = deepcopy(test_param_tree.nested_dict['branch'])
-    #     branch_data['branchIntParam'] = 90210
-
-    #     test_param_tree.callback_tree.set('branch', branch_data)
-
-    #     modified_branch_vals = test_param_tree.callback_tree.get('branch')
-    #     assert modified_branch_vals['branch'] == branch_data
-    #     assert test_param_tree.branch_callback_count == len(branch_data)
-
-    # def test_callback_modifies_single_branch_value(self, test_param_tree):
-    #     """Test that modifying a single branch value below a callback works correctly."""
-    #     int_param = 22603
-    #     test_param_tree.callback_tree.set('branch/branchIntParam', int_param)
-
-    #     val = test_param_tree.callback_tree.get('branch/branchIntParam')
-    #     assert val['branchIntParam'] == int_param
-
-    # def test_callback_with_extra_branch_paths(self, test_param_tree):
-    #     """
-    #     Test that modifiying a branch in a callback tree with extra parameters raises an error.
-    #     """
-    #     branch_data = deepcopy(test_param_tree.nested_dict['branch'])
-    #     branch_data['extraParam'] = 'oops'
-
-    #     with pytest.raises(ParameterTreeError) as excinfo:
-    #         test_param_tree.callback_tree.set('branch', branch_data)
-
-    #     assert 'Invalid path' in str(excinfo.value)
-
     def test_complex_tree_calls_leaf_nodes(self, test_param_tree):
         """
         Test that accessing valyus in a complex tree returns the correct values for 
@@ -781,7 +750,6 @@ class TestParameterTreeMetadata():
         assert "{} is below the minimum value {} for {}".format(
                 low_value, test_tree_metadata.int_rw_param_metadata["min"], 
                 "intCallableRwParam") in str(excinfo.value)
-        
 
     def test_rw_param_above_max_value(self, test_tree_metadata):
         """
