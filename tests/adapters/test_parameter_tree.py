@@ -6,7 +6,6 @@ Tim Nicholls, STFC Application Engingeering
 from copy import deepcopy
 
 import pytest
-import logging  # dont leave this here
 
 from odin.adapters.parameter_tree import ParameterAccessor, ParameterTree, ParameterTreeError
 
@@ -863,7 +862,6 @@ class TestParamTreeMutable():
 
         test_tree_mutable.param_tree.set(path, new_node)
         val = test_tree_mutable.param_tree.get(path)
-        # logging.debug(test_tree_mutable.param_tree.get(""))
         assert val[path]['double_nest'] == new_node['double_nest']
 
     def test_mutable_put_merge_nested_path(self, test_tree_mutable):
@@ -880,7 +878,6 @@ class TestParamTreeMutable():
 
         test_tree_mutable.param_tree.set(path, new_node)
         val = test_tree_mutable.param_tree.get(path)
-        # logging.debug(test_tree_mutable.param_tree.get(""))
         assert val[path]['double_nest']['nested_val'] == new_node['double_nest']['nested_val']
         assert 'dont_touch' in val[path]['double_nest']
 
@@ -890,7 +887,6 @@ class TestParamTreeMutable():
 
         test_tree_mutable.param_tree.delete(path)
         tree = test_tree_mutable.param_tree.get('')
-        # logging.debug(tree)
         assert 'double_nest' not in tree['nest']
         with pytest.raises(ParameterTreeError) as excinfo:
             test_tree_mutable.param_tree.get(path)
@@ -929,7 +925,6 @@ class TestParamTreeMutable():
         path = 'nest/list/3'
 
         test_tree_mutable.param_tree.delete(path)
-        logging.debug(test_tree_mutable.param_tree.tree)
         val = test_tree_mutable.param_tree.get('nest/list')
         assert '3' not in val['list']
 
@@ -937,6 +932,5 @@ class TestParamTreeMutable():
         path = 'nest/list/2/list_test'
 
         test_tree_mutable.param_tree.delete(path)
-        logging.debug(test_tree_mutable.param_tree.tree)
         val = test_tree_mutable.param_tree.get('nest/list')
         assert {'list_test': "test"} not in val['list']

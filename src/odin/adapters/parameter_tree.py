@@ -205,6 +205,7 @@ class ParameterTree(object):
           description - A printable description for that branch of the tree
 
         :param tree: dict representing the parameter tree
+        :param mutable: Flag, setting the tree 
         """
 
         # Recursively check and initialise the tree
@@ -313,6 +314,14 @@ class ParameterTree(object):
             merge_parent[int(levels[-1])] = merged
 
     def delete(self, path=''):
+        """
+        Remove Parameters from a Mutable Tree.
+
+        This method deletes selected parameters from a tree, if that tree has been flagged as
+        Mutable. Deletion of Branch Nodes means all child nodes of that Branch Node are also deleted
+
+        :param path: Path to selected Parameter Node in the tree
+        """
         if not self.mutable:
             raise ParameterTreeError("Invalid Delete Attempt: Tree Not Mutable")
         
@@ -478,7 +487,7 @@ class ParameterTree(object):
             node.set(new_data)
         else:
             # Validate type of new node matches existing
-            if not self.mutable and type(node) is not type(new_data):  # this mutable flags feels a bit like a sledgehammer
+            if not self.mutable and type(node) is not type(new_data):
                 raise ParameterTreeError('Type mismatch updating {}: got {} expected {}'.format(
                     cur_path[:-1], type(new_data).__name__, type(node).__name__
                 ))
