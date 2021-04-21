@@ -247,13 +247,7 @@ class ParameterTreeTestFixture(object):
         }
         self.nested_tree = ParameterTree(self.nested_dict)
 
-        # self.callback_tree = deepcopy(self.nested_tree)
-        # self.callback_tree.add_callback('branch/', self.branch_callback)
-
-        # self.branch_callback_count = 0
-
         self.complex_tree_branch = ParameterTree(deepcopy(self.nested_dict))
-        # self.complex_tree_branch.add_callback('', self.branch_callback)
 
         self.complex_tree = ParameterTree({
             'intParam': self.int_value,
@@ -277,13 +271,7 @@ class ParameterTreeTestFixture(object):
     def get_accessor_param(self):
         return self.accessor_params
 
-    # def branch_callback(self, path, value):
-    #     self.branch_callback_count += 1
-    #     # print("branch_callback call #{}: on path {} with value {}".format(
-    #     #     self.branch_callback_count, path, value))
-
     def setup(self):
-        TestParameterTree.branch_callback_count = 0
         pass
 
 
@@ -337,9 +325,9 @@ class TestParameterTree():
         branch_vals = test_param_tree.nested_tree.get('branch/')
         assert branch_vals['branch'] == test_param_tree.nested_dict['branch']
 
-    def test_callback_with_extra_branch_paths(self, test_param_tree):
+    def test_set_with_extra_branch_paths(self, test_param_tree):
         """
-        Test that modifiying a branch in a callback tree with extra parameters raises an error.
+        Test that modifiying a branch in a tree with extra parameters raises an error.
         """
         branch_data = deepcopy(test_param_tree.nested_dict['branch'])
         branch_data['extraParam'] = 'oops'
