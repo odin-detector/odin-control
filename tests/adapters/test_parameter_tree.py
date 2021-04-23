@@ -528,6 +528,7 @@ def test_rw_tree():
     test_rw_tree = RwParameterTreeTestFixture()
     yield test_rw_tree
 
+
 class TestRwParameterTree():
     """Class to test behaviour of read-write parameter trees."""
 
@@ -916,9 +917,35 @@ class TestParamTreeMutable():
         val = test_tree_mutable.param_tree.get('nest/list')
         assert '3' not in val['list']
 
-    def test_mustable_delete_from_dict_in_list(self, test_tree_mutable):
+    def test_mutable_delete_from_dict_in_list(self, test_tree_mutable):
         path = 'nest/list/2/list_test'
 
         test_tree_mutable.param_tree.delete(path)
         val = test_tree_mutable.param_tree.get('nest/list')
         assert {'list_test': "test"} not in val['list']
+
+    def test_mutable_nested_tree_in_immutable_tree(self, test_tree_mutable):
+
+        new_tree = ParameterTree({
+            'immutable_param': "Hello",
+            "tree": test_tree_mutable.param_tree
+        })
+
+        new_node = {"new": 65}
+        path = 'tree/extra'
+        new_tree.set(path, new_node)
+        val = new_tree.get(path)
+        assert val['extra'] == new_node
+
+    def test_mutable_nested_tree_external_change(self, test_tree_mutable):
+
+        new_tree = ParameterTree({
+            'immutable_param': "Hello",
+            "tree": test_tree_mutable.param_tree
+        })
+
+        new_node = {"new": 65}
+        path = 'tree/extra'
+        test_tree_mutable.param_tree.set('extra', new_node)
+        val = new_tree.get(path)
+        assert val['extra'] == new_node
