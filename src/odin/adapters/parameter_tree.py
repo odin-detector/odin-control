@@ -324,9 +324,9 @@ class ParameterTree(object):
 
         :param path: Path to selected Parameter Node in the tree
         """
-        if not self.mutable:
+        if not self.mutable and not any(path.startswith(part) for part in self.mutable_paths):
             raise ParameterTreeError("Invalid Delete Attempt: Tree Not Mutable")
-        
+
         # Split the path by levels, truncating the last level if path ends in trailing slash
         levels = path.split('/')
         if levels[-1] == '':

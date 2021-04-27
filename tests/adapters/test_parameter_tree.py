@@ -951,3 +951,39 @@ class TestParamTreeMutable():
         test_tree_mutable.param_tree.set('extra', new_node)
         val = new_tree.get(path)
         assert val['extra'] == new_node
+
+    def test_mutable_nested_tree_delete(self, test_tree_mutable):
+
+        new_tree = ParameterTree({
+            'immutable_param': "Hello",
+            "tree": test_tree_mutable.param_tree
+        })
+
+        path = 'tree/bonus'
+        new_tree.delete(path)
+
+        tree = new_tree.get('')
+
+        assert 'bonus' not in tree['tree']
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_tree_mutable.param_tree.get(path)
+
+        assert "Invalid path" in str(excinfo.value)
+
+    def test_mutable_nested_tree_root_tree_not_affected(self, test_tree_mutable):
+
+        new_tree = ParameterTree({
+            'immutable_param': "Hello",
+            "nest": {
+                "tree": test_tree_mutable.param_tree
+            }
+        })
+
+        new_node = {"new": 65}
+        path = 'immutable_param'
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            new_tree.set(path, new_node)
+
+        assert "Type mismatch" in str(excinfo.value)
