@@ -207,11 +207,13 @@ class ParameterTree(object):
         :param tree: dict representing the parameter tree
         :param mutable: Flag, setting the tree 
         """
-
-        # Recursively check and initialise the tree
-        self._tree = self.__recursive_build_tree(tree)
         # Flag, if set to true, allows nodes to be replaced and new nodes created
         self.mutable = mutable
+        # list of paths to mutable parts. Not sure this is best solution
+        self.mutable_paths = []
+        # Recursively check and initialise the tree
+        self._tree = self.__recursive_build_tree(tree)
+
 
     @property
     def tree(self):
@@ -333,8 +335,7 @@ class ParameterTree(object):
         subtree = self._tree
 
         if not levels:
-            for key in subtree.copy():  # copy to avoid runtime error
-                subtree.pop(key)
+            subtree.clear()
             return
         try:
             for level in levels[:-1]:
@@ -363,7 +364,9 @@ class ParameterTree(object):
 
         # If the node is a ParameterTree instance, replace with its own built tree
         if isinstance(node, ParameterTree):
-            return node.tree
+            if node.mutable:
+                self.mutable_paths.append(path)
+            return node.tree  # this breaks the mutability of the sub-tree. hmm
 
         # Convert node tuple into the corresponding ParameterAccessor, depending on type of
         # fields
@@ -488,9 +491,10 @@ class ParameterTree(object):
         else:
             # Validate type of new node matches existing
             if not self.mutable and type(node) is not type(new_data):
-                raise ParameterTreeError('Type mismatch updating {}: got {} expected {}'.format(
-                    cur_path[:-1], type(new_data).__name__, type(node).__name__
-                ))
+                if not any(cur_path.startswith(part) for part in self.mutable_paths):
+                    raise ParameterTreeError('Type mismatch updating {}: got {} expected {}'.format(
+                        cur_path[:-1], type(new_data).__name__, type(node).__name__
+                    ))
             node = new_data
 
         return node

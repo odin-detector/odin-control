@@ -928,11 +928,13 @@ class TestParamTreeMutable():
 
         new_tree = ParameterTree({
             'immutable_param': "Hello",
-            "tree": test_tree_mutable.param_tree
+            "nest": {
+                "tree": test_tree_mutable.param_tree
+            }
         })
 
         new_node = {"new": 65}
-        path = 'tree/extra'
+        path = 'nest/tree/extra'
         new_tree.set(path, new_node)
         val = new_tree.get(path)
         assert val['extra'] == new_node
