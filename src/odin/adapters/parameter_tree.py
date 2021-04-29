@@ -467,8 +467,13 @@ class ParameterTree(object):
         # Recurse down tree if this is a branch node
         if isinstance(node, dict) and isinstance(new_data, dict):
             try:
-                node.update({k: self.__recursive_merge_tree(
-                    node[k], v, cur_path + k + '/') for k, v in self.__remove_metadata(new_data)})
+                update = {}
+                for k, v in self.__remove_metadata(new_data):
+                    mutable = self.mutable or any(cur_path.startswith(part) for part in self.mutable_paths)
+                    if mutable and k not in node:
+                        node[k] = {}
+                    update[k] = self.__recursive_merge_tree(node[k], v, cur_path + k + '/')
+                    node.update(update)
                 return node
             except KeyError as key_error:
                 raise ParameterTreeError(

@@ -784,7 +784,8 @@ class ParameterTreeMutableTestFixture():
                 },
                 'list': [0, 1, {'list_test': "test"}, 3]
             },
-            'read': (self.get_read,)
+            'read': (self.get_read,),
+            'empty': {}
         }
 
         self.param_tree = ParameterTree(self.param_tree_dict)
@@ -823,6 +824,15 @@ class TestParamTreeMutable():
 
         val = test_tree_mutable.param_tree.get('extra')
         assert val['extra'] == new_node
+
+    def test_mutable_put_new_sibling_node(self, test_tree_mutable):
+
+        new_node = {'new': 65}
+        path = 'nest'
+
+        test_tree_mutable.param_tree.set(path, new_node)
+        val = test_tree_mutable.param_tree.get(path)
+        assert 'new' in val[path]
 
     def test_mutable_put_overwrite_param_accessor_read_only(self, test_tree_mutable):
 
@@ -987,3 +997,11 @@ class TestParamTreeMutable():
             new_tree.set(path, new_node)
 
         assert "Type mismatch" in str(excinfo.value)
+
+    def test_mutable_add_to_empty_dict(self, test_tree_mutable):
+
+        new_node = {"new": 65}
+        path = 'empty'
+        test_tree_mutable.param_tree.set(path, new_node)
+        val = test_tree_mutable.param_tree.get(path)
+        assert val[path] == new_node
