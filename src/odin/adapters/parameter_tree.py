@@ -338,11 +338,14 @@ class ParameterTree(object):
             subtree.clear()
             return
         try:
+            # navigate down the path, based on hwo path navigation works in the Set Method above
             for level in levels[:-1]:
+                # if dict, subtree is normal branch, continue navigation
                 if isinstance(subtree, dict):
                     subtree = subtree[level]
-                else:
+                else:  # if not a dict, but still navigating, it should be a list, so next path is int
                     subtree = subtree[int(level)]
+            # once we are at the second to last part of the path, we want to delete whatever comes next
             if isinstance(subtree, list):
                 subtree.pop(int(levels[-1]))
             else:
