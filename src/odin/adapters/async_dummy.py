@@ -21,7 +21,7 @@ asyncio_get_running_loop = asyncio.get_running_loop \
 
 
 class AsyncDummyAdapter(AsyncApiAdapter):
-    """Dummy asynchronous adatper class for the ODIN server.
+    """Dummy asynchronous adapter class for the ODIN server.
 
     This dummy adapter implements basic async operation of an adapter, inclduing initialisation
     and HTTP verb methods GET and PUT. The verb moethods implement simulated long-running tasks

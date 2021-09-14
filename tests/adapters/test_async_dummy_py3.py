@@ -10,7 +10,7 @@ else:
 
 
 class AsyncDummyAdapterTestFixture(object):
-    """Container cluass used in fixtures for testing the AsyncDummyAdapter."""
+    """Container class used in fixtures for testing the AsyncDummyAdapter."""
     def __init__(self, wrap_sync_sleep=False):
         """
         Initialise the adapter and associated test objects.
