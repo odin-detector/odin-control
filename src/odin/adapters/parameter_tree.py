@@ -9,7 +9,6 @@ James Hogge, Tim Nicholls, STFC Application Engineering Group.
 """
 import warnings
 
-
 class ParameterTreeError(Exception):
     """Simple error class for raising parameter tree parameter tree exceptions."""
 
@@ -180,7 +179,7 @@ class ParameterTree(object):
 
     METADATA_FIELDS = ["name", "description"]
 
-    def __init__(self, tree):
+    def __init__(self, tree, mutable=False):
         """Initialise the ParameterTree object.
 
         This constructor recursively initialises the ParameterTree object, based on the parameter
@@ -206,20 +205,15 @@ class ParameterTree(object):
           description - A printable description for that branch of the tree
 
         :param tree: dict representing the parameter tree
+        :param mutable: Flag, setting the tree 
         """
-        # Create empty callback list
-        self._callbacks = []
-
+        # Flag, if set to true, allows nodes to be replaced and new nodes created
+        self.mutable = mutable
+        # list of paths to mutable parts. Not sure this is best solution
+        self.mutable_paths = []
         # Recursively check and initialise the tree
         self._tree = self.__recursive_build_tree(tree)
 
-    @property
-    def callbacks(self):
-        """Return callbacks list for this tree.
-
-        Used internally for recursive descent of parameter trees.
-        """
-        return self._callbacks
 
     @property
     def tree(self):
@@ -321,23 +315,43 @@ class ParameterTree(object):
         else:
             merge_parent[int(levels[-1])] = merged
 
-    def add_callback(self, path, callback):
-        """Add a callback to a given path in the tree - DEPRECATED.
-
-        This now deprecated method adds a callback to the specified path in the
-        tree. Originally intended to allow set() calls to update values in the
-        underlying object or device represented by the tree, this has been
-        replaced by the symmetric read/write ParameterAccessor mechanism. Its
-        remaining function could be to allow side-effects during set() calls.
-
-        :param path: path to add callback for
-        :param callback: method to be called when the appropriate set() call is made
+    def delete(self, path=''):
         """
-        warnings.warn(
-            "Callbacks in parameter trees are deprecated, use parameter accessors instead",
-            DeprecationWarning
-        )
-        self._callbacks.append([path, callback])
+        Remove Parameters from a Mutable Tree.
+
+        This method deletes selected parameters from a tree, if that tree has been flagged as
+        Mutable. Deletion of Branch Nodes means all child nodes of that Branch Node are also deleted
+
+        :param path: Path to selected Parameter Node in the tree
+        """
+        if not self.mutable and not any(path.startswith(part) for part in self.mutable_paths):
+            raise ParameterTreeError("Invalid Delete Attempt: Tree Not Mutable")
+
+        # Split the path by levels, truncating the last level if path ends in trailing slash
+        levels = path.split('/')
+        if levels[-1] == '':
+            del levels[-1]
+
+        subtree = self._tree
+
+        if not levels:
+            subtree.clear()
+            return
+        try:
+            # navigate down the path, based on hwo path navigation works in the Set Method above
+            for level in levels[:-1]:
+                # if dict, subtree is normal branch, continue navigation
+                if isinstance(subtree, dict):
+                    subtree = subtree[level]
+                else:  # if not a dict, but still navigating, it should be a list, so next path is int
+                    subtree = subtree[int(level)]
+            # once we are at the second to last part of the path, we want to delete whatever comes next
+            if isinstance(subtree, list):
+                subtree.pop(int(levels[-1]))
+            else:
+                subtree.pop(levels[-1])
+        except (KeyError, ValueError, IndexError):
+            raise ParameterTreeError("Invalid path: {}".format(path))
 
     def __recursive_build_tree(self, node, path=''):
         """Recursively build and expand out a tree or node.
@@ -353,10 +367,9 @@ class ParameterTree(object):
 
         # If the node is a ParameterTree instance, replace with its own built tree
         if isinstance(node, ParameterTree):
-            # Merge in callbacks in node if present
-            for callback in node.callbacks:
-                self.add_callback(path + callback[0], callback[1])
-            return node.tree
+            if node.mutable:
+                self.mutable_paths.append(path)
+            return node.tree  # this breaks the mutability of the sub-tree. hmm
 
         # Convert node tuple into the corresponding ParameterAccessor, depending on type of
         # fields
@@ -447,19 +460,23 @@ class ParameterTree(object):
         This internal method recursively merges a tree with new values. Called by the set()
         method, this allows parameters to be updated in place with the specified values,
         calling the parameter setter in specified in an accessor. The type of any updated
-        parameters is checked against the existing parameter type. Any callbacks registed
-        at the current path at called.
+        parameters is checked against the existing parameter type.
 
         :param node: tree node to populate and return
         :param new_data: dict of new data to be merged in at this path in the tree
-        :param cur_path: current oath in the tree
+        :param cur_path: current path in the tree
         :returns: the update node at this point in the tree
         """
         # Recurse down tree if this is a branch node
         if isinstance(node, dict) and isinstance(new_data, dict):
             try:
-                node.update({k: self.__recursive_merge_tree(
-                    node[k], v, cur_path + k + '/') for k, v in self.__remove_metadata(new_data)})
+                update = {}
+                for k, v in self.__remove_metadata(new_data):
+                    mutable = self.mutable or any(cur_path.startswith(part) for part in self.mutable_paths)
+                    if mutable and k not in node:
+                        node[k] = {}
+                    update[k] = self.__recursive_merge_tree(node[k], v, cur_path + k + '/')
+                    node.update(update)
                 return node
             except KeyError as key_error:
                 raise ParameterTreeError(
@@ -481,15 +498,11 @@ class ParameterTree(object):
             node.set(new_data)
         else:
             # Validate type of new node matches existing
-            if type(node) is not type(new_data):
-                raise ParameterTreeError('Type mismatch updating {}: got {} expected {}'.format(
-                    cur_path[:-1], type(new_data).__name__, type(node).__name__
-                ))
+            if not self.mutable and type(node) is not type(new_data):
+                if not any(cur_path.startswith(part) for part in self.mutable_paths):
+                    raise ParameterTreeError('Type mismatch updating {}: got {} expected {}'.format(
+                        cur_path[:-1], type(new_data).__name__, type(node).__name__
+                    ))
             node = new_data
-
-        # Call any callbacks specified at this path
-        for callback in self._callbacks:
-            if cur_path.startswith(callback[0]):
-                callback[1](cur_path, new_data)
 
         return node
