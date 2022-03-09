@@ -60,6 +60,12 @@ class TestBaseApiHandler(object):
             test_base_handler.handler.get(
                 test_base_handler.subsystem, test_base_handler.path)
 
+    def test_handler_post(self, test_base_handler):
+        """Test that the base handler post method raises a not implemented error."""
+        with pytest.raises(NotImplementedError):
+            test_base_handler.handler.post(
+                test_base_handler.subsystem, test_base_handler.path)
+
     def test_handler_put(self, test_base_handler):
         """Test that the base handler put method raises a not implemented error."""
         with pytest.raises(NotImplementedError):

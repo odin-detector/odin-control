@@ -54,6 +54,7 @@ class TestHandler(object):
         api_adapter_mock = Mock()
         api_adapter_mock.is_async = async_adapter
         api_adapter_mock.get.return_value = wrap_result(self.json_dict_response, async_adapter)
+        api_adapter_mock.post.return_value = wrap_result(self.json_dict_response, async_adapter)
         api_adapter_mock.put.return_value = wrap_result(self.json_dict_response, async_adapter)
         api_adapter_mock.delete.return_value = wrap_result(self.json_dict_response, async_adapter)
         self.route.adapters[self.subsystem] = api_adapter_mock

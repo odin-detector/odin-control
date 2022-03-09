@@ -27,6 +27,16 @@ class ApiHandler(BaseApiHandler):
         self.respond(response)
 
     @validate_api_request(API_VERSION)
+    def post(self, subsystem, path=''):
+        """Handle an API POST request.
+
+        :param subsystem: subsystem element of URI, defining adapter to be called
+        :param path: remaining URI path to be passed to adapter method
+        """
+        response = self.route.adapter(subsystem).post(path, self.request)
+        self.respond(response)
+
+    @validate_api_request(API_VERSION)
     def put(self, subsystem, path=''):
         """Handle an API PUT request.
 

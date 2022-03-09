@@ -99,6 +99,16 @@ class BaseApiHandler(tornado.web.RequestHandler):
         """
         raise NotImplementedError()
 
+    def post(self, subsystem, path=''):
+        """Handle an API POST request.
+
+        This is an abstract method which must be implemented by derived classes.
+
+        :param subsystem: subsystem element of URI, defining adapter to be called
+        :param path: remaining URI path to be passed to adapter method
+        """
+        raise NotImplementedError()
+
     def put(self, subsystem, path=''):
         """Handle an API PUT request.
 

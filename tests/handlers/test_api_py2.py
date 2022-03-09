@@ -21,6 +21,13 @@ class TestApiHandler(object):
         assert test_api_handler.handler.get_status() == 200
         assert json.loads(test_api_handler.write_data) == test_api_handler.json_dict_response.data
 
+    def test_handler_valid_post(self, test_api_handler):
+        """Test that the handler creates a valid status and response to a POST request."""
+        test_api_handler.handler.post(str(API_VERSION),
+            test_api_handler.subsystem, test_api_handler.path)
+        assert test_api_handler.handler.get_status() == 200
+        assert json.loads(test_api_handler.write_data) == test_api_handler.json_dict_response.data
+
     def test_handler_valid_put(self, test_api_handler):
         """Test that the handler creates a valid status and response to a PUT request."""
         test_api_handler.handler.put(str(API_VERSION),

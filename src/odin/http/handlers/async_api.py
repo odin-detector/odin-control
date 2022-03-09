@@ -32,6 +32,21 @@ class AsyncApiHandler(BaseApiHandler):
         self.respond(response)
 
     @validate_api_request(API_VERSION)
+    async def post(self, subsystem, path=''):
+        """Handle an API POST request.
+
+        :param subsystem: subsystem element of URI, defining adapter to be called
+        :param path: remaining URI path to be passed to adapter method
+        """
+        adapter = self.route.adapter(subsystem)
+        if adapter.is_async:
+            response = await adapter.post(path, self.request)
+        else:
+            response = adapter.post(path, self.request)
+
+        self.respond(response)
+
+    @validate_api_request(API_VERSION)
     async def put(self, subsystem, path=''):
         """Handle an API PUT request.
 
