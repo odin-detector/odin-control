@@ -41,6 +41,15 @@ class TestApiAdapter():
         assert response.data == 'GET method not implemented by ApiAdapter'
         assert response.status_code == 400
 
+    def test_adapter_post(self, test_api_adapter):
+        """
+        Test the the adapter responds to a GET request correctly by returning a 400 code and
+        appropriate message. This is due to the base adapter not implementing the methods.
+        """
+        response = test_api_adapter.adapter.post(test_api_adapter.path, test_api_adapter.request)
+        assert response.data == 'POST method not implemented by ApiAdapter'
+        assert response.status_code == 400
+
     def test_adapter_put(self, test_api_adapter):
         """
         Test the the adapter responds to a PUT request correctly by returning a 400 code and

@@ -43,6 +43,21 @@ class AsyncApiAdapter(ApiAdapter):
         response = "GET method not implemented by {}".format(self.name)
         return ApiAdapterResponse(response, status_code=400)
 
+    async def post(self, path, request):
+        """Handle an HTTP POST request.
+
+        This method is an abstract implementation of the POST request handler for AsyncApiAdapter.
+
+        :param path: URI path of resource
+        :param request: HTTP request object passed from handler
+        :return: ApiAdapterResponse container of data, content-type and status_code
+        """
+        logging.debug('POST on path %s from %s: method not implemented by %s',
+                      path, request.remote_ip, self.name)
+        await asyncio.sleep(0)
+        response = "POST method not implemented by {}".format(self.name)
+        return ApiAdapterResponse(response, status_code=400)
+
     async def put(self, path, request):
         """Handle an HTTP PUT request.
 

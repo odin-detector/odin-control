@@ -41,6 +41,17 @@ class TestAsyncApiAdapter():
         assert response.status_code == 400
 
     @pytest.mark.asyncio
+    async def test_async_adapter_post(self, test_async_api_adapter):
+        """
+        Test the the adapter responds to a POST request correctly by returning a 400 code and
+        appropriate message. This is due to the base adapter not implementing the methods.
+        """
+        response = await test_async_api_adapter.adapter.post(
+            test_async_api_adapter.path, test_async_api_adapter.request)
+        assert response.data == 'POST method not implemented by AsyncApiAdapter'
+        assert response.status_code == 400
+
+    @pytest.mark.asyncio
     async def test_async_adapter_put(self, test_async_api_adapter):
         """
         Test the the adapter responds to a PUT request correctly by returning a 400 code and
