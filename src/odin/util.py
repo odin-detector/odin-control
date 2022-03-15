@@ -3,6 +3,7 @@
 This module implements utility methods for Odin Server.
 """
 import sys
+
 from tornado import version_info
 from tornado.escape import json_decode
 from tornado.ioloop import IOLoop
@@ -10,7 +11,7 @@ from tornado.ioloop import IOLoop
 PY3 = sys.version_info >= (3,)
 
 if PY3:
-    import asyncio
+    from odin.async_util import get_async_event_loop, wrap_async
     unicode = str
 
 
@@ -74,9 +75,7 @@ def wrap_result(result, is_async=True):
     :return: either the result or a Future wrapping the result
     """
     if is_async and PY3:
-        f = asyncio.Future()
-        f.set_result(result)
-        return f
+        return wrap_async(result)
     else:
         return result
 
@@ -99,10 +98,7 @@ def run_in_executor(executor, func, *args):
     """
     # In python 3, try to get the current asyncio event loop, otherwise create a new one
     if PY3:
-        try:
-            asyncio.get_event_loop()
-        except RuntimeError:
-            asyncio.set_event_loop(asyncio.new_event_loop())
+        get_async_event_loop()
 
     # Run the function in the specified executor, handling tornado version 4 where there was no
     # run_in_executor implementation
