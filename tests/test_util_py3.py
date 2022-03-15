@@ -3,7 +3,10 @@ import pytest
 import time
 import concurrent.futures
 
+import pytest_asyncio
+
 from odin import util
+from odin import async_util
 
 if sys.version_info[0] < 3:
     pytest.skip("Skipping async tests", allow_module_level=True)
@@ -22,6 +25,14 @@ class TestUtilAsync():
         assert isinstance(wrapped, asyncio.Future)
         assert wrapped.result() == result
 
+    @pytest.mark.asyncio
+    async def test_wrap_async(self):
+        """Test that the wrap_async fuction correctly wraps results in a future."""
+        result = 987
+        wrapped = async_util.wrap_async(result)
+        await wrapped
+        assert isinstance(wrapped, asyncio.Future)
+        assert wrapped.result() == result
 
     @pytest.mark.asyncio
     async def test_run_in_executor(self):
@@ -53,3 +64,13 @@ class TestUtilAsync():
 
         assert task_result['completed'] == True
         assert task_result['count'] == num_loops
+
+    def test_run_async(self):
+
+        async def async_increment(value):
+            await asyncio.sleep(0)
+            return value + 1
+
+        value = 5
+        result = async_util.run_async(async_increment, value)
+        assert result == value + 1
