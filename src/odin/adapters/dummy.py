@@ -52,6 +52,9 @@ class DummyAdapter(ApiAdapter):
 
         logging.debug('DummyAdapter loaded')
 
+    def initialize(self, adapters):
+        logging.debug("DummyAdapter initialized with %d adapters", len(adapters))
+
     def background_task_callback(self):
         """Run the adapter background task.
 
