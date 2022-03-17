@@ -166,7 +166,7 @@ class AsyncDummyAdapter(AsyncApiAdapter):
         if self.wrap_sync_sleep:
             await run_in_executor(self.executor, self.sync_task)
         else:
-            await asyncio.sleep(self.async_sleep_duration)
+            await self.async_task()
 
         logging.debug("Returning async sleep duration parameter: %f", self.async_sleep_duration)
         return self.async_sleep_duration

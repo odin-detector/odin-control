@@ -51,7 +51,10 @@ async def test_dummy_adapter(request):
     simulation.
     """
     test_dummy_adapter = await AsyncDummyAdapterTestFixture(request.param)
+    adapters = [test_dummy_adapter.adapter]
+    await test_dummy_adapter.adapter.initialize(adapters)
     yield test_dummy_adapter
+    await test_dummy_adapter.adapter.cleanup()
 
 
 @pytest.mark.asyncio
@@ -86,3 +89,12 @@ class TestAsyncDummyAdapter():
         assert isinstance(response.data, dict)
         assert response.data[test_dummy_adapter.rw_path] == rw_request.body
         assert response.status_code == 200
+
+    async def test_adapter_put_bad_path(self, test_dummy_adapter):
+
+        expected_response = {'error': 'Invalid path: {}'.format(test_dummy_adapter.bad_path)}
+        response = await test_dummy_adapter.adapter.put(
+            test_dummy_adapter.bad_path, test_dummy_adapter.request
+        )
+        assert response.data == expected_response
+        assert response.status_code == 400
