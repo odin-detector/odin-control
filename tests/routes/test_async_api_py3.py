@@ -8,7 +8,7 @@ else:
     try:
         from unittest.mock import AsyncMock
     except ImportError:
-        from tests.utils_async_py3 import AsyncMock
+        from tests.async_utils import AsyncMock
 
 
 from odin.http.routes.api import ApiRoute
