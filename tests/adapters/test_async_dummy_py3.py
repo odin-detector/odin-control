@@ -5,11 +5,13 @@ import pytest
 if sys.version_info[0] < 3:
     pytest.skip("Skipping async tests", allow_module_level=True)
 else:
+    import asyncio
     from odin.adapters.async_dummy import AsyncDummyAdapter
     from unittest.mock import Mock
+    from tests.async_utils import AwaitableTestFixture, asyncio_fixture_decorator
 
 
-class AsyncDummyAdapterTestFixture(object):
+class AsyncDummyAdapterTestFixture(AwaitableTestFixture):
     """Container class used in fixtures for testing the AsyncDummyAdapter."""
     def __init__(self, wrap_sync_sleep=False):
         """
@@ -20,47 +22,67 @@ class AsyncDummyAdapterTestFixture(object):
         or using native asyncio sleep.
         """
 
+        super(AsyncDummyAdapterTestFixture, self).__init__(AsyncDummyAdapter)
+
         self.adapter_options = {
             'wrap_sync_sleep': wrap_sync_sleep,
             'async_sleep_duration': 0.1
         }
         self.adapter = AsyncDummyAdapter(**self.adapter_options)
-        self.path = '/dummy/path'
+        self.path = ''
+        self.bad_path = 'missing/path'
+        self.rw_path = 'async_rw_param'
         self.request = Mock()
         self.request.body = '{}'
         self.request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
 
-@pytest.fixture(scope='class', params=[True, False], ids=['wrapped', 'native'])
-def test_dummy_adapter(request):
+@pytest.fixture(scope="class")
+def event_loop():
+    """Redefine the pytest.asyncio event loop fixture to have class scope."""
+    loop = asyncio.get_event_loop()
+    yield loop
+    loop.close()
+
+@asyncio_fixture_decorator(scope='class', params=[True, False], ids=['wrapped', 'native'])
+async def test_dummy_adapter(request):
     """
     Parameterised test fixture for use with AsyncDummyAdapter tests. The fixture
     parameters generate tests using this fixture for both wrapped and native async task
     simulation.
     """
-    test_dummy_adapter = AsyncDummyAdapterTestFixture(request.param)
+    test_dummy_adapter = await AsyncDummyAdapterTestFixture(request.param)
     yield test_dummy_adapter
 
 
-class TestDummyAdapterWrapped():
+@pytest.mark.asyncio
+class TestAsyncDummyAdapter():
 
-    @pytest.mark.asyncio
     async def test_adapter_get(self, test_dummy_adapter):
 
-        expected_response = {
-            'response': 'AsyncDummyAdapter: GET on path {}'.format(test_dummy_adapter.path)
-        }
         response = await test_dummy_adapter.adapter.get(
             test_dummy_adapter.path, test_dummy_adapter.request)
-        assert response.data == expected_response
+        assert isinstance(response.data, dict)
         assert response.status_code == 200
 
-    @pytest.mark.asyncio
+    async def test_adapter_get_bad_path(self, test_dummy_adapter):
+
+        expected_response = {'error': 'Invalid path: {}'.format(test_dummy_adapter.bad_path)}
+        response = await test_dummy_adapter.adapter.get(
+            test_dummy_adapter.bad_path, test_dummy_adapter.request)
+        assert response.data == expected_response
+        assert response.status_code == 400
+
     async def test_adapter_put(self, test_dummy_adapter):
 
-        expected_response = {
-            'response': 'AsyncDummyAdapter: PUT on path {}'.format(test_dummy_adapter.path)
-        }
-        response = await test_dummy_adapter.adapter.put(
-            test_dummy_adapter.path, test_dummy_adapter.request)
-        assert response.data == expected_response
+        rw_request = Mock()
+        rw_request.headers = test_dummy_adapter.request.headers
+        rw_request.body = 4567
+
+        await test_dummy_adapter.adapter.put(test_dummy_adapter.rw_path, rw_request)
+
+        response = await test_dummy_adapter.adapter.get(
+            test_dummy_adapter.rw_path, test_dummy_adapter.request)
+
+        assert isinstance(response.data, dict)
+        assert response.data[test_dummy_adapter.rw_path] == rw_request.body
         assert response.status_code == 200
