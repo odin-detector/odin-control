@@ -18,32 +18,12 @@ if sys.version_info[0] < 3:
     pytest.skip("Skipping async tests", allow_module_level=True)
 else:
 
-    from  odin.adapters.async_parameter_tree import (
-        AsyncParameterAccessor,AsyncParameterTree, ParameterTreeError
+    from tests.async_utils import AwaitableTestFixture, asyncio_fixture_decorator
+    from odin.adapters.async_parameter_tree import (
+        AsyncParameterAccessor, AsyncParameterTree, ParameterTreeError
     )
-    import pytest_asyncio
-    try:
-        asyncio_fixture_decorator = pytest_asyncio.fixture
-    except AttributeError:
-        asyncio_fixture_decorator = pytest.fixture
 
 
-class AwaitableTestFixture(object):
-    """Class implementing an awaitable test fixture."""
-    def __init__(self, awaitable_cls=None):
-        self.awaitable_cls = awaitable_cls
-
-    def __await__(self):
-
-        async def closure():
-            awaitables = [attr for attr in self.__dict__.values() if isinstance(
-                attr,  self.awaitable_cls
-            )]
-            await asyncio.gather(*awaitables)
-            return self
-        
-        return closure().__await__()  
-        
 class AsyncParameterAccessorTestFixture(AwaitableTestFixture):
     """Test fixture of AsyncParameterAccessor test cases."""
     def __init__(self):
