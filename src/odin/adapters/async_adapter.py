@@ -6,6 +6,7 @@ Tim Nicholls, STFC Detector Systems Software Group
 
 import asyncio
 import logging
+import inspect
 
 from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse
 
@@ -27,6 +28,20 @@ class AsyncApiAdapter(ApiAdapter):
         :param kwargs: keyword argument list that is copied into options dictionary
         """
         super(AsyncApiAdapter, self).__init__(**kwargs)
+
+    def __await__(self):
+        """Make AsyncApiAdapter objects awaitable.
+
+        This magic method makes the instantiation of AsyncApiAdapter objects awaitable. This allows
+        any underlying async and awaitable attributes, e.g. an AsyncParameterTree, to be correctly
+        awaited when the adapter is loaded."""
+        async def closure():
+            """Await all async attributes of the adapter."""
+            awaitable_attrs = [attr for attr in self.__dict__.values() if inspect.isawaitable(attr)]
+            await asyncio.gather(*awaitable_attrs)
+            return self
+
+        return closure().__await__()
 
     async def get(self, path, request):
         """Handle an HTTP GET request.
