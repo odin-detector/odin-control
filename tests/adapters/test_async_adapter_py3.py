@@ -72,3 +72,23 @@ class TestAsyncApiAdapter():
             test_async_api_adapter.path, test_async_api_adapter.request)
         assert response.data == 'DELETE method not implemented by AsyncApiAdapter'
         assert response.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_adapter_initialize(self, test_async_api_adapter):
+        """Test the the adapter initialize function runs without error."""
+        raised = False
+        try:
+            await test_async_api_adapter.adapter.initialize(None)
+        except:
+            raised = True
+        assert not raised
+
+    @pytest.mark.asyncio
+    async def test_adapter_cleanup(self, test_async_api_adapter):
+        """Test the the adapter cleanup function runs without error."""
+        raised = False
+        try:
+            await test_async_api_adapter.adapter.cleanup()
+        except:
+            raised = True
+        assert not raised
