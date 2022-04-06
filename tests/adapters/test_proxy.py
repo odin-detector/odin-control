@@ -7,11 +7,13 @@ import sys
 import threading
 import logging
 import time
+from io import StringIO
 
 import pytest
 
-from tornado.testing import AsyncHTTPTestCase, bind_unused_port
+from tornado.testing import bind_unused_port
 from tornado.ioloop import IOLoop
+from tornado.httpclient import HTTPResponse
 from tornado.web import Application, RequestHandler
 from tornado.httpserver import HTTPServer
 import tornado.gen
@@ -125,7 +127,7 @@ class ProxyTestServer(object):
 
 class ProxyTargetTestFixture(object):
     """Container class used in fixtures for testing ProxyTarget."""
-    def __init__(self):
+    def __init__(self, proxy_target_cls):
         """Initialise the fixture, starting the test server and defining a target."""
         self.test_server = ProxyTestServer()
         self.port = self.test_server.port
@@ -134,7 +136,7 @@ class ProxyTargetTestFixture(object):
         self.url = 'http://127.0.0.1:{}/'.format(self.port)
         self.request_timeout = 0.1
 
-        self.proxy_target = ProxyTarget(self.name, self.url, self.request_timeout)
+        self.proxy_target = proxy_target_cls(self.name, self.url, self.request_timeout)
 
     def __del__(self):
         """Ensure test server is stopped on deletion."""
@@ -149,7 +151,7 @@ class ProxyTargetTestFixture(object):
 @pytest.fixture
 def test_proxy_target():
     """Fixture used in ProxyTarget test cases."""
-    test_proxy_target = ProxyTargetTestFixture()
+    test_proxy_target = ProxyTargetTestFixture(ProxyTarget)
     yield test_proxy_target
     test_proxy_target.stop()
 
@@ -189,7 +191,7 @@ class TestProxyTarget():
         assert 'Not Found' in proxy_target.error_string
 
     def test_proxy_target_timeout_error(self, test_proxy_target):
-        """Test that a porxy target GET request that times out is handled correctly"""
+        """Test that a proxy target GET request that times out is handled correctly"""
         mock_fetch = Mock()
         mock_fetch.side_effect = tornado.ioloop.TimeoutError('timeout')
         proxy_target = ProxyTarget(test_proxy_target.name, test_proxy_target.url,
@@ -201,7 +203,7 @@ class TestProxyTarget():
         assert proxy_target.status_code == 408
         assert 'timeout' in proxy_target.error_string
 
-    def test_proxy_target_other_error(self, test_proxy_target):
+    def test_proxy_target_io_error(self, test_proxy_target):
         """Test that a proxy target GET request to a non-existing server returns a 502 error."""
         bad_url = 'http://127.0.0.1:{}'.format(test_proxy_target.port + 1)
         proxy_target = ProxyTarget(test_proxy_target.name, bad_url,
@@ -211,6 +213,34 @@ class TestProxyTarget():
         assert proxy_target.status_code == 502
         assert 'Connection refused' in proxy_target.error_string
 
+    def test_proxy_target_unknown_error(self, test_proxy_target):
+        """Test that a proxy target GET request handles an unknown exception returning a 500 error."""
+        mock_fetch = Mock()
+        mock_fetch.side_effect = ValueError('value error')
+        proxy_target = ProxyTarget(
+            test_proxy_target.name, test_proxy_target.url, test_proxy_target.request_timeout
+        )
+        proxy_target.http_client.fetch = mock_fetch
+
+        proxy_target.remote_get()
+
+        assert proxy_target.status_code == 500
+        assert 'value error' in proxy_target.error_string
+
+    def test_proxy_target_traps_decode_error(self, test_proxy_target):
+        """Test that a proxy target correctly traps errors decoding a non-JSON response body."""
+        mock_fetch = Mock()
+        mock_fetch.return_value = HTTPResponse(Mock(), 200, buffer=StringIO("wibble"))
+
+        proxy_target = ProxyTarget(
+            test_proxy_target.name, test_proxy_target.url, test_proxy_target.request_timeout
+        )
+        proxy_target.http_client.fetch = mock_fetch
+
+        proxy_target.remote_get()
+        print(proxy_target.status_code, proxy_target.error_string)
+        assert proxy_target.status_code == 415
+        assert "Failed to decode response body" in proxy_target.error_string
 
 class ProxyAdapterTestFixture():
     """Container class used in fixtures for testing proxy adapters."""
@@ -402,7 +432,7 @@ class TestProxyAdapter():
         _ = ProxyAdapter(request_timeout=bad_timeout)
 
         assert log_message_seen(caplog, logging.ERROR,
-            'Illegal timeout specified for ProxyAdapter: {}'.format(bad_timeout))
+            'Illegal timeout specified for proxy adapter: {}'.format(bad_timeout))
 
     def test_adapter_bad_target_spec(self, proxy_adapter_test, caplog):
         """
@@ -412,18 +442,18 @@ class TestProxyAdapter():
         bad_target_spec = 'bad_target_1,bad_target_2'
         _ = ProxyAdapter(targets=bad_target_spec)
 
-        assert log_message_seen(caplog, logging.ERROR, 
-            "Illegal target specification for ProxyAdapter: bad_target_1")
+        assert log_message_seen(caplog, logging.ERROR,
+            "Illegal target specification for proxy adapter: bad_target_1")
 
     def test_adapter_no_target_spec(self, caplog):
         """
-        Test that a proxy adapter instantiated with no target specifier yields a logged 
+        Test that a proxy adapter instantiated with no target specifier yields a logged
         error message.
         """
         _ = ProxyAdapter()
 
-        assert log_message_seen(caplog, logging.ERROR, 
-            "Failed to resolve targets for ProxyAdapter")
+        assert log_message_seen(caplog, logging.ERROR,
+            "Failed to resolve targets for proxy adapter")
 
     def test_adapter_get_access_count(self, proxy_adapter_test):
         """
@@ -447,6 +477,6 @@ class TestProxyAdapter():
         proxy_adapter_test.clear_access_counts()
         response = proxy_adapter_test.adapter.get(path, proxy_adapter_test.request)
         access_counts = [server.get_access_count() for server in proxy_adapter_test.test_servers]
-        
+
         assert path in response.data
         assert sum(access_counts) == 1
