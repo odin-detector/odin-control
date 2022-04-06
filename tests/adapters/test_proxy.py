@@ -230,7 +230,7 @@ class TestProxyTarget():
     def test_proxy_target_traps_decode_error(self, test_proxy_target):
         """Test that a proxy target correctly traps errors decoding a non-JSON response body."""
         mock_fetch = Mock()
-        mock_fetch.return_value = HTTPResponse(Mock(), 200, buffer=StringIO("wibble"))
+        mock_fetch.return_value = HTTPResponse(Mock(), 200, buffer=StringIO(u"wibble"))
 
         proxy_target = ProxyTarget(
             test_proxy_target.name, test_proxy_target.url, test_proxy_target.request_timeout
