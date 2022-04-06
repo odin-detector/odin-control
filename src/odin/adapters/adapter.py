@@ -24,6 +24,7 @@ class ApiAdapter(object):
 
         :param kwargs: keyword argument list that is copied into options dictionary
         """
+        super(ApiAdapter, self).__init__()
         self.name = type(self).__name__
 
         # Load any keyword arguments into the adapter options dictionary
