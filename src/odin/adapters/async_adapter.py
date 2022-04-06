@@ -43,6 +43,25 @@ class AsyncApiAdapter(ApiAdapter):
 
         return closure().__await__()
 
+    async def initialize(self, adapters):
+        """Initialize the AsyncApiAdapter after it has been registered by the API Route.
+
+        This is an abstract implementation of the initialize mechinism that allows
+        an adapter to receive a list of loaded adapters, for Inter-adapter communication.
+        :param adapters: a dictionary of the adapters loaded by the API route.
+        """
+
+        pass
+
+    async def cleanup(self):
+        """Clean up adapter state.
+
+        This is an abstract implementation of the cleanup mechanism provided to allow adapters
+        to clean up their state (e.g. disconnect cleanly from the device being controlled, set
+        some status message).
+        """
+        pass
+
     async def get(self, path, request):
         """Handle an HTTP GET request.
 
