@@ -6,6 +6,7 @@ Tim Nicholls, STFC Application Engineering Group
 
 import logging
 
+from odin.util import wrap_result
 
 class ApiAdapter(object):
     """
@@ -16,11 +17,14 @@ class ApiAdapter(object):
     implement them, returning an error message and 400 code.
     """
 
+    is_async = False
+
     def __init__(self, **kwargs):
         """Initialise the ApiAdapter object.
 
         :param kwargs: keyword argument list that is copied into options dictionary
         """
+        super(ApiAdapter, self).__init__()
         self.name = type(self).__name__
 
         # Load any keyword arguments into the adapter options dictionary
@@ -49,6 +53,20 @@ class ApiAdapter(object):
         logging.debug('GET on path %s from %s: method not implemented by %s',
                       path, request.remote_ip, self.name)
         response = "GET method not implemented by {}".format(self.name)
+        return ApiAdapterResponse(response, status_code=400)
+
+    def post(self, path, request):
+        """Handle an HTTP POST request.
+
+        This method is an abstract implementation of the POST request handler for ApiAdapter.
+
+        :param path: URI path of resource
+        :param request: HTTP request object passed from handler
+        :return: ApiAdapterResponse container of data, content-type and status_code
+        """
+        logging.debug('POST on path %s from %s: method not implemented by %s',
+                      path, request.remote_ip, self.name)
+        response = "POST method not implemented by {}".format(self.name)
         return ApiAdapterResponse(response, status_code=400)
 
     def put(self, path, request):
@@ -200,9 +218,10 @@ def request_types(*oargs):
             # Validate the Content-Type header in the request against allowed types
             if 'Content-Type' in request.headers:
                 if request.headers['Content-Type'] not in oargs:
-                    return ApiAdapterResponse(
+                    response = ApiAdapterResponse(
                         'Request content type ({}) not supported'.format(
                             request.headers['Content-Type']), status_code=415)
+                    return wrap_result(response, _self.is_async)
             return func(_self, path, request)
         return wrapper
     return decorator
@@ -254,10 +273,10 @@ def response_types(*oargs, **okwargs):
                 # If it was not possible to resolve a response type or there was not default
                 # given, return an error code 406
                 if response_type is None:
-                    return ApiAdapterResponse(
+                    response = ApiAdapterResponse(
                         "Requested content types not supported", status_code=406
                     )
-
+                    return wrap_result(response, _self.is_async)
             else:
                 response_type = okwargs['default'] if 'default' in okwargs else 'text/plain'
                 request.headers['Accept'] = response_type

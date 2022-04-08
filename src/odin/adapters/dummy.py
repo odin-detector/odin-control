@@ -10,8 +10,6 @@ loaded adapters to communicate with them.
 Tim Nicholls, STFC Application Engineering
 """
 import logging
-from concurrent import futures
-import time
 from tornado.ioloop import PeriodicCallback
 
 from odin.adapters.adapter import (ApiAdapter, ApiAdapterRequest,
@@ -54,6 +52,9 @@ class DummyAdapter(ApiAdapter):
 
         logging.debug('DummyAdapter loaded')
 
+    def initialize(self, adapters):
+        logging.debug("DummyAdapter initialized with %d adapters", len(adapters))
+
     def background_task_callback(self):
         """Run the adapter background task.
 
@@ -62,8 +63,8 @@ class DummyAdapter(ApiAdapter):
 
         :param task_interval: time to sleep until task is run again
         """
-        logging.debug("%s: background task running, count = %d", 
-            self.name, self.background_task_counter)
+        logging.debug(
+            "%s: background task running, count = %d", self.name, self.background_task_counter)
         self.background_task_counter += 1
 
     @response_types('application/json', default='application/json')
