@@ -1,3 +1,2 @@
 include versioneer.py
-include odin/_version.py
 include src/odin/_version.py

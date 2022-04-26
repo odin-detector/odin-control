@@ -1,2 +1,1 @@
-odin/_version.py export-subst
 src/odin/_version.py export-subst
