@@ -10,7 +10,7 @@ else:                         # pragma: no cover
     from mock import Mock
 
 from odin.http.server import HttpServer
-from odin import server
+from odin import main
 
 from tests.utils import OdinTestServer, log_message_seen
 
@@ -146,7 +146,7 @@ class TestBadServerConfig(object):
     def test_server_entry_config_error(self):
         """Test that starting a server with a bad config fail raturns an error."""
         server_args = ['--config=absent.cfg']
-        rc = server.main((server_args),)
+        rc = main.main((server_args),)
         assert rc == 2
 
 
