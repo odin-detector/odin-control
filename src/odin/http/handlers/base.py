@@ -60,12 +60,18 @@ class BaseApiHandler(tornado.web.RequestHandler):
         self.route = None
         super(BaseApiHandler, self).__init__(*args, **kwargs)
 
-    def initialize(self, route):
+    def initialize(self, route, enable_cors, cors_origin):
         """Initialize the API handler.
 
         :param route: ApiRoute object calling the handler (allows adapters to be resolved)
+        :param enable_cors: enable CORS support by setting appropriate headers
+        :param cors_origin: allowed origin for CORS requests
         """
         self.route = route
+        if enable_cors:
+            self.set_header("Access-Control-Allow-Origin", cors_origin)
+            self.set_header("Access-Control-Allow-Headers", "x-requested-with,content-type")
+            self.set_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
 
     def respond(self, response):
         """Respond to an API request.
@@ -88,6 +94,18 @@ class BaseApiHandler(tornado.web.RequestHandler):
                 )
 
         self.write(data)
+
+    def options(self, *_):
+        """Handle an API OPTIONS request.
+
+        This method handles an OPTION request to an API handler and is provided to allow
+        browser clients to employ CORS preflight requests to determine if non-simple requests
+        are allowed.
+
+        :param _: unused arguments passed to the method by the URI matching in the handler
+        """
+        # Set status to indicate successful request with no content returned
+        self.set_status(204)
 
     def get(self, subsystem, path=''):
         """Handle an API GET request.
