@@ -158,6 +158,8 @@ class ServerConfig():
         self.static_path = "./static"
         self.adapters = []
         self.access_logging = None
+        self.enable_cors = True
+        self.cors_origin = "*"
 
     def resolve_adapters(self):
         return []

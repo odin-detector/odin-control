@@ -14,7 +14,7 @@ from odin.config.parser import AdapterConfig
 @pytest.fixture(scope="class")
 def test_api_route():
     """Simple test fixture that creates an ApiRoute object."""
-    ar = ApiRoute()
+    ar = ApiRoute(enable_cors=True, cors_origin="*")
     yield ar
 
 class TestApiRoute(object):
