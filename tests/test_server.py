@@ -113,7 +113,7 @@ class TestOdinServer(object):
         """Test that the API route rejects an adapter list GET with a bad API version."""
         result = requests.get(odin_test_server.build_url('adapters/', api_version='99.9'))
         assert result.status_code == 400
-    
+
     def test_api_adapter_list_bad_accept(self, odin_test_server):
         """Test that the API route rejects and adapter list GET with a bad Accept type."""
         headers = {'Accept': 'test/plain'}
@@ -150,12 +150,30 @@ class TestBadServerConfig(object):
         assert rc == 2
 
 
+class ServerConfig():
+
+    def __init__(self):
+        self.debug_mode = False
+        self.log_function = None
+        self.static_path = "./static"
+        self.adapters = []
+        self.access_logging = None
+
+    def resolve_adapters(self):
+        return []
+
+@pytest.fixture()
+def server_config():
+    yield ServerConfig()
+
+
 class TestOdinServerAccessLogging():
     """Class for testing a bad access logging level congiguration."""
-    def test_bad_access_log_level(self, caplog):
+    def test_bad_access_log_level(self, server_config, caplog):
         """Test that a bad access logging level generates an error."""
-        bad_level='wibble'
-        http_server = HttpServer(adapters=[], access_logging=bad_level)
+        bad_level  = 'wibble'
+        server_config.access_logging = bad_level
+        http_server = HttpServer(server_config)
 
         assert log_message_seen(caplog, logging.ERROR,
             'Access logging level {} not recognised'.format(bad_level))
@@ -189,7 +207,7 @@ class MockHandler(object):
         def request_time(self):
             """Return the request time."""
             return self._request_time
-        
+
     def __init__(self, status=200, summary=None, request_time=0):
         """Initialise the mock handler with appropriate fields."""
         self.status = status
@@ -212,14 +230,14 @@ class LoggingTestServer(object):
 
     def __init__(self, caplog):
         """Initialise the logging test server."""
-        self.http_server = HttpServer(adapters=[])
+        self.http_server = HttpServer(ServerConfig())
         self.request_summary = 'request'
         self.request_time = 1234
         self.caplog = caplog
 
     def do_log_request(self, http_status, level):
         """
-        Generate a mock request handler and verify that the logger generates the 
+        Generate a mock request handler and verify that the logger generates the
         appropriate message.
         """
         handler = MockHandler(http_status, self.request_summary, self.request_time)
@@ -235,7 +253,7 @@ class LoggingTestServer(object):
 @pytest.fixture()
 def logging_test_server(caplog):
     """
-    Test fixture for staring a logging test server. Note this has function scope rather than 
+    Test fixture for staring a logging test server. Note this has function scope rather than
     class, as the pytest caplog fixture only has function scope.
     """
     test_server = LoggingTestServer(caplog)
