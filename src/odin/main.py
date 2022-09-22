@@ -40,6 +40,9 @@ def main(argv=None):
     config.define('access_logging', default=None, option_help="Set the tornado access log level",
                   metavar="debug|info|warning|error|none")
     config.define('static_path', default='./static', option_help='Set path for static file content')
+    config.define('enable_cors', default=False,
+                  option_help='Enable cross-origin resource sharing (CORS)')
+    config.define('cors_origin', default='*', option_help='Specify allowed CORS origin')
 
     # Parse configuration options and any configuration file specified
     try:
@@ -48,16 +51,8 @@ def main(argv=None):
         logging.error('Failed to parse configuration: %s', e)
         return 2
 
-    # Resolve the list of adapters specified
-    try:
-        adapters = config.resolve_adapters()
-    except ConfigError as e:
-        logging.warning('Failed to resolve API adapters: %s', e)
-        adapters = {}
-
-    # Launch the HTTP server
-    http_server = HttpServer(config.debug_mode, config.access_logging,
-                             config.static_path, adapters)
+    # Launch the HTTP server with the parsed configuration
+    http_server = HttpServer(config)
     http_server.listen(config.http_port, config.http_addr)
 
     logging.info('HTTP server listening on %s:%s', config.http_addr, config.http_port)

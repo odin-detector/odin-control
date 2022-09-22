@@ -12,6 +12,7 @@ import tornado.web
 import tornado.ioloop
 from tornado.log import access_log
 
+from odin.config.parser import ConfigError
 from odin.http.routes.api import ApiRoute
 from odin.http.routes.default import DefaultRoute
 
@@ -19,43 +20,48 @@ from odin.http.routes.default import DefaultRoute
 class HttpServer(object):
     """HTTP server class."""
 
-    def __init__(self, debug_mode=False, access_logging=None,
-                 static_path='./static', adapters=None):
+    def __init__(self, config):
         """Initialise the HttpServer object.
 
-        :param debug_mode: Set True to enable Tornado debug mode
-        :param static_path: Set the path to static file content rendered by default route
-        :param adapters: list of adapters to register with API route
+        :param config: parsed configuration container
         """
         settings = {
-            "debug": debug_mode,
+            "debug": config.debug_mode,
             "log_function": self.log_request,
         }
 
         # Set the up the access log level
-        if access_logging is not None:
+        if config.access_logging is not None:
             try:
-                level_val = getattr(logging, access_logging.upper())
+                level_val = getattr(logging, config.access_logging.upper())
                 access_log.setLevel(level_val)
             except AttributeError:
                 logging.error(
-                    "Access logging level {} not recognised".format(access_logging)
+                    "Access logging level {} not recognised".format(config.access_logging)
                 )
 
         # Create an API route
         self.api_route = ApiRoute()
 
-        # Register adapters with the API route and get handlers
+        # Resolve the list of adapters specified
+        try:
+            adapters = config.resolve_adapters()
+        except ConfigError as e:
+            logging.warning('Failed to resolve API adapters: %s', e)
+            adapters = {}
+
+        # Register adapters with the API route
         for adapter in adapters:
             self.api_route.register_adapter(adapters[adapter])
 
         # Initialize adapters for all those that require inter adapter communication
         self.api_route.initialize_adapters()
 
+        # Get request handlers for adapters registered with the API route
         handlers = self.api_route.get_handlers()
 
         # Create a default route for static content and get handlers
-        default_route = DefaultRoute(static_path)
+        default_route = DefaultRoute(config.static_path)
         handlers += default_route.get_handlers()
 
         # Create the Tornado web application for these handlers
