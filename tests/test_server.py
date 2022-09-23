@@ -139,7 +139,6 @@ class TestOdinServer(object):
         count = result.json()['response']['background_task_count']
         assert count > 0
 
-
 class TestBadServerConfig(object):
     """Class for testing a server with a bad configuration argument."""
 
@@ -149,9 +148,8 @@ class TestBadServerConfig(object):
         rc = main.main((server_args),)
         assert rc == 2
 
-
 class ServerConfig():
-
+    """Simple class for creating a dummy parsed server configuration."""
     def __init__(self):
         self.debug_mode = False
         self.log_function = None
@@ -166,8 +164,8 @@ class ServerConfig():
 
 @pytest.fixture()
 def server_config():
+    """Test fixture yielding a dummy parsed server configuration."""
     yield ServerConfig()
-
 
 class TestOdinServerAccessLogging():
     """Class for testing a bad access logging level congiguration."""
