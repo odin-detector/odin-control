@@ -20,7 +20,7 @@ else:                         # pragma: no cover
 
 from tornado.ioloop import IOLoop
 
-from odin import server
+from odin import main
 
 def log_message_seen(caplog, level, message, when="call"):
 
@@ -88,7 +88,7 @@ class OdinTestServer(object):
             asyncio.set_event_loop(asyncio.new_event_loop())
 
         self.server_event_loop = IOLoop.current()
-        server.main(server_args)
+        main.main(server_args)
 
     def stop(self):
 

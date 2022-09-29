@@ -21,8 +21,10 @@ from odin.util import wrap_result
 class TestHandler(object):
     """Class to create appropriate mocked objects to allow the ApiHandler to be tested."""
 
-    def __init__(self, handler_cls, async_adapter=async_allowed):
+    def __init__(self, handler_cls, async_adapter=async_allowed, enable_cors=False):
         """Initialise the TestHandler."""
+        self.enable_cors = enable_cors
+
         # Initialise attribute to receive output of patched write() method
         self.write_data = None
 
@@ -60,11 +62,14 @@ class TestHandler(object):
         self.route.adapters[self.subsystem] = api_adapter_mock
 
         # Create the handler and mock its write method with the local version
-        self.handler = handler_cls(self.app, self.request, route=self.route)
+        self.handler = handler_cls(self.app, self.request,
+            route=self.route, enable_cors=self.enable_cors, cors_origin="*"
+        )
         self.handler.write = self.mock_write
         self.handler.dummy_get = self.dummy_get
 
         self.respond = self.handler.respond
+        self.headers = lambda: self.handler._headers
 
     def mock_write(self, chunk):
         """Mock write function to be used with the handler."""
@@ -98,11 +103,17 @@ def test_api_handler(request):
     The fixture parameters and id lists are set depending on whether async code is
     allowed on the current platform (e.g. python 2 vs 3).
     """
-    test_api_handler = TestHandler(ApiHandler, request.param)
+    test_api_handler = TestHandler(ApiHandler, async_adapter=request.param)
     yield test_api_handler
 
 @pytest.fixture(scope="class")
 def test_base_handler():
     """Test fixture for testing the BaseHandler class."""
     test_base_handler = TestHandler(BaseApiHandler)
+    yield test_base_handler
+
+@pytest.fixture(scope="class", params=[True, False], ids=["CORS enabled", "CORS disabled"])
+def test_base_handler_cors(request):
+    """Test fixture for testing the BaseHandler class."""
+    test_base_handler = TestHandler(BaseApiHandler, enable_cors=request.param)
     yield test_base_handler

@@ -80,8 +80,15 @@ class ApiAdapterListHandler(tornado.web.RequestHandler):
 class ApiRoute(Route):
     """ApiRoute - API route object used to map handlers onto adapter for API calls."""
 
-    def __init__(self):
-        """Initialize the ApiRoute object."""
+    def __init__(self, enable_cors=False, cors_origin="*"):
+        """Initialize the ApiRoute object.
+
+        This constructor initialises the API route object, defining handlers for version, adapter
+        list and adapter API calls.
+
+        :param enable_cors: flag to enable CORS request support
+        :param cors_origin: CORS allowed origins
+        """
         super(ApiRoute, self).__init__()
 
         # Define a default handler which can return the supported API version
@@ -90,6 +97,9 @@ class ApiRoute(Route):
         # Define a handler which can return a list of loaded adapters
         self.add_handler((r'/api/(.*?)/adapters/?', ApiAdapterListHandler, dict(route=self)))
 
+        # Build a dict of params to be passed to API handler initialisation calls
+        handler_params = dict(route=self, enable_cors=enable_cors, cors_origin=cors_origin)
+
         # Define the handler for API calls. The expected URI syntax, which is
         # enforced by the validate_api_request decorator, is the following:
         #
@@ -97,8 +107,8 @@ class ApiRoute(Route):
         #
         # The second pattern allows an API adapter to be accessed with or without
         # a trailing slash for maximum compatibility
-        self.add_handler((r"/api/(.*?)/(.*?)/(.*)", ApiHandler, dict(route=self)))
-        self.add_handler((r"/api/(.*?)/(.*?)/?", ApiHandler, dict(route=self)))
+        self.add_handler((r"/api/(.*?)/(.*?)/(.*)", ApiHandler, handler_params))
+        self.add_handler((r"/api/(.*?)/(.*?)/?", ApiHandler, handler_params))
 
         self.adapters = {}
 

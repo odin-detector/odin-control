@@ -33,10 +33,10 @@ jobs:
         fi
         coverage xml --rcfile=$COVERAGE_RC
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v3
       with:
         name: ${{ matrix.python-version }}
-        fail_ci_if_error: true
+        fail_ci_if_error: false
 
   notify:
     if: ${{ always() }}

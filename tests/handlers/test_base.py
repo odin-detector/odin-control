@@ -11,7 +11,7 @@ else:                         # pragma: no cover
 
 from odin.http.handlers.base import BaseApiHandler, API_VERSION, ApiError, validate_api_request
 from odin.adapters.adapter import ApiAdapterResponse
-from tests.handlers.fixtures import test_base_handler
+from tests.handlers.fixtures import test_base_handler, test_base_handler_cors
 
 
 class TestBaseApiHandler(object):
@@ -78,6 +78,30 @@ class TestBaseApiHandler(object):
             test_base_handler.handler.delete(
                 test_base_handler.subsystem, test_base_handler.path)
 
+    def test_handler_options(self, test_base_handler):
+        """Test that the base handler options method returns a 204 success status code."""
+        test_base_handler.handler.options(test_base_handler.subsystem, test_base_handler.path)
+        assert test_base_handler.handler.get_status() == 204
+
+
+class TestBaseHandlerCorsSupport():
+
+    def test_cors_headers(self, test_base_handler_cors):
+        test_base_handler_cors.handler.options(
+            test_base_handler_cors.subsystem, test_base_handler_cors.path)
+
+        cors_headers = [
+            "Access-Control-Allow-Origin",
+            "Access-Control-Allow-Headers",
+            "Access-Control-Allow-Methods"
+        ]
+
+        headers = test_base_handler_cors.headers()
+        for cors_header in cors_headers:
+            if test_base_handler_cors.enable_cors:
+                assert cors_header in headers
+            else:
+                assert cors_header not in headers
 
 class TestHandlerRequestValidation():
     """Test cases for the validate_api_request decorator."""
