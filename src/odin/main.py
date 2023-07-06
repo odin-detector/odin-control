@@ -14,6 +14,7 @@ import tornado.ioloop
 
 from odin.http.server import HttpServer
 from odin.config.parser import ConfigParser, ConfigError
+from odin.logconfig import add_graylog_handler
 
 
 def shutdown_handler():  # pragma: no cover
@@ -43,6 +44,10 @@ def main(argv=None):
     config.define('enable_cors', default=False,
                   option_help='Enable cross-origin resource sharing (CORS)')
     config.define('cors_origin', default='*', option_help='Specify allowed CORS origin')
+    config.define('graylog_server', default=None, option_help="Graylog server address and :port")
+    config.define('graylog_logging_level', default=logging.INFO, option_help="Graylog logging level")
+    config.define('graylog_static_fields', default=None,
+                  option_help="Comma separated list of key=value pairs to add to every log message metadata")
 
     # Parse configuration options and any configuration file specified
     try:
@@ -50,6 +55,13 @@ def main(argv=None):
     except ConfigError as e:
         logging.error('Failed to parse configuration: %s', e)
         return 2
+
+    if config.graylog_server is not None:
+        add_graylog_handler(
+            config.graylog_server,
+            config.graylog_logging_level,
+            config.graylog_static_fields
+        )
 
     # Launch the HTTP server with the parsed configuration
     http_server = HttpServer(config)

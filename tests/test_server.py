@@ -5,9 +5,9 @@ import sys
 
 import pytest
 if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest.mock import Mock
+    from unittest import mock
 else:                         # pragma: no cover
-    from mock import Mock
+    import mock
 
 from odin.http.server import HttpServer
 from odin import main
@@ -138,6 +138,39 @@ class TestOdinServer(object):
         assert result.status_code == 200
         count = result.json()['response']['background_task_count']
         assert count > 0
+
+def test_graylog_handler_pygelf():
+    """Test that gelf handler is added if pygelf is available"""
+    try:
+        import pygelf
+        del pygelf
+    except ImportError:
+        return  # Cannot test pygelf functionality
+
+    with mock.patch.object(logging.getLogger(), "addHandler") as mock_add_handler, \
+        mock.patch("pygelf.GelfUdpHandler") as mock_gelf:
+
+        server = OdinTestServer(
+            graylog_server="127.0.0.1:12210",
+            graylog_static_fields="key1=val1,key2=val2"
+        )
+        server.stop()
+
+        mock_add_handler.assert_called_with(mock_gelf.return_value)
+
+
+def test_graylog_handler_no_pygelf(caplog):
+    """Test that an error is logged if called without pygelf available"""
+    with mock.patch.dict(sys.modules, {"pygelf": None}):
+        server = OdinTestServer(graylog_server="127.0.0.1:12210")
+        server.stop()
+
+    assert log_message_seen(
+        caplog,
+        logging.ERROR,
+        "Cannot add graylog handler - pygelf is not installed"
+    )
+
 
 class TestBadServerConfig(object):
     """Class for testing a server with a bad configuration argument."""
