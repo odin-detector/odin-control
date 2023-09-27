@@ -57,8 +57,10 @@ class OdinTestServer(object):
 
         parser.add_section('server')
         parser.set('server', 'debug_mode', '1')
+        parser.set('server', 'enable_http', 'true')
         parser.set('server', 'http_port', str(server_port))
         parser.set('server', 'http_addr', self.server_addr)
+        parser.set('server', 'enable_https', 'false')
         parser.set('server', 'static_path', static_path)
 
         if adapter_config is not None:

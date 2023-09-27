@@ -13,6 +13,7 @@ from odin.http.server import HttpServer
 from odin import main
 
 from tests.utils import OdinTestServer, log_message_seen
+from tests.ssl_utils import SslTestCert
 
 @pytest.fixture(scope="class")
 def odin_test_server():
@@ -184,6 +185,13 @@ class TestBadServerConfig(object):
 class ServerConfig():
     """Simple class for creating a dummy parsed server configuration."""
     def __init__(self):
+        self.enable_http = True
+        self.enable_https = False
+        self.http_addr = '127.0.0.1'
+        self.http_port = 8888
+        self.https_port = 8443
+        self.ssl_cert_file = 'cert.pem'
+        self.ssl_key_file = 'key.pem'
         self.debug_mode = False
         self.log_function = None
         self.static_path = "./static"
@@ -286,7 +294,7 @@ class LoggingTestServer(object):
 @pytest.fixture()
 def logging_test_server(caplog):
     """
-    Test fixture for staring a logging test server. Note this has function scope rather than
+    Test fixture for starting a logging test server. Note this has function scope rather than
     class, as the pytest caplog fixture only has function scope.
     """
     test_server = LoggingTestServer(caplog)
@@ -306,3 +314,65 @@ class TestOdinHttpServerLogging(object):
     def test_error_logging(self, logging_test_server):
         """Test that failing requests log at error level."""
         assert logging_test_server.do_log_request(503, logging.ERROR)
+
+class HttpsTestServer():
+
+    def __init__(self, caplog):
+
+        self.server_config = ServerConfig()
+        self.server_config.enable_https = True
+        self.https_Server = HttpServer(self.server_config)
+        self.caplog = caplog   
+
+@pytest.fixture()
+def https_test_server(caplog):
+    """
+    Test fixture for starting a logging test server with HTTPS enabled
+    """
+    test_server = HttpsTestServer(caplog)
+    yield test_server
+
+@pytest.fixture(scope='class')
+def ssl_test_cert():
+
+    test_cert = SslTestCert()
+    yield test_cert
+
+class TestOdinHttpsServer():
+
+    def test_https_valid_config(self, server_config, ssl_test_cert, caplog):
+
+        server_config.enable_https = True
+        server_config.ssl_cert_file = ssl_test_cert.cert_file 
+        server_config.ssl_key_file = ssl_test_cert.key_file 
+        server = HttpServer(server_config)
+
+        assert log_message_seen(
+            caplog, logging.INFO,
+            "HTTPS server listening on {}:{}".format(
+                server_config.http_addr, server_config.https_port
+            )
+        )
+
+    def test_https_no_ssl_files(self, server_config, caplog):
+        server_config.enable_https = True
+        server = HttpServer(server_config)
+        assert log_message_seen(
+            caplog, logging.ERROR,
+            "Failed to create SSL context for HTTPS: [Errno 2] No such file or directory",
+        )
+
+    def test_https_listen_error(self, server_config, ssl_test_cert, caplog):
+
+        server_config.enable_https = True
+        server_config.ssl_cert_file = ssl_test_cert.cert_file
+        server_config.ssl_key_file = ssl_test_cert.key_file
+        server_config.https_port = 443
+        server = HttpServer(server_config)
+
+        assert log_message_seen(
+            caplog, logging.ERROR,
+            "Failed to create HTTPS server on {}:{}: [Errno 13] Permission denied".format(
+                server_config.http_addr, server_config.https_port,
+            )
+        )
