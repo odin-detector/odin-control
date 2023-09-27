@@ -35,8 +35,13 @@ def main(argv=None):
     config = ConfigParser()
 
     # Define configuration options and add to the configuration parser
-    config.define('http_addr', default='0.0.0.0', option_help='Set HTTP server address')
+    config.define('http_addr', default='0.0.0.0', option_help='Set HTTP/S server address')
     config.define('http_port', default=8888, option_help='Set HTTP server port')
+    config.define('enable_http', default=True, option_help='Enable HTTP')
+    config.define('https_port', default=8443, option_help='Set HTTPS server port')
+    config.define('enable_https', default=False, option_help='Enable HTTPS')
+    config.define('ssl_cert_file', default='cert.pem', option_help='Set SSL certificate file for HTTPS')
+    config.define('ssl_key_file', default='key.pem', option_help='Set SSL key file for HTTPS')
     config.define('debug_mode', default=False, option_help='Enable tornado debug mode')
     config.define('access_logging', default=None, option_help="Set the tornado access log level",
                   metavar="debug|info|warning|error|none")
@@ -65,9 +70,6 @@ def main(argv=None):
 
     # Launch the HTTP server with the parsed configuration
     http_server = HttpServer(config)
-    http_server.listen(config.http_port, config.http_addr)
-
-    logging.info('HTTP server listening on %s:%s', config.http_addr, config.http_port)
 
     # Register a SIGINT signal handler only if this is the main thread
     if isinstance(threading.current_thread(), threading._MainThread):  # pragma: no cover
