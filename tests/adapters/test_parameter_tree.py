@@ -441,6 +441,40 @@ class TestParameterTree():
         test_param_tree.list_tree.set("",tree_data)
         assert test_param_tree.list_tree.get("main") == tree_data
 
+    def test_list_tree_set_partial_from_root(self, test_param_tree):
+        """Test that it is possible to set part of a list tree from its root."""
+        tree_data = {
+            'main' : [
+                {
+                    'intParam': 3,
+                    'floatParam': 4.56,
+                    'boolParam': True,
+                    'strParam':  "test1",
+                },
+                [1,2,3,4]
+            ]
+        }
+        test_param_tree.list_tree.set("",tree_data)
+        assert test_param_tree.list_tree.get("main/0/intParam") == {'intParam': 3}
+        assert test_param_tree.list_tree.get("main/0/floatParam") == {'floatParam': 4.56}
+        assert test_param_tree.list_tree.get("main/0/boolParam") == {'boolParam': True}
+        assert test_param_tree.list_tree.get("main/0/strParam") == {'strParam': "test1"}
+        assert test_param_tree.list_tree.get("main/1") == {'1': [1,2,3,4]}
+
+        tree_data = {
+            'main' : [
+                {
+                    'intParam': 6,
+                },
+            ]
+        }
+        test_param_tree.list_tree.set("",tree_data)
+        assert test_param_tree.list_tree.get("main/0/intParam") == {'intParam': 6}
+        assert test_param_tree.list_tree.get("main/0/floatParam") == {'floatParam': 4.56}
+        assert test_param_tree.list_tree.get("main/0/boolParam") == {'boolParam': True}
+        assert test_param_tree.list_tree.get("main/0/strParam") == {'strParam': "test1"}
+        assert test_param_tree.list_tree.get("main/1") == {'1': [1,2,3,4]}
+
     def test_list_tree_from_dict(self, test_param_tree):
         """TEet that a list tree can be set with a dict of index/values."""
         new_list_param = {0: 0, 1: 1, 2: 2, 3: 3}

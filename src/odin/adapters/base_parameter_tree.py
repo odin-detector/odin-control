@@ -495,6 +495,15 @@ class BaseParameterTree(object):
                 raise ParameterTreeError(
                     'Invalid path: {}{} {}'.format(cur_path, str(i), str(index_error))
                 )
+        if isinstance(node, list) and isinstance(new_data, list):
+            try:
+                for i, val in enumerate(new_data):
+                    node[i] = self._merge_tree(node[i], val, cur_path + str(i) + '/')
+                return node
+            except IndexError as index_error:
+                raise ParameterTreeError(
+                    'Invalid path: {}{} {}'.format(cur_path, str(i), str(index_error))
+                )
 
         # Update the value of the current parameter, calling the set accessor if specified and
         # validating the type if necessary.
