@@ -215,6 +215,7 @@ class TestOdinServerAccessLogging():
         bad_level  = 'wibble'
         server_config.access_logging = bad_level
         http_server = HttpServer(server_config)
+        http_server.stop()
 
         assert log_message_seen(caplog, logging.ERROR,
             'Access logging level {} not recognised'.format(bad_level))
@@ -234,6 +235,21 @@ class TestOdinServerMissingAdapters(object):
         assert log_message_seen(caplog, logging.WARNING,
             'Failed to resolve API adapters: No adapters specified in configuration',
             when="setup")
+
+class TestOdinServerListenFailed(object):
+
+    def test_http_server_listen_fails(self, caplog):
+
+        config_1 = ServerConfig()
+        config_2 = ServerConfig()
+
+        server1 = HttpServer(config_1)
+        server2 = HttpServer(config_2)
+
+        server1.stop()
+        server2.stop()
+
+        assert log_message_seen(caplog, logging.ERROR, "Address already in use")
 
 class MockHandler(object):
     """Class for mocking tornado request handler objects."""
@@ -291,6 +307,9 @@ class LoggingTestServer(object):
                 msg_seen = True
         return msg_seen
 
+    def __del__(self):
+        self.http_server.stop()
+
 @pytest.fixture()
 def logging_test_server(caplog):
     """
@@ -321,8 +340,11 @@ class HttpsTestServer():
 
         self.server_config = ServerConfig()
         self.server_config.enable_https = True
-        self.https_Server = HttpServer(self.server_config)
-        self.caplog = caplog   
+        self.https_server = HttpServer(self.server_config)
+        self.caplog = caplog
+
+    def __del__(self):
+        self.https_server.stop()
 
 @pytest.fixture()
 def https_test_server(caplog):
@@ -346,6 +368,7 @@ class TestOdinHttpsServer():
         server_config.ssl_cert_file = ssl_test_cert.cert_file 
         server_config.ssl_key_file = ssl_test_cert.key_file 
         server = HttpServer(server_config)
+        server.stop()
 
         assert log_message_seen(
             caplog, logging.INFO,
@@ -357,6 +380,7 @@ class TestOdinHttpsServer():
     def test_https_no_ssl_files(self, server_config, caplog):
         server_config.enable_https = True
         server = HttpServer(server_config)
+        server.stop()
         assert log_message_seen(
             caplog, logging.ERROR,
             "Failed to create SSL context for HTTPS: [Errno 2] No such file or directory",
@@ -369,6 +393,7 @@ class TestOdinHttpsServer():
         server_config.ssl_key_file = ssl_test_cert.key_file
         server_config.https_port = 443
         server = HttpServer(server_config)
+        server.stop()
 
         assert log_message_seen(
             caplog, logging.ERROR,
