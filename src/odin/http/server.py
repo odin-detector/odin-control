@@ -71,18 +71,20 @@ class HttpServer(object):
 
         # If HTTP is enabled, configure the application to listen on the specified address and
         # port
+        self.http_server = None
         if config.enable_http:
             try:
-                self.application.listen(config.http_port, config.http_addr)
+                self.http_server = self.application.listen(config.http_port, config.http_addr)
                 logging.info('HTTP server listening on %s:%s', config.http_addr, config.http_port)
             except OSError as listen_err:
                 logging.error(
                     "Failed to create HTTP server on %s:%s: %s", 
-                    config.http_addr, config.https_port, str(listen_err)
+                    config.http_addr, config.http_port, str(listen_err)
                 )
 
         # If HTTPS is enabled, create a SSL context and load the specified certificate and key,
         # then configure the application to listen on the specified address and port
+        self.https_server = None
         if config.enable_https:
             try:
                 ssl_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -91,7 +93,7 @@ class HttpServer(object):
                 logging.error("Failed to create SSL context for HTTPS: %s", str(ctx_err))
             else:
                 try:
-                    self.application.listen(
+                    self.https_server = self.application.listen(
                         config.https_port, config.http_addr, ssl_options=ssl_ctx
                     )
                     logging.info(
@@ -102,6 +104,19 @@ class HttpServer(object):
                         "Failed to create HTTPS server on %s:%s: %s", 
                         config.http_addr, config.https_port, str(listen_err)
                     )
+
+    def stop(self):
+        """Stop the HTTP/S server(s).
+
+        This method stops the underlying HTTP/S server(s) cleanly, preventing any new connections
+        from being accepted.
+        """
+        if self.http_server:
+            logging.debug("Stopping HTTP server")
+            self.http_server.stop()
+        if self.https_server:
+            logging.debug("Stopping HTTPS server")
+            self.https_server.stop()
 
     def log_request(self, handler):
         """Log completed request information.
