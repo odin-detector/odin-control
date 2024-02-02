@@ -486,7 +486,7 @@ class BaseParameterTree(object):
                 raise ParameterTreeError(
                     'Invalid path: {}{}'.format(cur_path, str(key_error)[1:-1])
                 )
-        if isinstance(node, list) and isinstance(new_data, dict):
+        if isinstance(node, list) and isinstance(new_data, (dict, list)):
             try:
                 for i, val in enumerate(new_data):
                     node[i] = self._merge_tree(node[i], val, cur_path + str(i) + '/')
