@@ -257,6 +257,11 @@ class ParameterTreeTestFixture(object):
             'branch': self.complex_tree_branch,
         })
 
+        self.complex_list_tree = ParameterTree({
+            'main' : [
+
+            ]
+        })
         self.list_tree = ParameterTree({
             'main' : [
                 self.simple_dict.copy(),

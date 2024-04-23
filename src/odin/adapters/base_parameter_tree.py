@@ -265,7 +265,7 @@ class BaseParameterTree(object):
         # Return the populated tree at the appropriate path
         return self._populate_tree({levels[-1]: subtree}, with_metadata)
 
-    def set(self, path, data):
+    def set(self, path, data, replace=False):
         """Set the values of the parameters in a tree.
 
         This method sets the values of parameters in a tree, based on the data passed to it
@@ -274,6 +274,7 @@ class BaseParameterTree(object):
 
         :param path: path to set parameters for in the tree
         :param data: nested dictionary representing values to update at the path
+        :param replace: if set to true then the structure is replaced rather than merged
         """
         # Expand out any lists/tuples
         data = self._build_tree(data)
@@ -304,7 +305,12 @@ class BaseParameterTree(object):
             path += '/'
 
         # Merge data with tree
-        merged = self._merge_tree(merge_child, data, path)
+        if replace:
+            if not self.mutable:
+                raise ParameterTreeError("Invalid Replace Attempt: Tree Not Mutable")
+            merged = data
+        else:
+            merged = self._merge_tree(merge_child, data, path)
 
         # Add merged part to tree, either at the top of the tree or at the
         # appropriate level speicfied by the path
@@ -315,6 +321,18 @@ class BaseParameterTree(object):
             merge_parent[levels[-1]] = merged
         else:
             merge_parent[int(levels[-1])] = merged
+
+    def replace(self, path, data):
+        """Replaces a branch of parameters in a tree.
+
+        This method sets the values of parameters in a tree, based on the data passed to it
+        as a nested dictionary of parameter and value pairs. Any structure below the insertion
+        point in the exising tree is replaced with this new structure.
+
+        :param path: path to set parameters for in the tree
+        :param data: nested dictionary representing structure to replace at the path
+        """
+        self.set(path, data, replace=True)
 
     def delete(self, path=''):
         """
