@@ -4,38 +4,53 @@ Proxy adapter for use in odin-control.
 This module implements a simple proxy adapter, allowing requests to be proxied to
 one or more remote HTTP resources, typically further odin-control instances.
 
-Tim Nicholls, Ashley Neaves STFC Detector Systems Software Group.
+Tim Nicholls, Ashley Neaves, Josh Harris STFC Detector Systems Software Group.
 """
-from tornado.httpclient import HTTPClient
-from odin.util import decode_request_body
+
+import logging
+
+try:
+    import requests
+except ImportError:
+    raise ImportError(
+        "Cannot create a ProxyAdapter instance as requests package not installed"
+    )
+
 from odin.adapters.adapter import (
-    ApiAdapter, ApiAdapterResponse,
-    request_types, response_types, wants_metadata
+    ApiAdapter,
+    ApiAdapterResponse,
+    request_types,
+    response_types,
+    wants_metadata,
 )
-from odin.adapters.base_proxy import BaseProxyTarget, BaseProxyAdapter
+from odin.adapters.base_proxy import (
+    BaseProxyAdapter,
+    BaseProxyTarget,
+    ProxyError,
+    ProxyResponse,
+)
+from odin.util import decode_request_body
 
 
 class ProxyTarget(BaseProxyTarget):
     """
     Proxy adapter target class.
 
-    This class implements a proxy target, its parameter tree and associated
-    status information for use in the ProxyAdapter.
+    This class implements a proxy target, its parameter tree and associated status information
+    for use in the ProxyAdapter.
     """
 
     def __init__(self, name, url, request_timeout):
         """
         Initialise the ProxyTarget object.
 
-        This constructor initialises the ProxyTarget, creating a HTTP client and delegating
-        the full initialisation to the base class.
+        This constructor initialises the ProxyTarget, delegating the full initialisation to the
+        base class and then populating data and metadata from the remote target
 
         :param name: name of the proxy target
         :param url: URL of the remote target
         :param request_timeout: request timeout in seconds
         """
-        # Create an async HTTP client for use in this target
-        self.http_client = HTTPClient()
 
         # Initialise the base class
         super(ProxyTarget, self).__init__(name, url, request_timeout)
@@ -44,52 +59,59 @@ class ProxyTarget(BaseProxyTarget):
         self.remote_get()
         self.remote_get(get_metadata=True)
 
-    def remote_get(self, path='', get_metadata=False):
-        """
-        Get data from the remote target.
-
-        This method updates the local proxy target with new data by issuing a GET request to the
-        target URL, and then updates the local proxy target data and status information according to
-        the response. The detailed handling of this is implemented by the base class.
-
-        :param path: path to data on remote target
-        :param get_metadata: flag indicating if metadata is to be requested
-        """
-        super(ProxyTarget, self).remote_get(path, get_metadata)
-
-    def remote_set(self, path, data):
-        """
-        Set data on the remote target.
-
-        This method sends data to the remote target by issuing a PUT request to the target
-        URL, and then updates the local proxy target data and status information according to the
-        response. The detailed handling of this is implemented by the base class.
-
-        :param path: path to data on remote target
-        :param data: data to set on remote target
-        """
-        super(ProxyTarget, self).remote_set(path, data)
-
     def _send_request(self, request, path, get_metadata=False):
         """
         Send a request to the remote target and update data.
 
-        This internal method sends a request to the remote target using the HTTP client
-        and handles the response, updating target data accordingly.
+        This internal method sends a request to the remote target using the requests library and
+        handles the response, updating target data accordingly.
 
         :param request: HTTP request to transmit to target
         :param path: path of data being updated
         :param get_metadata: flag indicating if metadata is to be requested
         """
+
         # Send the request to the remote target, handling any exceptions that occur
         try:
-            response = self.http_client.fetch(request)
-        except Exception as fetch_exception:
-            # Set the response to the exception so it can be handled during response resolution
-            response = fetch_exception
+            response = requests.request(
+                method=request.method,
+                url=request.url,
+                headers=request.headers,
+                timeout=request.timeout,
+                data=request.data,
+            )
+
+            # If an error status code was returned from the server, raise an exception for handling
+            # below
+            response.raise_for_status()
+
+            # Construct a proxy response object for processing
+            proxy_response = ProxyResponse(
+                status_code=response.status_code, body=response.content
+            )
+
+        except requests.exceptions.RequestException as error:
+
+            # Map the various requests exception types to the appropriate status code
+            if isinstance(error, requests.exceptions.ConnectionError):
+                status_code = 502
+            elif isinstance(error, requests.exceptions.Timeout):
+                status_code = 408
+            else:
+                status_code = error.response.status_code
+
+            # Construct a proxy error object for processing
+            proxy_response = ProxyError(
+                status_code=status_code, error_string=str(error)
+            )
+
+        except Exception as error:
+
+            # Handle a general exception as a server error
+            proxy_response = ProxyError(status_code=500, error_string=str(error))
 
         # Process the response from the target, updating data as appropriate
-        self._process_response(response, path, get_metadata)
+        self._process_response(proxy_response, path, get_metadata)
 
 
 class ProxyAdapter(ApiAdapter, BaseProxyAdapter):
@@ -113,10 +135,13 @@ class ProxyAdapter(ApiAdapter, BaseProxyAdapter):
         # Initialise the base class
         super(ProxyAdapter, self).__init__(**kwargs)
 
+        requests_log = logging.getLogger("urllib3")
+        requests_log.setLevel(logging.INFO)
+
         # Initialise the proxy targets and parameter trees
         self.initialise_proxy(ProxyTarget)
 
-    @response_types('application/json', default='application/json')
+    @response_types("application/json", default="application/json")
     def get(self, path, request):
         """
         Handle an HTTP GET request.
@@ -136,7 +161,7 @@ class ProxyAdapter(ApiAdapter, BaseProxyAdapter):
         return ApiAdapterResponse(response, status_code=status_code)
 
     @request_types("application/json", "application/vnd.odin-native")
-    @response_types('application/json', default='application/json')
+    @response_types("application/json", default="application/json")
     def put(self, path, request):
         """
         Handle an HTTP PUT request.
@@ -154,7 +179,11 @@ class ProxyAdapter(ApiAdapter, BaseProxyAdapter):
         try:
             body = decode_request_body(request)
         except (TypeError, ValueError) as type_val_err:
-            response = {'error': 'Failed to decode PUT request body: {}'.format(str(type_val_err))}
+            response = {
+                "error": "Failed to decode PUT request body: {}".format(
+                    str(type_val_err)
+                )
+            }
             status_code = 415
         else:
             self.proxy_set(path, body)

@@ -4,12 +4,15 @@ Tim Nicholls, STFC Application Engineering Group.
 """
 
 import sys
+import builtins
 import threading
 import logging
 import time
 from io import StringIO
 
 import pytest
+
+import requests
 
 from tornado.testing import bind_unused_port
 from tornado.ioloop import IOLoop
@@ -144,11 +147,10 @@ class ProxyTargetTestFixture(object):
 
     def stop(self):
         """Stop the test server and proxy HTTP client."""
-        self.proxy_target.http_client.close()
         self.test_server.stop()
 
 
-@pytest.fixture
+@pytest.fixture()
 def test_proxy_target():
     """Fixture used in ProxyTarget test cases."""
     test_proxy_target = ProxyTargetTestFixture(ProxyTarget)
@@ -192,13 +194,12 @@ class TestProxyTarget():
 
     def test_proxy_target_timeout_error(self, test_proxy_target):
         """Test that a proxy target GET request that times out is handled correctly"""
-        mock_fetch = Mock()
-        mock_fetch.side_effect = tornado.ioloop.TimeoutError('timeout')
         proxy_target = ProxyTarget(test_proxy_target.name, test_proxy_target.url,
                                    test_proxy_target.request_timeout)
-        proxy_target.http_client.fetch = mock_fetch
 
-        proxy_target.remote_get()
+        with patch('requests.request') as request_mock:
+            request_mock.side_effect = requests.exceptions.Timeout('timeout')
+            proxy_target.remote_get()
 
         assert proxy_target.status_code == 408
         assert 'timeout' in proxy_target.error_string
@@ -215,30 +216,32 @@ class TestProxyTarget():
 
     def test_proxy_target_unknown_error(self, test_proxy_target):
         """Test that a proxy target GET request handles an unknown exception returning a 500 error."""
-        mock_fetch = Mock()
-        mock_fetch.side_effect = ValueError('value error')
         proxy_target = ProxyTarget(
             test_proxy_target.name, test_proxy_target.url, test_proxy_target.request_timeout
         )
-        proxy_target.http_client.fetch = mock_fetch
 
-        proxy_target.remote_get()
+        with patch('requests.request') as request_mock:
+            request_mock.side_effect = ValueError('value error')
+            proxy_target.remote_get()
 
         assert proxy_target.status_code == 500
         assert 'value error' in proxy_target.error_string
 
     def test_proxy_target_traps_decode_error(self, test_proxy_target):
         """Test that a proxy target correctly traps errors decoding a non-JSON response body."""
-        mock_fetch = Mock()
-        mock_fetch.return_value = HTTPResponse(Mock(), 200, buffer=StringIO(u"wibble"))
 
         proxy_target = ProxyTarget(
             test_proxy_target.name, test_proxy_target.url, test_proxy_target.request_timeout
         )
-        proxy_target.http_client.fetch = mock_fetch
 
-        proxy_target.remote_get()
-        print(proxy_target.status_code, proxy_target.error_string)
+        with patch('requests.request') as request_mock:
+
+            mock_response = Mock()
+            mock_response.status_code = 200
+            mock_response.content = b'wibble'
+            request_mock.return_value = mock_response
+            proxy_target.remote_get()
+
         assert proxy_target.status_code == 415
         assert "Failed to decode response body" in proxy_target.error_string
 
@@ -281,8 +284,6 @@ class ProxyAdapterTestFixture():
 
     def stop(self):
         """Stop the proxied test servers, ensuring any client connections to them are closed."""
-        for target in self.adapter.targets:
-            target.http_client.close()
         for test_server in self.test_servers:
             test_server.stop()
 
@@ -301,8 +302,29 @@ def proxy_adapter_test():
     proxy_adapter_test.stop()
 
 
+real_import = builtins.__import__
+def monkey_import_importerror(name, globals=None, locals=None, fromlist=(), level=0):
+    """Monkey patch method simulating import error for the requests library"""
+    if name in ('requests', ):
+        raise ImportError("{} not found".format(name))
+    return real_import(name, globals=globals, locals=locals, fromlist=fromlist, level=level)
+
 class TestProxyAdapter():
     """Test cases for testing the ProxyAdapter class."""
+
+    def test_requests_missing(self, monkeypatch):
+        """
+        Test that the proxy adapter module raises an import error with a specific message when the
+        requests package is not installed.
+        """
+        monkeypatch.delitem(sys.modules, 'requests', raising=False)
+        monkeypatch.delitem(sys.modules, 'odin.adapters.proxy')
+        monkeypatch.setattr(builtins, '__import__', monkey_import_importerror)
+
+        with pytest.raises(ImportError) as excinfo:
+            from odin.adapters.proxy import ProxyAdapter
+
+        assert("requests package not installed" in str(excinfo.value))
 
     def test_adapter_loaded(self, proxy_adapter_test):
         """Test that the proxy adapter is loaded and configured correctly."""
