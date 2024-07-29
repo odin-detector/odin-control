@@ -6,16 +6,27 @@ one or more remote HTTP resources, typically further odin-control instances.
 
 Tim Nicholls, Ashley Neaves STFC Detector Systems Software Group.
 """
+
 import asyncio
 import inspect
 
-from tornado.httpclient import AsyncHTTPClient
-from odin.util import decode_request_body
+import tornado
+from tornado.httpclient import AsyncHTTPClient, HTTPRequest
+
 from odin.adapters.adapter import (
-    ApiAdapterResponse, request_types, response_types, wants_metadata
+    ApiAdapterResponse,
+    request_types,
+    response_types,
+    wants_metadata
 )
 from odin.adapters.async_adapter import AsyncApiAdapter
-from odin.adapters.base_proxy import BaseProxyTarget, BaseProxyAdapter
+from odin.adapters.base_proxy import (
+    BaseProxyAdapter,
+    BaseProxyTarget,
+    ProxyError,
+    ProxyResponse
+)
+from odin.util import decode_request_body
 
 
 class AsyncProxyTarget(BaseProxyTarget):
@@ -32,7 +43,6 @@ class AsyncProxyTarget(BaseProxyTarget):
 
         This constructor initialises the AsyncProxyTarget, creating an async HTTP client and
         delegating the full initialisation to the base class.
-
 
         :param name: name of the proxy target
         :param url: URL of the remote target
@@ -52,6 +62,7 @@ class AsyncProxyTarget(BaseProxyTarget):
         the async calls to remote_get, used to populate the data and metadata trees from the remote
         target, to be awaited.
         """
+
         async def closure():
             """Await the calls to the remote target to populate and data and metadata tress."""
             await self.remote_get()
@@ -60,7 +71,7 @@ class AsyncProxyTarget(BaseProxyTarget):
 
         return closure().__await__()
 
-    async def remote_get(self, path='', get_metadata=False):
+    async def remote_get(self, path="", get_metadata=False):
         """
         Get data from the remote target.
 
@@ -97,15 +108,35 @@ class AsyncProxyTarget(BaseProxyTarget):
         :param path: path of data being updated
         :param get_metadata: flag indicating if metadata is to be requested
         """
+
+        # Construct an HTTP request object for the client
+        http_request = HTTPRequest(
+            method=request.method,
+            url=request.url,
+            headers=request.headers,
+            request_timeout=request.timeout,
+            body=request.data,
+        )
+
         # Send the request to the remote target, handling any exceptions that occur
         try:
-            response = await self.http_client.fetch(request)
-        except Exception as fetch_exception:
-            # Set the response to the exception so it can be handled during response resolution
-            response = fetch_exception
+            response = await self.http_client.fetch(http_request)
+            proxy_response = ProxyResponse(status_code=response.code, body=response.body)
+
+        except tornado.httpclient.HTTPError as error:
+            proxy_response = ProxyError(status_code=error.code, error_string=error.message)
+
+        except tornado.ioloop.TimeoutError as error:
+            proxy_response = ProxyError(status_code=408, error_string=str(error))
+
+        except IOError as error:
+            proxy_response = ProxyError(status_code=502, error_string=str(error))
+
+        except Exception as error:
+            proxy_response = ProxyError(status_code=500, error_string=str(error))
 
         # Process the response from the target, updating data as appropriate
-        self._process_response(response, path, get_metadata)
+        self._process_response(proxy_response, path, get_metadata)
 
 
 class AsyncProxyAdapter(AsyncApiAdapter, BaseProxyAdapter):
@@ -149,7 +180,7 @@ class AsyncProxyAdapter(AsyncApiAdapter, BaseProxyAdapter):
 
         return closure().__await__()
 
-    @response_types('application/json', default='application/json')
+    @response_types("application/json", default="application/json")
     async def get(self, path, request):
         """
         Handle an HTTP GET request.
@@ -169,7 +200,7 @@ class AsyncProxyAdapter(AsyncApiAdapter, BaseProxyAdapter):
         return ApiAdapterResponse(response, status_code=status_code)
 
     @request_types("application/json", "application/vnd.odin-native")
-    @response_types('application/json', default='application/json')
+    @response_types("application/json", default="application/json")
     async def put(self, path, request):
         """
         Handle an HTTP PUT request.
@@ -187,7 +218,7 @@ class AsyncProxyAdapter(AsyncApiAdapter, BaseProxyAdapter):
         try:
             body = decode_request_body(request)
         except (TypeError, ValueError) as type_val_err:
-            response = {'error': 'Failed to decode PUT request body: {}'.format(str(type_val_err))}
+            response = {"error": "Failed to decode PUT request body: {}".format(str(type_val_err))}
             status_code = 415
         else:
             await asyncio.gather(*self.proxy_set(path, body))

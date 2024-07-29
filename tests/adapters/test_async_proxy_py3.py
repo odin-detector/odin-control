@@ -9,12 +9,10 @@ import sys
 from io import StringIO
 
 import pytest
-from zmq import proxy
 
 if sys.version_info[0] < 3:
     pytest.skip("Skipping async tests", allow_module_level=True)
 else:
-    import asyncio
     from tornado.ioloop import TimeoutError
     from tornado.httpclient import HTTPResponse
     from odin.adapters.async_proxy import AsyncProxyTarget, AsyncProxyAdapter
@@ -28,8 +26,7 @@ else:
     except ImportError:
         from tests.async_utils import AsyncMock
 
-
-@pytest.fixture
+@pytest.fixture(scope="class")
 def test_proxy_target():
     test_proxy_target = ProxyTargetTestFixture(AsyncProxyTarget)
     yield test_proxy_target
@@ -185,15 +182,8 @@ class AsyncProxyAdapterTestFixture(AwaitableTestFixture):
         for test_server in self.test_servers:
             test_server.clear_access_count()
 
-@pytest.fixture(scope="class")
-def event_loop():
-    """Redefine the pytest.asyncio event loop fixture to have class scope."""
-    loop = asyncio.get_event_loop()
-    yield loop
-    loop.close()
-
-@asyncio_fixture_decorator(scope='class')
-async def async_proxy_adapter_test():
+@asyncio_fixture_decorator
+async def async_proxy_adapter_fixture():
     async_proxy_adapter_test = await AsyncProxyAdapterTestFixture()
     adapters = [async_proxy_adapter_test]
     await async_proxy_adapter_test.adapter.initialize([adapters])
@@ -202,138 +192,138 @@ async def async_proxy_adapter_test():
 
 class TestAsyncProxyAdapter():
 
-    def test_adapter_loaded(self, async_proxy_adapter_test):
-        assert len(async_proxy_adapter_test.adapter.targets) == async_proxy_adapter_test.num_targets
+    def test_adapter_loaded(self, async_proxy_adapter_fixture):
+        assert len(async_proxy_adapter_fixture.adapter.targets) == async_proxy_adapter_fixture.num_targets
 
     @pytest.mark.asyncio
-    async def test_adapter_get(self, async_proxy_adapter_test):
+    async def test_adapter_get(self, async_proxy_adapter_fixture):
         """
         Test that a GET request to the proxy adapter returns the appropriate data for all
         defined proxied targets.
         """
-        response = await async_proxy_adapter_test.adapter.get(
-            async_proxy_adapter_test.path, async_proxy_adapter_test.request)
+        response = await async_proxy_adapter_fixture.adapter.get(
+            async_proxy_adapter_fixture.path, async_proxy_adapter_fixture.request)
 
         assert 'status' in response.data
 
-        assert len(response.data) == async_proxy_adapter_test.num_targets + 1
+        assert len(response.data) == async_proxy_adapter_fixture.num_targets + 1
 
-        for tgt in range(async_proxy_adapter_test.num_targets):
+        for tgt in range(async_proxy_adapter_fixture.num_targets):
             node_str = 'node_{}'.format(tgt)
             assert node_str in response.data
             assert response.data[node_str], ProxyTestHandler.data
 
     @pytest.mark.asyncio
-    async def test_adapter_get_metadata(self, async_proxy_adapter_test):
-        request = async_proxy_adapter_test.request
+    async def test_adapter_get_metadata(self, async_proxy_adapter_fixture):
+        request = async_proxy_adapter_fixture.request
         request.headers['Accept'] = "{};{}".format(request.headers['Accept'], "metadata=True")
-        response = await async_proxy_adapter_test.adapter.get(async_proxy_adapter_test.path, request)
+        response = await async_proxy_adapter_fixture.adapter.get(async_proxy_adapter_fixture.path, request)
 
         assert "status" in response.data
-        for target in range(async_proxy_adapter_test.num_targets):
+        for target in range(async_proxy_adapter_fixture.num_targets):
             node_str = 'node_{}'.format(target)
             assert node_str in response.data
             assert "one" in response.data[node_str]
             assert "type" in response.data[node_str]['one']
 
     @pytest.mark.asyncio
-    async def test_adapter_get_status_metadata(self, async_proxy_adapter_test):
-        request = async_proxy_adapter_test.request
+    async def test_adapter_get_status_metadata(self, async_proxy_adapter_fixture):
+        request = async_proxy_adapter_fixture.request
         request.headers['Accept'] = "{};{}".format(request.headers['Accept'], "metadata=True")
-        response = await async_proxy_adapter_test.adapter.get(async_proxy_adapter_test.path, request)
+        response = await async_proxy_adapter_fixture.adapter.get(async_proxy_adapter_fixture.path, request)
 
         assert 'status' in response.data
         assert 'node_0' in response.data['status']
         assert 'type' in response.data['status']['node_0']['error']
 
     @pytest.mark.asyncio
-    async def test_adapter_put(self, async_proxy_adapter_test):
+    async def test_adapter_put(self, async_proxy_adapter_fixture):
         """
         Test that a PUT request to the proxy adapter returns the appropriate data for all
         defined proxied targets.
         """
-        response = await async_proxy_adapter_test.adapter.put(
-            async_proxy_adapter_test.path, async_proxy_adapter_test.request)
+        response = await async_proxy_adapter_fixture.adapter.put(
+            async_proxy_adapter_fixture.path, async_proxy_adapter_fixture.request)
 
         assert 'status' in response.data
 
-        assert len(response.data) == async_proxy_adapter_test.num_targets + 1
+        assert len(response.data) == async_proxy_adapter_fixture.num_targets + 1
 
-        for tgt in range(async_proxy_adapter_test.num_targets):
+        for tgt in range(async_proxy_adapter_fixture.num_targets):
             node_str = 'node_{}'.format(tgt)
             assert node_str in response.data
             assert convert_unicode_to_string(response.data[node_str]) == ProxyTestHandler.param_tree.get("")
 
     @pytest.mark.asyncio
-    async def test_adapter_get_proxy_path(self, async_proxy_adapter_test):
+    async def test_adapter_get_proxy_path(self, async_proxy_adapter_fixture):
         """Test that a GET to a sub-path within a targer succeeds and return the correct data."""
-        node = async_proxy_adapter_test.adapter.targets[0].name
+        node = async_proxy_adapter_fixture.adapter.targets[0].name
         path = "more/even_more"
-        response = await async_proxy_adapter_test.adapter.get(
-            "{}/{}".format(node, path), async_proxy_adapter_test.request)
+        response = await async_proxy_adapter_fixture.adapter.get(
+            "{}/{}".format(node, path), async_proxy_adapter_fixture.request)
 
         assert response.data["even_more"] == ProxyTestHandler.data["more"]["even_more"]
-        assert async_proxy_adapter_test.adapter.param_tree.get('')['status'][node]['status_code'] == 200
+        assert async_proxy_adapter_fixture.adapter.param_tree.get('')['status'][node]['status_code'] == 200
 
     @pytest.mark.asyncio
-    async def test_adapter_get_proxy_path_trailing_slash(self, async_proxy_adapter_test):
+    async def test_adapter_get_proxy_path_trailing_slash(self, async_proxy_adapter_fixture):
         """
         Test that a PUT to a sub-path with a trailing slash in the URL within a targer succeeds
         and returns the correct data.
         """
-        node = async_proxy_adapter_test.adapter.targets[0].name
+        node = async_proxy_adapter_fixture.adapter.targets[0].name
         path = "more/even_more/"
-        response = await async_proxy_adapter_test.adapter.get(
-            "{}/{}".format(node, path), async_proxy_adapter_test.request)
+        response = await async_proxy_adapter_fixture.adapter.get(
+            "{}/{}".format(node, path), async_proxy_adapter_fixture.request)
 
         assert response.data["even_more"] == ProxyTestHandler.data["more"]["even_more"]
-        assert async_proxy_adapter_test.adapter.param_tree.get('')['status'][node]['status_code'] == 200
+        assert async_proxy_adapter_fixture.adapter.param_tree.get('')['status'][node]['status_code'] == 200
 
     @pytest.mark.asyncio
-    async def test_adapter_put_proxy_path(self, async_proxy_adapter_test):
+    async def test_adapter_put_proxy_path(self, async_proxy_adapter_fixture):
         """
         Test that a PUT to a sub-path without a trailing slash in the URL within a targer succeeds
         and returns the correct data.
         """
-        node = async_proxy_adapter_test.adapter.targets[0].name
+        node = async_proxy_adapter_fixture.adapter.targets[0].name
         path = "more"
-        async_proxy_adapter_test.request.body = '{"replace": "been replaced"}'
-        response = await async_proxy_adapter_test.adapter.put(
-            "{}/{}".format(node, path), async_proxy_adapter_test.request)
+        async_proxy_adapter_fixture.request.body = '{"replace": "been replaced"}'
+        response = await async_proxy_adapter_fixture.adapter.put(
+            "{}/{}".format(node, path), async_proxy_adapter_fixture.request)
 
-        assert async_proxy_adapter_test.adapter.param_tree.get('')['status'][node]['status_code'] == 200
+        assert async_proxy_adapter_fixture.adapter.param_tree.get('')['status'][node]['status_code'] == 200
         assert convert_unicode_to_string(response.data["more"]["replace"]) == "been replaced"
 
     @pytest.mark.asyncio
-    async def test_adapter_get_bad_path(self, async_proxy_adapter_test):
+    async def test_adapter_get_bad_path(self, async_proxy_adapter_fixture):
         """Test that a GET to a bad path within a target returns the appropriate error."""
         missing_path = 'missing/path'
-        response = await async_proxy_adapter_test.adapter.get(missing_path, async_proxy_adapter_test.request)
+        response = await async_proxy_adapter_fixture.adapter.get(missing_path, async_proxy_adapter_fixture.request)
 
         assert 'error' in response.data
         assert 'Invalid path: {}'.format(missing_path) == response.data['error']
 
     @pytest.mark.asyncio
-    async def test_adapter_put_bad_path(self, async_proxy_adapter_test):
+    async def test_adapter_put_bad_path(self, async_proxy_adapter_fixture):
         """Test that a PUT to a bad path within a target returns the appropriate error."""
         missing_path = 'missing/path'
-        response = await async_proxy_adapter_test.adapter.put(missing_path, async_proxy_adapter_test.request)
+        response = await async_proxy_adapter_fixture.adapter.put(missing_path, async_proxy_adapter_fixture.request)
 
         assert 'error' in response.data
         assert 'Invalid path: {}'.format(missing_path) == response.data['error']
 
     @pytest.mark.asyncio
-    async def test_adapter_put_bad_type(self, async_proxy_adapter_test):
+    async def test_adapter_put_bad_type(self, async_proxy_adapter_fixture):
         """Test that a PUT request with an inappropriate type returns the appropriate error."""
-        async_proxy_adapter_test.request.body = "bad_body"
-        response = await async_proxy_adapter_test.adapter.put(
-            async_proxy_adapter_test.path, async_proxy_adapter_test.request)
+        async_proxy_adapter_fixture.request.body = "bad_body"
+        response = await async_proxy_adapter_fixture.adapter.put(
+            async_proxy_adapter_fixture.path, async_proxy_adapter_fixture.request)
 
         assert 'error' in response.data
         assert 'Failed to decode PUT request body:' in response.data['error']
 
     @pytest.mark.asyncio
-    async def test_adapter_bad_timeout(self, async_proxy_adapter_test, caplog):
+    async def test_adapter_bad_timeout(self, async_proxy_adapter_fixture, caplog):
         """Test that a bad timeout specified for the proxy adatper yields a logged error message."""
         bad_timeout = 'not_timeout'
         _ = await AsyncProxyAdapter(request_timeout=bad_timeout)
@@ -365,31 +355,31 @@ class TestAsyncProxyAdapter():
             "Failed to resolve targets for proxy adapter")
 
     @pytest.mark.asyncio
-    async def test_adapter_get_access_count(self, async_proxy_adapter_test):
+    async def test_adapter_get_access_count(self, async_proxy_adapter_fixture):
         """
         Test that requests via the proxy adapter correctly increment the access counters in the
         target test servers.
         """
-        async_proxy_adapter_test.clear_access_counts()
+        async_proxy_adapter_fixture.clear_access_counts()
 
-        _ = await async_proxy_adapter_test.adapter.get(
-            async_proxy_adapter_test.path, async_proxy_adapter_test.request
+        _ = await async_proxy_adapter_fixture.adapter.get(
+            async_proxy_adapter_fixture.path, async_proxy_adapter_fixture.request
         )
 
-        access_counts = [server.get_access_count() for server in async_proxy_adapter_test.test_servers]
-        assert access_counts == [1]*async_proxy_adapter_test.num_targets
+        access_counts = [server.get_access_count() for server in async_proxy_adapter_fixture.test_servers]
+        assert access_counts == [1]*async_proxy_adapter_fixture.num_targets
 
     @pytest.mark.asyncio
-    async def test_adapter_counter_get_single_node(self, async_proxy_adapter_test):
+    async def test_adapter_counter_get_single_node(self, async_proxy_adapter_fixture):
         """
         Test that a requested to a single target in the proxy adapter only accesses that target,
         increasing the access count appropriately.
         """
-        path = async_proxy_adapter_test.path + 'node_{}'.format(async_proxy_adapter_test.num_targets-1)
+        path = async_proxy_adapter_fixture.path + 'node_{}'.format(async_proxy_adapter_fixture.num_targets-1)
 
-        async_proxy_adapter_test.clear_access_counts()
-        response = await async_proxy_adapter_test.adapter.get(path, async_proxy_adapter_test.request)
-        access_counts = [server.get_access_count() for server in async_proxy_adapter_test.test_servers]
+        async_proxy_adapter_fixture.clear_access_counts()
+        response = await async_proxy_adapter_fixture.adapter.get(path, async_proxy_adapter_fixture.request)
+        access_counts = [server.get_access_count() for server in async_proxy_adapter_fixture.test_servers]
 
         assert path in response.data
         assert sum(access_counts) == 1
