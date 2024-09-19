@@ -257,11 +257,6 @@ class ParameterTreeTestFixture(object):
             'branch': self.complex_tree_branch,
         })
 
-        self.complex_list_tree = ParameterTree({
-            'main' : [
-
-            ]
-        })
         self.list_tree = ParameterTree({
             'main' : [
                 self.simple_dict.copy(),
@@ -892,6 +887,18 @@ class TestParamTreeMutable():
         assert "Type mismatch setting" in str(excinfo.value)
         # val = test_tree_mutable.param_tree.get(path)
         # assert val['write'] == new_node
+
+    def test_mutable_replace_branch(self, test_tree_mutable):
+        """
+        Test that using the replace method completely replaces the branch
+        rather than merging in a dictionary.
+        """
+        new_node = {"double_nest": 294}
+        path = 'nest'
+
+        test_tree_mutable.param_tree.replace(path, new_node)
+        val = test_tree_mutable.param_tree.get(path)
+        assert val[path] == new_node
 
     def test_mutable_put_replace_nested_path(self, test_tree_mutable):
 
