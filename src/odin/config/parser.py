@@ -2,7 +2,7 @@
 
 Tim Nicholls, STFC Application Engineering Group
 """
-from odin._version import get_versions
+from odin._version import __version__
 
 import sys
 from argparse import ArgumentParser
@@ -267,7 +267,7 @@ class ConfigParser(object):
     def _version_callback(self, value):
         """Print the odin server version information and exit."""
         if value:
-            print("odin server {}".format(get_versions()['version']))
+            print("odin control version {}".format(__version__))
             sys.exit(0)
 
     def resolve_adapters(self, adapter_list=None):

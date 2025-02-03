@@ -14,7 +14,7 @@ from future.utils import with_metaclass
 from odin.adapters.adapter import (ApiAdapter, ApiAdapterResponse,
                                    request_types, response_types, wants_metadata)
 from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
-from odin._version import get_versions
+from odin._version import __version__
 
 
 class SystemInfoAdapter(ApiAdapter):
@@ -122,9 +122,6 @@ class SystemInfo(with_metaclass(Singleton, object)):
         # Store initialisation time
         self.init_time = time.time()
 
-        # Get package version information
-        version_info = get_versions()
-
         # Extract platform information and store in parameter tree
         (system, node, release, version, _, processor) = platform.uname()
         platform_tree = ParameterTree({
@@ -156,7 +153,7 @@ class SystemInfo(with_metaclass(Singleton, object)):
         self.param_tree = ParameterTree({
             'name': 'system_info',
             'description': 'Information about the system hosting this odin server instance',
-            'odin_version': (lambda: version_info['version'], {
+            'odin_version': (lambda: __version__, {
                 "name": "odin version",
                 "description": "ODIN server version",
             }),
