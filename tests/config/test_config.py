@@ -103,7 +103,7 @@ class TestAdapterConfig():
         assert "Unrecognised option option3" in str(excinfo.value)
 
         ac_options = ac.options()
-        
+
         assert type(ac_options) is dict
         assert len(ac_options) == 2
         assert option1_name in ac_options
@@ -220,11 +220,11 @@ class TestConfigParser():
         addr = '127.0.0.1'
         default_opt_val = False
 
-        test_config_parser.define('http_addr', default='0.0.0.0', 
+        test_config_parser.define('http_addr', default='0.0.0.0',
             option_help='Set HTTP server address')
-        test_config_parser.define('http_port', default=8888, 
+        test_config_parser.define('http_port', default=8888,
             option_help='Set HTTP server port')
-        test_config_parser.define('default_opt', default=default_opt_val, 
+        test_config_parser.define('default_opt', default=default_opt_val,
             option_help='Default option')
 
         test_args=['prog_name', '--http_port', str(port), '--http_addr', str(addr)]
@@ -253,11 +253,11 @@ class TestConfigParser():
 
         with pytest.raises(SystemExit) as excinfo:
             test_config_parser.parse(test_args)
-        
+
         assert excinfo.value.code == 0
-        
+
         captured = capsys.readouterr()
-        assert "odin server" in captured.out
+        assert "odin control" in captured.out
 
     def test_ignores_undefined_arg(self, test_config_parser):
         """Test that undefined arguments supplied to the config parser are ignored."""
@@ -276,7 +276,7 @@ class TestConfigParser():
 
     def test_mismatched_arg_type(self, test_config_parser, capsys):
         """Test that an invalid argument type returns an error and exits."""
-        test_config_parser.define('intopt', default=1234, option_type=int, 
+        test_config_parser.define('intopt', default=1234, option_type=int,
             option_help='This is an integer option')
         test_args = ['prog_name', '--intopt', 'wibble']
 
@@ -290,7 +290,7 @@ class TestConfigParser():
 
     def test_parse_file(self, test_config_parser, test_config_file):
         """Test that the parser correctly parses a file."""
-        test_config_parser.define('debug_mode', default=False, option_type=bool, 
+        test_config_parser.define('debug_mode', default=False, option_type=bool,
             option_help='Enable tornado debug mode')
 
         test_args = ['prog_name', '--config', test_config_file.name]
@@ -307,7 +307,7 @@ class TestConfigParser():
         test_args = ['prog_name', '--config', config_path]
 
         with pytest.raises(ConfigError) as excinfo:
-            test_config_parser.parse(test_args)        
+            test_config_parser.parse(test_args)
 
         assert "Failed to parse configuration file: [Errno 2] No such file or directory" \
             in str(excinfo.value)
@@ -346,7 +346,7 @@ class TestConfigParser():
 
     def test_multiple_option(self, test_config_parser):
         """Test that multiple options are parsed correctly."""
-        test_config_parser.define('intvals', option_type=int, multiple=True, 
+        test_config_parser.define('intvals', option_type=int, multiple=True,
             option_help='Integer list')
 
         adapter_list = ['dummy', 'dummy2 ', 'dummy3']
@@ -369,7 +369,7 @@ class TestConfigParser():
 
     def test_bad_multiple_option(self, test_config_parser):
         """Test that mismatched multiple-valued optins are handled by the parser correctly."""
-        test_config_parser.define('intvals', option_type=int, multiple=True, 
+        test_config_parser.define('intvals', option_type=int, multiple=True,
             option_help='Integer list')
 
         bad_list = ['123', '456', 'oops']
@@ -419,7 +419,7 @@ class TestConfigParser():
 
         with pytest.raises(ConfigError) as excinfo:
             noadapter_cp.resolve_adapters()
-                
+
         assert "Configuration parser has no adapter option set" in str(excinfo.value)
 
     def test_parser_no_config_file_for_adapters(self, test_config_parser):
