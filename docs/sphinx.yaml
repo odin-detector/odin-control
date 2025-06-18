@@ -1,0 +1,38 @@
+root: index
+subtrees:
+  - caption: User Guide
+    entries:
+      - file: user/index
+        entries:
+          - file: user/tutorials/index
+            entries:
+              - file: user/tutorials/build
+              - file: user/tutorials/deploy
+              - file: user/tutorials/run
+              - file: user/tutorials/tools
+          - file: user/how-to/index
+          #   entries:
+          #    - file: Add when needed
+          - file: user/explanations/index
+          #  entries:
+          #    - file: Add when needed
+          - file: user/reference/index
+          #  entries:
+          #    - file: Add when needed
+  - caption: Developer Guide
+    entries:
+      - file: developer/index
+        entries:
+          - file: developer/tutorials/index
+            entries:
+              - file: developer/tutorials/write-detector-support
+          - file: developer/how-to/index
+          #  entries:
+          #    - file: Add when needed
+          - file: developer/explanations/index
+            entries:
+              - file: developer/explanations/overview
+              - file: developer/explanations/parameter-tree
+          - file: developer/reference/index
+            entries:
+              - file: developer/reference/api/odin-control
