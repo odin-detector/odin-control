@@ -12,13 +12,13 @@ jobs:
         with:
           submodules: "true"
 
-      - name: Install Doxygen
-        run: sudo apt install -y doxygen graphviz
-        shell: bash
+#      - name: Install Doxygen
+#        run: sudo apt install -y doxygen graphviz
+#        shell: bash
 
-      - name: Generate Doxygen Documentation
-        run: docs/doxygen.sh
-        shell: bash
+#      - name: Generate Doxygen Documentation
+#        run: docs/doxygen.sh
+#        shell: bash
 
       - name: Set up python
         uses: actions/setup-python@v4
