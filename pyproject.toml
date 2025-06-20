@@ -34,6 +34,12 @@ dev = [
     "tox",
     "pytest-asyncio<0.23",
     "pytest-cov",
+    "myst-parser",
+    "pydata-sphinx-theme>=0.12",
+    "sphinx-autobuild",
+    "sphinx-external-toc",
+    "sphinx-design",
+    "breathe",
 ]
 sync_proxy = [
     "requests"
