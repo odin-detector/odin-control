@@ -1,4 +1,1 @@
 # **Explanations**
-
-```{tableofcontents}
-```

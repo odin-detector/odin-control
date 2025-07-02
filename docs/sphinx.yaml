@@ -7,9 +7,8 @@ subtrees:
           - file: user/tutorials/index
             entries:
               - file: user/tutorials/build
-              - file: user/tutorials/deploy
               - file: user/tutorials/run
-              - file: user/tutorials/tools
+              - file: user/tutorials/deploy
           - file: user/how-to/index
           #   entries:
           #    - file: Add when needed
@@ -24,15 +23,14 @@ subtrees:
       - file: developer/index
         entries:
           - file: developer/tutorials/index
-            entries:
-              - file: developer/tutorials/write-detector-support
+          #  entries:
+          #    - file: Add when needed
           - file: developer/how-to/index
           #  entries:
           #    - file: Add when needed
           - file: developer/explanations/index
-            entries:
-              - file: developer/explanations/overview
-              - file: developer/explanations/parameter-tree
+          #  entries:
+          #    - file: Add when needed
           - file: developer/reference/index
-            entries:
-              - file: developer/reference/api/odin-control
+          #  entries:
+          #    - file: Add when needed

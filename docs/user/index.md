@@ -21,8 +21,6 @@ Tutorials for installation and typical usage
 
 ---
 
--
-
 +++
 
 Practical step-by-step guides for the more experienced user
@@ -42,8 +40,6 @@ Explanations of how the library works and why it works that way
 :::{grid-item-card} {material-regular}`menu_book;3em` [Reference](./reference/index)
 
 ---
-
--
 
 +++
 
