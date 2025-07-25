@@ -49,8 +49,6 @@ extensions = [
     # Enable Markedly Structured Text
     # https://myst-parser.readthedocs.io
     "myst_parser",
-    # Enable breathe for doxygen integration
-    "breathe",
 ]
 
 # Sphinx External TOC Config
