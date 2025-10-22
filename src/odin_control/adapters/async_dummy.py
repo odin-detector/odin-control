@@ -11,11 +11,11 @@ import logging
 import time
 import concurrent.futures
 
-from odin.adapters.adapter import ApiAdapterResponse, request_types, response_types
-from odin.adapters.async_adapter import AsyncApiAdapter
-from odin.adapters.async_parameter_tree import AsyncParameterTree
-from odin.adapters.base_parameter_tree import ParameterTreeError
-from odin.util import decode_request_body, run_in_executor
+from odin_control.adapters.adapter import ApiAdapterResponse, request_types, response_types
+from odin_control.adapters.async_adapter import AsyncApiAdapter
+from odin_control.adapters.async_parameter_tree import AsyncParameterTree
+from odin_control.adapters.base_parameter_tree import ParameterTreeError
+from odin_control.util import decode_request_body, run_in_executor
 
 
 class AsyncDummyAdapter(AsyncApiAdapter):

@@ -9,7 +9,7 @@ else:                         # pragma: no cover
     from mock import Mock
     pytest.skip("Skipping async tests", allow_module_level=True)
 
-from odin.http.handlers.base import BaseApiHandler, API_VERSION
+from odin_control.http.handlers.base import BaseApiHandler, API_VERSION
 from tests.handlers.fixtures import test_api_handler
 
 class TestApiHandler(object):

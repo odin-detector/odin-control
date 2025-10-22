@@ -13,20 +13,20 @@ import inspect
 import tornado
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 
-from odin.adapters.adapter import (
+from odin_control.adapters.adapter import (
     ApiAdapterResponse,
     request_types,
     response_types,
     wants_metadata
 )
-from odin.adapters.async_adapter import AsyncApiAdapter
-from odin.adapters.base_proxy import (
+from odin_control.adapters.async_adapter import AsyncApiAdapter
+from odin_control.adapters.base_proxy import (
     BaseProxyAdapter,
     BaseProxyTarget,
     ProxyError,
     ProxyResponse
 )
-from odin.util import decode_request_body
+from odin_control.util import decode_request_body
 
 
 class AsyncProxyTarget(BaseProxyTarget):

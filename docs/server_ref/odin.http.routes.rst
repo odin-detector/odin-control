@@ -1,29 +1,29 @@
-odin.http.routes package
+odin_control.http.routes package
 ========================
 
 Submodules
 ----------
 
-odin.http.routes.api module
+odin_control.http.routes.api module
 ---------------------------
 
-.. automodule:: odin.http.routes.api
+.. automodule:: odin_control.http.routes.api
     :members:
     :undoc-members:
     :show-inheritance:
 
-odin.http.routes.default module
+odin_control.http.routes.default module
 -------------------------------
 
-.. automodule:: odin.http.routes.default
+.. automodule:: odin_control.http.routes.default
     :members:
     :undoc-members:
     :show-inheritance:
 
-odin.http.routes.route module
+odin_control.http.routes.route module
 -----------------------------
 
-.. automodule:: odin.http.routes.route
+.. automodule:: odin_control.http.routes.route
     :members:
     :undoc-members:
     :show-inheritance:
@@ -32,7 +32,7 @@ odin.http.routes.route module
 Module contents
 ---------------
 
-.. automodule:: odin.http.routes
+.. automodule:: odin_control.http.routes
     :members:
     :undoc-members:
     :show-inheritance:

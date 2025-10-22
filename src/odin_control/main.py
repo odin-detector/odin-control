@@ -13,9 +13,9 @@ import threading
 import tornado.ioloop
 from tornado.autoreload import add_reload_hook
 
-from odin.http.server import HttpServer
-from odin.config.parser import ConfigParser, ConfigError
-from odin.logconfig import add_graylog_handler
+from odin_control.http.server import HttpServer
+from odin_control.config.parser import ConfigParser, ConfigError
+from odin_control.logconfig import add_graylog_handler
 
 _stop_ioloop = False  # Global variable to indicate ioloop should be shut down
 

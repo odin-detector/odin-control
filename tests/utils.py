@@ -20,7 +20,7 @@ else:                         # pragma: no cover
 
 from tornado.ioloop import IOLoop
 
-from odin import main
+from odin_control import main
 
 def log_message_seen(caplog, level, message, when="call"):
 

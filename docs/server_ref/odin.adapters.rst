@@ -1,21 +1,21 @@
-odin.adapters package
+odin_control.adapters package
 =====================
 
 Submodules
 ----------
 
-odin.adapters.adapter module
+odin_control.adapters.adapter module
 ----------------------------
 
-.. automodule:: odin.adapters.adapter
+.. automodule:: odin_control.adapters.adapter
     :members:
     :undoc-members:
     :show-inheritance:
 
-odin.adapters.dummy module
+odin_control.adapters.dummy module
 --------------------------
 
-.. automodule:: odin.adapters.dummy
+.. automodule:: odin_control.adapters.dummy
     :members:
     :undoc-members:
     :show-inheritance:
@@ -24,7 +24,7 @@ odin.adapters.dummy module
 Module contents
 ---------------
 
-.. automodule:: odin.adapters
+.. automodule:: odin_control.adapters
     :members:
     :undoc-members:
     :show-inheritance:

@@ -11,10 +11,10 @@ import time
 import tornado
 from future.utils import with_metaclass
 
-from odin.adapters.adapter import (ApiAdapter, ApiAdapterResponse,
+from odin_control.adapters.adapter import (ApiAdapter, ApiAdapterResponse,
                                    request_types, response_types, wants_metadata)
-from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
-from odin._version import __version__
+from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeError
+from odin_control._version import __version__
 
 
 class SystemInfoAdapter(ApiAdapter):

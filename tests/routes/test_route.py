@@ -1,6 +1,6 @@
 #from nose.tools import *
 
-from odin.http.routes.route import Route
+from odin_control.http.routes.route import Route
 
 class DummyHandler(object):
     pass

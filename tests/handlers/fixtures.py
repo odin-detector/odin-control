@@ -11,11 +11,11 @@ else:                         # pragma: no cover
     from mock import Mock
     async_allowed = False
 
-from odin.http.handlers.base import BaseApiHandler, API_VERSION, ApiError, validate_api_request
-from odin.http.routes.api import ApiHandler
-from odin.adapters.adapter import ApiAdapterResponse
-from odin.config.parser import AdapterConfig
-from odin.util import wrap_result
+from odin_control.http.handlers.base import BaseApiHandler, API_VERSION, ApiError, validate_api_request
+from odin_control.http.routes.api import ApiHandler
+from odin_control.adapters.adapter import ApiAdapterResponse
+from odin_control.config.parser import AdapterConfig
+from odin_control.util import wrap_result
 
 
 class TestHandler(object):

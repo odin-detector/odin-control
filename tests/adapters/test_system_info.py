@@ -12,7 +12,7 @@ if sys.version_info[0] == 3:  # pragma: no cover
 else:                         # pragma: no cover
     from mock import Mock
 
-from odin.adapters.system_info import SystemInfoAdapter, SystemInfo
+from odin_control.adapters.system_info import SystemInfoAdapter, SystemInfo
 
 @pytest.fixture(scope="class")
 def test_system_info():

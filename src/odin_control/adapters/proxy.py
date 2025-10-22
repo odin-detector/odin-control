@@ -16,20 +16,20 @@ except ImportError:
         "Cannot create a ProxyAdapter instance as requests package not installed"
     )
 
-from odin.adapters.adapter import (
+from odin_control.adapters.adapter import (
     ApiAdapter,
     ApiAdapterResponse,
     request_types,
     response_types,
     wants_metadata,
 )
-from odin.adapters.base_proxy import (
+from odin_control.adapters.base_proxy import (
     BaseProxyAdapter,
     BaseProxyTarget,
     ProxyError,
     ProxyResponse,
 )
-from odin.util import decode_request_body
+from odin_control.util import decode_request_body
 
 
 class ProxyTarget(BaseProxyTarget):

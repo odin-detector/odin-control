@@ -11,8 +11,8 @@ else:
         from tests.async_utils import AsyncMock
 
 
-from odin.http.routes.api import ApiRoute
-from odin.config.parser import AdapterConfig
+from odin_control.http.routes.api import ApiRoute
+from odin_control.config.parser import AdapterConfig
 
 class ApiRouteAsyncTestFixture(object):
 
@@ -20,7 +20,7 @@ class ApiRouteAsyncTestFixture(object):
 
         self.route = ApiRoute()
         self.adapter_name = 'async_dummy'
-        self.adapter_module = 'odin.adapters.async_dummy.AsyncDummyAdapter'
+        self.adapter_module = 'odin_control.adapters.async_dummy.AsyncDummyAdapter'
         self.adapter_config = AdapterConfig(self.adapter_name, self.adapter_module)
 
         self.route.register_adapter(self.adapter_config)

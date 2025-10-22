@@ -6,17 +6,17 @@ Subpackages
 
 .. toctree::
 
-    odin.adapters
-    odin.config
-    odin.http
+    odin_control.adapters
+    odin_control.config
+    odin_control.http
 
 Submodules
 ----------
 
-odin.server module
+odin_control.server module
 ------------------
 
-.. automodule:: odin.server
+.. automodule:: odin_control.server
     :members:
     :undoc-members:
     :show-inheritance:

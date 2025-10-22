@@ -8,8 +8,8 @@ if sys.version_info[0] == 3:  # pragma: no cover
 else:                         # pragma: no cover
     from mock import Mock
 
-from odin.http.routes.api import ApiRoute, ApiHandler, ApiError, API_VERSION
-from odin.config.parser import AdapterConfig
+from odin_control.http.routes.api import ApiRoute, ApiHandler, ApiError, API_VERSION
+from odin_control.config.parser import AdapterConfig
 from tests.handlers.fixtures import test_api_handler
 
 class TestApiHandler(object):

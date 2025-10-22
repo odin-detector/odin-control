@@ -12,14 +12,14 @@ import json
 
 import tornado.web
 
-from odin.http.routes.route import Route
-from odin.util import PY3
-from odin.http.handlers.base import ApiError, API_VERSION
+from odin_control.http.routes.route import Route
+from odin_control.util import PY3
+from odin_control.http.handlers.base import ApiError, API_VERSION
 if PY3:
-    from odin.http.handlers.async_api import AsyncApiHandler as ApiHandler
-    from odin.async_util import run_async
+    from odin_control.http.handlers.async_api import AsyncApiHandler as ApiHandler
+    from odin_control.async_util import run_async
 else:
-    from odin.http.handlers.api import ApiHandler
+    from odin_control.http.handlers.api import ApiHandler
 
 
 class ApiVersionHandler(tornado.web.RequestHandler):

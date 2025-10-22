@@ -6,7 +6,7 @@ API calls to synchronous adapters.
 Tim Nicholls, STFC Detector Systems Software Group.
 """
 
-from odin.http.handlers.base import BaseApiHandler, validate_api_request, API_VERSION
+from odin_control.http.handlers.base import BaseApiHandler, validate_api_request, API_VERSION
 
 
 class ApiHandler(BaseApiHandler):

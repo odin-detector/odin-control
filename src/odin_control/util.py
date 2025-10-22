@@ -11,7 +11,7 @@ from tornado.ioloop import IOLoop
 PY3 = sys.version_info >= (3,)
 
 if PY3:
-    from odin.async_util import get_async_event_loop, wrap_async
+    from odin_control.async_util import get_async_event_loop, wrap_async
     unicode = str
 
 

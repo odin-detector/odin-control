@@ -15,7 +15,7 @@ import tornado
 import tornado.httpclient
 from tornado.escape import json_decode, json_encode
 
-from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
+from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeError
 
 
 @dataclass
