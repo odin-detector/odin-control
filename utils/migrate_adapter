@@ -1,0 +1,140 @@
+#!/usr/bin/env python
+"""Utility to migrate odin-control adapters to use the odin_control package name.
+
+Tim Nicholls, STFC Detector Systems Software Group
+"""
+import argparse
+import re
+from pathlib import Path
+
+
+class AdapterMigrator:
+    """Class to handle migration of odin-control adapters to odin_control package name."""
+
+    def __init__(self):
+        """Initialize the migrator with patterns and arguments."""
+        self.old = "odin"
+        self.new = "odin_control"
+
+        # Replacement rules:
+        # - 'from odin' and 'import odin' (avoid matching odin- i.e. odin-control)
+        self.pat_from = re.compile(r'(^\s*from\s+)'+re.escape(self.old)+r'(?!-)\b', re.M)
+        self.pat_import = re.compile(r'(^\s*import\s+)'+re.escape(self.old)+r'(?!-)\b', re.M)
+        # - explicit module strings in toml/ini like module = odin.adapters...
+        self.pat_module_eq = re.compile(r'(\bmodule\s*=\s*)(?:["\']?)'+re.escape(self.old)+r'(\.)')
+        # - dotted usages odin.<...>
+        self.pat_dotted = re.compile(r'\b'+re.escape(self.old)+r'(?=\.)')
+
+        self.file_globs = [
+            "**/*.py", "**/*.pyi", "**/*.rst", "**/*.md", "**/*.toml",
+            "**/*.yml", "**/*.yaml", "**/*.ini", "**/*.cfg"
+        ]
+
+        self.skip_dirs = {".git", "dist", "build", "__pycache__"}
+
+        self.parse_args()
+
+    def parse_args(self):
+        """Parse command-line arguments."""
+        parser = argparse.ArgumentParser(
+            description='Migrate an odin-control adapter to support the odin_control package name'
+        )
+        parser.add_argument(
+            'root', nargs='?', type=Path, default=Path.cwd(),
+            help='Root directory to search for files (default: current working directory)'
+        )
+        parser.add_argument(
+            '--dry-run', '-n', action='store_true',
+            help='Show which files would be changed without making modifications'
+        )
+        parser.add_argument(
+            '-i', '--backup', metavar='SUFFIX', type=str,
+            help='Create backup files with specified suffix (e.g., -i.bak)'
+        )
+        self.args = parser.parse_args()
+
+    def should_skip(self, p: Path) -> bool:
+        """Determine if a path should be skipped based on its parts."""
+        parts = set(p.parts)
+        return bool(self.skip_dirs & parts)
+
+    def generate_paths(self):
+        """Generate files to process based on the defined globs."""
+        for g in self.file_globs:
+            for p in self.args.root.glob(g):
+                if self.should_skip(p):
+                    continue
+                yield p
+
+    def apply_replacements(self, text: str) -> str:
+        """Apply all replacement patterns to the given text."""
+        text = self.pat_from.sub(r'\1'+self.new, text)
+        text = self.pat_import.sub(r'\1'+self.new, text)
+        text = self.pat_module_eq.sub(r'\1'+self.new+r'\2', text)
+        text = self.pat_dotted.sub(self.new + '.', text)
+        return text
+
+    def run(self):
+        """Run the migration process."""
+        changed_files = []
+        errors = 0
+
+        # Process each valid path
+        for p in self.generate_paths():
+
+            # Read original file content
+            try:
+                orig_content = p.read_text(encoding="utf-8")
+            except Exception as e:
+                print(f"Error reading {p}: {e}")
+                errors += 1
+                continue
+
+            # Apply replacements
+            new_content = self.apply_replacements(orig_content)
+            if new_content == orig_content:
+                continue
+
+            # Record changed file
+            changed_files.append(str(p.relative_to(self.args.root)))
+
+            # Skip writing changes if in dry run mode
+            if self.args.dry_run:
+                continue
+
+            # Create backup if backup suffix is specified
+            if self.args.backup:
+                backup_path = Path(str(p) + self.args.backup)
+                try:
+                    backup_path.write_text(orig_content, encoding="utf-8")
+                except Exception as e:
+                    print(f"Error creating backup for {p}: {e}")
+                    errors += 1
+
+            # Write updated content back to file
+            try:
+                p.write_text(new_content, encoding="utf-8")
+            except Exception as e:
+                print(f"Error updating {p}: {e}")
+                errors += 1
+
+        cond_text = "would be " if self.args.dry_run else ""
+
+        if not changed_files:
+            print(f"No files {cond_text}changed.")
+            return
+
+        print(f"Files that {cond_text}changed:")
+        for f in sorted(set(changed_files)):
+            print(" -", f)
+
+        if errors:
+            print(f"\nCompleted with {errors} error(s) encountered - you should review the changes")
+
+def main():
+    """Create and run the adapter migrator."""
+    migrator = AdapterMigrator()
+    migrator.run()
+
+if __name__ == "__main__":
+    main()
