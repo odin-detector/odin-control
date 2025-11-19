@@ -1,14 +1,9 @@
-import sys
-
 import pytest
 
-if sys.version_info[0] < 3:
-    pytest.skip("Skipping async tests", allow_module_level=True)
-else:
-    import asyncio
-    from odin_control.adapters.async_dummy import AsyncDummyAdapter
-    from unittest.mock import Mock
-    from tests.async_utils import AwaitableTestFixture, asyncio_fixture_decorator
+import asyncio
+from odin_control.adapters.async_dummy import AsyncDummyAdapter
+from unittest.mock import Mock
+from tests.async_utils import AwaitableTestFixture, asyncio_fixture_decorator
 
 
 class AsyncDummyAdapterTestFixture(AwaitableTestFixture):
