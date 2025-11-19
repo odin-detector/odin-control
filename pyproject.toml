@@ -23,7 +23,6 @@ authors = [
 
 dependencies = [
     "tornado>=4.3",
-    "future",
     "pyzmq>=17.1.0",
     "psutil>=5.0"
 ]
