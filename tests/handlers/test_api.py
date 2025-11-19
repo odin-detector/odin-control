@@ -110,7 +110,7 @@ class TestApiHandlerCorsSupport():
 
         headers = test_api_handler_cors.headers()
         for cors_header in cors_headers:
-            if test_api_handler_cors.enable_cors:
+            if test_api_handler_cors.handler_kwargs.get('enable_cors', False):
                 assert cors_header in headers
             else:
                 assert cors_header not in headers

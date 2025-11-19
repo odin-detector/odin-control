@@ -1,0 +1,36 @@
+import json
+
+from odin_control.http.handlers.api_adapter_list import API_VERSION
+from tests.handlers.fixtures import test_api_adapter_list_handler
+
+class TestApiAdapterListHandler():
+    """Test cases for the ApiAdapterListHandler class."""
+
+    def test_handler_initializes_route(self, test_api_adapter_list_handler):
+
+        assert test_api_adapter_list_handler.handler.route == test_api_adapter_list_handler.route
+
+    def test_api_adapter_list_handler_get_adapters(self, test_api_adapter_list_handler):
+
+        test_api_adapter_list_handler.handler.get(str(API_VERSION))
+
+        adapter_list = json.loads(test_api_adapter_list_handler.write_data)
+        assert 'adapters' in adapter_list
+        assert isinstance(adapter_list['adapters'], list)
+        assert test_api_adapter_list_handler.subsystem in adapter_list['adapters']
+
+    def test_api_adapter_list_handler_invalid_version(self, test_api_adapter_list_handler):
+
+        invalid_version = str(API_VERSION + 1)
+        test_api_adapter_list_handler.handler.get(invalid_version)
+
+        assert test_api_adapter_list_handler.handler.get_status() == 400
+        assert "is not supported" in test_api_adapter_list_handler.write_data
+
+    def test_api_adapter_list_handler_invalid_accept(self, test_api_adapter_list_handler):
+
+        test_api_adapter_list_handler.request.headers = {'Accept': 'text/plain'}
+        test_api_adapter_list_handler.handler.get(str(API_VERSION))
+
+        assert test_api_adapter_list_handler.handler.get_status() == 406
+        assert "Request content types not supported" in test_api_adapter_list_handler.write_data
