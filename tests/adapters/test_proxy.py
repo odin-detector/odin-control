@@ -24,7 +24,6 @@ import tornado.gen
 from odin_control.adapters.proxy import ProxyTarget, ProxyAdapter
 from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeError
 from odin_control.adapters.adapter import wants_metadata
-from odin_control.util import convert_unicode_to_string
 from tests.utils import log_message_seen
 
 if sys.version_info[0] == 3:  # pragma: no cover
@@ -71,7 +70,7 @@ class ProxyTestHandler(RequestHandler):
 
     def put(self, path):
         """Handle PUT requests to the test server."""
-        response_body = convert_unicode_to_string(tornado.escape.json_decode(self.request.body))
+        response_body = tornado.escape.json_decode(self.request.body)
         try:
             self.param_tree.set(path, response_body)
             data_ref = self.param_tree.get(path)
@@ -383,7 +382,7 @@ class TestProxyAdapter():
         for tgt in range(proxy_adapter_test.num_targets):
             node_str = 'node_{}'.format(tgt)
             assert node_str in response.data
-            assert convert_unicode_to_string(response.data[node_str]) == ProxyTestHandler.param_tree.get("")
+            assert response.data[node_str] == ProxyTestHandler.param_tree.get("")
 
     def test_adapter_get_proxy_path(self, proxy_adapter_test):
         """Test that a GET to a sub-path within a targer succeeds and return the correct data."""
@@ -421,7 +420,7 @@ class TestProxyAdapter():
 
         logging.debug("Response: %s", response.data)
         assert proxy_adapter_test.adapter.param_tree.get('')['status'][node]['status_code'] == 200
-        assert convert_unicode_to_string(response.data["more"]["replace"]) == "been replaced"
+        assert response.data["more"]["replace"] == "been replaced"
 
     def test_adapter_get_bad_path(self, proxy_adapter_test):
         """Test that a GET to a bad path within a target returns the appropriate error."""

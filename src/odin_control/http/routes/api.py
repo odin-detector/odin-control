@@ -8,11 +8,11 @@ Tim Nicholls, STFC Application Engineering Group
 import importlib
 import logging
 
-from odin_control.async_util import run_async
 from odin_control.http.handlers.api import ApiError, ApiHandler
 from odin_control.http.handlers.api_adapter_list import ApiAdapterListHandler
 from odin_control.http.handlers.api_version import ApiVersionHandler
 from odin_control.http.routes.route import Route
+from odin_control.util import run_async
 
 
 class ApiRoute(Route):

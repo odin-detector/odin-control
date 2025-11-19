@@ -5,11 +5,8 @@ import concurrent.futures
 import tornado.concurrent
 from tornado import version_info
 
-if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest.mock import Mock
-    import asyncio
-else:                         # pragma: no cover
-    from mock import Mock
+from unittest.mock import Mock
+import asyncio
 
 from odin_control import util
 
@@ -39,36 +36,6 @@ class TestUtil():
         request.body = {"pi": 2.56}
         response = util.decode_request_body(request)
         assert response == request.body
-
-    def test_convert_unicode_to_string(self):
-        """Test conversion of unicode to string."""
-        u_string = u'test string'
-        result = util.convert_unicode_to_string(u_string)
-        assert result == "test string"
-
-    def test_convert_unicode_to_string_list(self):
-        """Test conversion of a list of unicode strings to strings."""
-        u_list = [u'first string', u'second string']
-        result = util.convert_unicode_to_string(u_list)
-        assert result == ["first string", "second string"]
-
-    def test_convert_unicode_to_string_dict(self):
-        """Test conversion of a unicode dict to native string dict."""
-        u_dict = {u'key': u'value'}
-        result = util.convert_unicode_to_string(u_dict)
-        assert result == {"key": "value"}
-
-    def test_convert_unicode_to_string_mixed_recursion(self):
-        """Test recursion through a deeper object with mixed types."""
-        u_object = {u'string': u'test string',
-                    u'list': [u'unicode string', "normal string"]
-                    }
-        result = util.convert_unicode_to_string(u_object)
-        expected_result = {
-                            'string': 'test string',
-                            'list': ['unicode string', "normal string"]
-                          }
-        assert result == expected_result
 
     @pytest.mark.parametrize("is_async", [True, False], ids=["async", "sync"])
     def test_wrap_result(self, is_async):
@@ -121,3 +88,64 @@ class TestUtil():
         assert task_result['inner_completed'] is True
         assert task_result['count'] == num_loops
         assert task_result['outer_completed'] is True
+
+class TestUtilAsync():
+
+    @pytest.mark.asyncio
+    async def test_wrap_result(self):
+        """Test that the wrap_result utility correctly wraps results in a future when needed."""
+        result = 321
+        wrapped = util.wrap_result(result, True)
+        await wrapped
+        assert isinstance(wrapped, asyncio.Future)
+        assert wrapped.result() == result
+
+    @pytest.mark.asyncio
+    async def test_wrap_async(self):
+        """Test that the wrap_async fuction correctly wraps results in a future."""
+        result = 987
+        wrapped = util.wrap_async(result)
+        await wrapped
+        assert isinstance(wrapped, asyncio.Future)
+        assert wrapped.result() == result
+
+    @pytest.mark.asyncio
+    async def test_run_in_executor(self):
+        """
+        Test that the run_in_executor utility runs a background task asynchronously and returns
+        an awaitable future.
+        """
+        task_result = {
+            'count': 0,
+            'completed': False
+        }
+
+        def task_func(num_loops):
+            """Simple task that loops and increments a counter before completing."""
+            for _ in range(num_loops):
+                time.sleep(0.01)
+                task_result['count'] += 1
+            task_result['completed'] = True
+
+        executor = concurrent.futures.ThreadPoolExecutor()
+
+        num_loops = 10
+        await util.run_in_executor(executor, task_func, num_loops)
+
+        wait_count = 0
+        while not task_result['completed'] and wait_count < 100:
+            asyncio.sleep(0.01)
+            wait_count += 1
+
+        assert task_result['completed']
+        assert task_result['count'] == num_loops
+
+    def test_run_async(self):
+
+        async def async_increment(value):
+            await asyncio.sleep(0)
+            return value + 1
+
+        value = 5
+        result = util.run_async(async_increment, value)
+        assert result == value + 1
