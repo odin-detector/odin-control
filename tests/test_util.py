@@ -1,9 +1,7 @@
-import sys
 import pytest
 import time
 import concurrent.futures
 import tornado.concurrent
-from tornado import version_info
 
 from unittest.mock import Mock
 import asyncio
@@ -42,7 +40,7 @@ class TestUtil():
         """Test that the wrap_result utility correctly wraps results in a future when needed."""
         result = 321
         wrapped_result = util.wrap_result(result, is_async)
-        if sys.version_info[0] == 3 and is_async:
+        if is_async:
             assert isinstance(wrapped_result, asyncio.Future)
             assert wrapped_result.result() == result
         else:
@@ -79,12 +77,7 @@ class TestUtil():
             time.sleep(0.01)
             wait_count += 1
 
-        if version_info[0] <= 4:
-            future_type = concurrent.futures.Future
-        else:
-            future_type = tornado.concurrent.Future
-
-        assert isinstance(future, future_type)
+        assert isinstance(future, tornado.concurrent.Future)
         assert task_result['inner_completed'] is True
         assert task_result['count'] == num_loops
         assert task_result['outer_completed'] is True

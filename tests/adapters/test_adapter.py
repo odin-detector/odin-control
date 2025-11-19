@@ -1,11 +1,6 @@
-import sys
-
 import pytest
 
-if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest.mock import Mock
-else:                         # pragma: no cover
-    from mock import Mock
+from unittest.mock import Mock
 
 from odin_control.adapters.adapter import (ApiAdapter, ApiAdapterResponse, ApiAdapterRequest,
                                    request_types, response_types, wants_metadata)

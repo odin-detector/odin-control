@@ -4,10 +4,7 @@ import requests
 import sys
 
 import pytest
-if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest import mock
-else:                         # pragma: no cover
-    import mock
+from unittest import mock
 
 from odin_control.http.server import HttpServer
 from odin_control import main
@@ -365,8 +362,8 @@ class TestOdinHttpsServer():
     def test_https_valid_config(self, server_config, ssl_test_cert, caplog):
 
         server_config.enable_https = True
-        server_config.ssl_cert_file = ssl_test_cert.cert_file 
-        server_config.ssl_key_file = ssl_test_cert.key_file 
+        server_config.ssl_cert_file = ssl_test_cert.cert_file
+        server_config.ssl_key_file = ssl_test_cert.key_file
         server = HttpServer(server_config)
         server.stop()
 

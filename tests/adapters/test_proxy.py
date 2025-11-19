@@ -8,7 +8,6 @@ import builtins
 import threading
 import logging
 import time
-from io import StringIO
 
 import pytest
 
@@ -16,7 +15,6 @@ import requests
 
 from tornado.testing import bind_unused_port
 from tornado.ioloop import IOLoop
-from tornado.httpclient import HTTPResponse
 from tornado.web import Application, RequestHandler
 from tornado.httpserver import HTTPServer
 import tornado.gen
@@ -26,11 +24,8 @@ from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeErr
 from odin_control.adapters.adapter import wants_metadata
 from tests.utils import log_message_seen
 
-if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest.mock import Mock, patch
-    import asyncio
-else:                         # pragma: no cover
-    from mock import Mock, patch
+from unittest.mock import Mock, patch
+import asyncio
 
 
 class ProxyTestHandler(RequestHandler):
@@ -97,8 +92,7 @@ class ProxyTestServer(object):
 
     def _run_server(self):
 
-        if sys.version_info[0] == 3:
-            asyncio.set_event_loop(asyncio.new_event_loop())
+        asyncio.set_event_loop(asyncio.new_event_loop())
 
         self.server_event_loop = IOLoop()
 
