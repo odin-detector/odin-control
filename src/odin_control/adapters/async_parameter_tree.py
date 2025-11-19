@@ -15,15 +15,7 @@ from odin_control.adapters.base_parameter_tree import (
 
 __all__ = ['AsyncParameterAccessor', 'AsyncParameterTree', 'ParameterTreeError']
 
-# if sys.version_info < (3,7):
-#     async_create_task = asyncio.ensure_future
-# else:
-#     async_create_task = asyncio.create_task
-try:
-    async_create_task = asyncio.create_task
-except AttributeError:
-    async_create_task = asyncio.ensure_future
-    
+
 class AsyncParameterAccessor(BaseParameterAccessor):
     """Asynchronous container class representing accessor methods for a parameter.
 
@@ -238,4 +230,4 @@ class AsyncParameterTree(BaseParameterTree):
         """
         response = node.set(data)
         if asyncio.iscoroutine(response):
-            self.awaitable_params.append(async_create_task(response))
+            self.awaitable_params.append(asyncio.create_task(response))
