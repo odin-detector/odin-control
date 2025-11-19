@@ -13,13 +13,8 @@ import json
 import tornado.web
 
 from odin_control.http.routes.route import Route
-from odin_control.util import PY3
-from odin_control.http.handlers.base import ApiError, API_VERSION
-if PY3:
-    from odin_control.http.handlers.async_api import AsyncApiHandler as ApiHandler
-    from odin_control.async_util import run_async
-else:
-    from odin_control.http.handlers.api import ApiHandler
+from odin_control.http.handlers.api import ApiHandler, ApiError, API_VERSION
+from odin_control.async_util import run_async
 
 
 class ApiVersionHandler(tornado.web.RequestHandler):
@@ -129,7 +124,7 @@ class ApiRoute(Route):
         try:
             adapter_module = importlib.import_module(module_name)
             adapter_class = getattr(adapter_module, class_name)
-            if PY3 and adapter_class.is_async:
+            if adapter_class.is_async:
                 adapter = run_async(adapter_class, **adapter_config.options())
             else:
                 adapter = adapter_class(**adapter_config.options())
@@ -172,7 +167,7 @@ class ApiRoute(Route):
         for adapter_name, adapter in self.adapters.items():
             try:
                 cleanup_method = getattr(adapter, 'cleanup')
-                if PY3 and adapter.is_async:
+                if adapter.is_async:
                     run_async(cleanup_method)
                 else:
                     cleanup_method()
@@ -188,7 +183,7 @@ class ApiRoute(Route):
         for adapter_name, adapter in self.adapters.items():
             try:
                 initialize_method = getattr(adapter, 'initialize')
-                if PY3 and adapter.is_async:
+                if adapter.is_async:
                     run_async(initialize_method, self.adapters)
                 else:
                     initialize_method(self.adapters)
