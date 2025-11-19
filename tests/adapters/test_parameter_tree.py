@@ -900,6 +900,18 @@ class TestParamTreeMutable():
         val = test_tree_mutable.param_tree.get(path)
         assert val[path] == new_node
 
+    def test_immutable_replace_branch_raises_error(self, test_tree_mutable):
+
+        test_tree_mutable.param_tree.mutable = False
+        new_node = {"double_nest": 294}
+        path = 'nest'
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_tree_mutable.param_tree.replace(path, new_node)
+
+        test_tree_mutable.param_tree.mutable = True
+        assert "Invalid replace attempt" in str(excinfo.value)
+
     def test_mutable_put_replace_nested_path(self, test_tree_mutable):
 
         new_node = {"double_nest": 294}
