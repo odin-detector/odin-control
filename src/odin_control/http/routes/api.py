@@ -18,7 +18,7 @@ from odin_control.util import run_async
 class ApiRoute(Route):
     """ApiRoute - API route object used to map handlers onto adapter for API calls."""
 
-    def __init__(self, enable_cors=False, cors_origin="*"):
+    def __init__(self, enable_cors=False, cors_origin="*", api_version=None):
         """Initialize the ApiRoute object.
 
         This constructor initialises the API route object, defining handlers for version, adapter
@@ -26,31 +26,44 @@ class ApiRoute(Route):
 
         :param enable_cors: flag to enable CORS request support
         :param cors_origin: CORS allowed origins
+        :param api_version: API version string
         """
         super(ApiRoute, self).__init__()
 
+        # Store the API version string so it can be used by handlers
+        self.api_version = api_version
+
         # Define a default handler which can return the supported API version
-        self.add_handler((r"/api/?", ApiVersionHandler))
+        self.add_handler((r"/api/?", ApiVersionHandler, {"route": self}))
+
+        # Define the API handler URL specs depending on whether versioning is enabled
+        if self.api_version:
+            adapter_list_spec = r"/api/(.*?)/adapters/?"
+            api_specs = [r"/api/(.*?)/(.*?)/(.*)", r"/api/(.*?)/(.*?)/?"]
+        else:
+            adapter_list_spec = r"/api/adapters/?"
+            api_specs = [r"/api/(.*?)/(.*)", r"/api/(.*?)/?"]
 
         # Define a handler which can return a list of loaded adapters
         self.add_handler(
-            (r"/api/(.*?)/adapters/?", ApiAdapterListHandler, dict(route=self))
+            (adapter_list_spec, ApiAdapterListHandler, {"route": self})
         )
 
         # Build a dict of params to be passed to API handler initialisation calls
-        handler_params = dict(
-            route=self, enable_cors=enable_cors, cors_origin=cors_origin
-        )
+        handler_params = {
+            "route": self, "enable_cors": enable_cors, "cors_origin": cors_origin
+        }
 
-        # Define the handler for API calls. The expected URI syntax, which is
-        # enforced by the validate_api_request decorator, is the following:
+        # Define the handler for API calls. The expected URI syntax, which is enforced by the
+        # validate_api_request decorator, is the following:
         #
         #    /api/<version>/<subsystem>/<action>....
         #
-        # The second pattern allows an API adapter to be accessed with or without
-        # a trailing slash for maximum compatibility
-        self.add_handler((r"/api/(.*?)/(.*?)/(.*)", ApiHandler, handler_params))
-        self.add_handler((r"/api/(.*?)/(.*?)/?", ApiHandler, handler_params))
+        # where the <version> part is optional depending on whether API versioning is enabled or
+        # not. The second pattern allows an API adapter to be accessed with or without a trailing
+        # slash for maximum compatibility
+        for api_spec in api_specs:
+            self.add_handler((api_spec, ApiHandler, handler_params))
 
         self.adapters = {}
 

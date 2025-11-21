@@ -30,7 +30,7 @@ class OdinTestServer(object):
 
     server_port = 8888
     server_addr = '127.0.0.1'
-    server_api_version = 0.1
+    server_api_version = '0.1'
 
     def __init__(
         self,
@@ -39,6 +39,7 @@ class OdinTestServer(object):
         access_logging=None,
         graylog_server=None,
         graylog_static_fields=None,
+        server_api_version=server_api_version,
     ):
 
         self.server_thread = None
@@ -57,9 +58,10 @@ class OdinTestServer(object):
         parser.set('server', 'http_addr', self.server_addr)
         parser.set('server', 'enable_https', 'false')
         parser.set('server', 'static_path', static_path)
+        parser.set('server', 'api_version', str(server_api_version))
 
         if adapter_config is not None:
-            adapters = ', '.join([adapter for adapter in adapter_config])
+            adapters = ', '.join(list(adapter_config))
             parser.set('server', 'adapters', adapters)
 
         if access_logging is not None:

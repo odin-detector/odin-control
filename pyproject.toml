@@ -103,3 +103,20 @@ commands =
     coverage combine
     coverage report -m
 """
+
+[tool.ruff]
+src = ["src", "tests"]
+line-length = 100
+lint.select = [
+    "D",    # docstrings
+    "D401", # docstrings require imperative mood
+    "C4",   # flake8-comprehensions - https://beta.ruff.rs/docs/rules/#flake8-comprehensions-c4
+    "E",    # pycodestyle errors - https://beta.ruff.rs/docs/rules/#error-e
+    "F",    # pyflakes rules - https://beta.ruff.rs/docs/rules/#pyflakes-f
+    "F401",
+    "W",    # pycodestyle warnings - https://beta.ruff.rs/docs/rules/#warning-w
+    "I001", # isort
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

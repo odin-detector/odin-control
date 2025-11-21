@@ -8,38 +8,43 @@ from tornado.web import RequestHandler
 
 from odin_control.adapters.adapter import ApiAdapterResponse
 from odin_control.util import wrap_result
-API_VERSION = 0.1
 
 
 class ApiError(Exception):
     """Simple exception class for API-related errors."""
 
 
-def validate_api_request(required_version):
+def validate_api_request(func):
     """Validate an API request to the ApiHandler.
 
-    This decorator checks that API version in the URI of a request is correct and that the subsystem
-    is registered with the application dispatcher; responds with a 400 error if not
+    This decorator checks that, if API versioning is enabled, the version element of the URI of a
+    request is correct and that the subsystem is registered with the application dispatcher; it
+    responds with a 400 error if not.
     """
-    def decorator(func):
-        def wrapper(_self, *args, **kwargs):
-            # Extract version as first argument
+    def wrapper(_self, *args, **kwargs):
+
+        # If API versioning is enabled, extract the version as first argument and validate it
+        if _self.route.api_version:
             version = args[0]
-            subsystem = args[1]
-            rem_args = args[2:]
-            if version != str(required_version):
+            args = args[1:]
+            if version != _self.route.api_version:
                 _self.respond(ApiAdapterResponse(
                     "API version {} is not supported".format(version),
                     status_code=400))
                 return wrap_result(None)
-            if not _self.route.has_adapter(subsystem):
-                _self.respond(ApiAdapterResponse(
-                    "No API adapter registered for subsystem {}".format(subsystem),
-                    status_code=400))
-                return wrap_result(None)
-            return func(_self, subsystem, *rem_args, **kwargs)
-        return wrapper
-    return decorator
+
+        # Extract the subsystem and remaining arguments
+        subsystem = args[0]
+        rem_args = args[1:]
+        if not _self.route.has_adapter(subsystem):
+            _self.respond(ApiAdapterResponse(
+                "No API adapter registered for subsystem {}".format(subsystem),
+                status_code=400))
+            return wrap_result(None)
+
+        return func(_self, subsystem, *rem_args, **kwargs)
+
+    return wrapper
 
 
 class ApiHandler(RequestHandler):
@@ -106,7 +111,7 @@ class ApiHandler(RequestHandler):
         # Set status to indicate successful request with no content returned
         self.set_status(204)
 
-    @validate_api_request(API_VERSION)
+    @validate_api_request
     async def get(self, subsystem, path=''):
         """Handle an API GET request.
 
@@ -121,7 +126,7 @@ class ApiHandler(RequestHandler):
 
         self.respond(response)
 
-    @validate_api_request(API_VERSION)
+    @validate_api_request
     async def post(self, subsystem, path=''):
         """Handle an API POST request.
 
@@ -136,7 +141,7 @@ class ApiHandler(RequestHandler):
 
         self.respond(response)
 
-    @validate_api_request(API_VERSION)
+    @validate_api_request
     async def put(self, subsystem, path=''):
         """Handle an API PUT request.
 
@@ -150,7 +155,7 @@ class ApiHandler(RequestHandler):
             response = adapter.put(path, self.request)
         self.respond(response)
 
-    @validate_api_request(API_VERSION)
+    @validate_api_request
     async def delete(self, subsystem, path=''):
         """Handle an API DELETE request.
 

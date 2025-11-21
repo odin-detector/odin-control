@@ -1,6 +1,12 @@
+"""API adapter list handler module for odin-control.
+
+This module implements the API adapter list handler. It allows clients to query the list of loaded
+API adapters through HTTP GET requests, returning the adapter information as JSON.
+
+Tim Nicholls, STFC Detector Systems Software Group.
+"""
 from tornado.web import RequestHandler
 
-from .api import API_VERSION
 
 class ApiAdapterListHandler(RequestHandler):
     """API adapter list handler to return a list of loaded adapters.
@@ -16,15 +22,15 @@ class ApiAdapterListHandler(RequestHandler):
         """
         self.route = route
 
-    def get(self, version):
+    def get(self, version=None):
         """Handle API adapter list GET requests.
 
         This handler returns a JSON-encoded list of adapters loaded into the server.
 
-        :param version: API version
+        :param version: API version (or None if versioning not enabled)
         """
         # Validate the API version explicity - can't use the validate_api_request decorator here
-        if version != str(API_VERSION):
+        if version != self.route.api_version:
             self.set_status(400)
             self.write("API version {} is not supported".format(version))
             return
@@ -36,4 +42,5 @@ class ApiAdapterListHandler(RequestHandler):
             self.write('Request content types not supported')
             return
 
-        self.write({'adapters': [adapter for adapter in self.route.adapters]})
+        # Return a list of loaded adapters
+        self.write({'adapters': list(self.route.adapters)})

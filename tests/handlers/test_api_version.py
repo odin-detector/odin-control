@@ -1,6 +1,5 @@
 import json
 
-from odin_control.http.handlers.api_adapter_list import API_VERSION
 from tests.handlers.fixtures import test_api_version_handler
 
 class TestApiVersionHandler():
@@ -11,8 +10,8 @@ class TestApiVersionHandler():
         test_api_version_handler.handler.get()
         assert test_api_version_handler.handler.get_status() == 200
         response_data = json.loads(test_api_version_handler.write_data)
-        assert 'api' in response_data
-        assert response_data['api'] == API_VERSION
+        assert 'version' in response_data
+        assert response_data['version'] == test_api_version_handler.route.api_version
 
     def test_handler_invalid_accept(self, test_api_version_handler):
 
