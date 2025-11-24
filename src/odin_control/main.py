@@ -146,27 +146,5 @@ def main(argv=None):
     return 0
 
 
-def main_deprecate(argv=None):  # pragma: no cover
-    """Deprecated main entry point for running the odin control server.
-
-    This method adds an entry point for running odin control server that is run by the
-    deprecated odin_server command. It simply runs the main entry point as normal having
-    printing a deprecation warning.
-    """
-    import warnings
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("always", DeprecationWarning)
-        message = """
-
-The odin_server script entry point is deprecated and will be removed in future releases. Consider
-using \'odin_control\' instead
-
-            """
-        warnings.warn(message, DeprecationWarning, stacklevel=1)
-
-    main(argv)
-
-
 if __name__ == "__main__":  # pragma: no cover
     sys.exit(main())

@@ -45,7 +45,6 @@ graylog = [
 
 [project.scripts]
 odin_control = "odin_control.main:main"
-odin_server = "odin_control.main:main_deprecate"
 
 [project.urls]
 GitHub = "https://github.com/odin-detector/odin-control"
