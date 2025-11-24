@@ -105,7 +105,7 @@ class TestOdinServer(object):
         headers = {'Accept': 'application/json'}
         result = requests.get(odin_test_server.build_url('adapters/'), headers=headers)
         assert result.status_code == 200
-        assert result.json()['adapters'] == ['dummy']
+        assert 'dummy' in result.json()['adapters']
 
     def test_api_adapter_list_bad_version(self, odin_test_server):
         """Test that the API route rejects an adapter list GET with a bad API version."""

@@ -9,7 +9,7 @@ import importlib
 import logging
 
 from odin_control.http.handlers.api import ApiError, ApiHandler
-from odin_control.http.handlers.api_adapter_list import ApiAdapterListHandler
+from odin_control.http.handlers.api_adapter_info import ApiAdapterInfoHandler
 from odin_control.http.handlers.api_version import ApiVersionHandler
 from odin_control.http.routes.route import Route
 from odin_control.util import run_async
@@ -38,15 +38,15 @@ class ApiRoute(Route):
 
         # Define the API handler URL specs depending on whether versioning is enabled
         if self.api_version:
-            adapter_list_spec = r"/api/(.*?)/adapters/?"
+            adapter_info_spec = r"/api/(.*?)/adapters/?"
             api_specs = [r"/api/(.*?)/(.*?)/(.*)", r"/api/(.*?)/(.*?)/?"]
         else:
-            adapter_list_spec = r"/api/adapters/?"
+            adapter_info_spec = r"/api/adapters/?"
             api_specs = [r"/api/(.*?)/(.*)", r"/api/(.*?)/?"]
 
         # Define a handler which can return a list of loaded adapters
         self.add_handler(
-            (adapter_list_spec, ApiAdapterListHandler, {"route": self})
+            (adapter_info_spec, ApiAdapterInfoHandler, {"route": self})
         )
 
         # Build a dict of params to be passed to API handler initialisation calls

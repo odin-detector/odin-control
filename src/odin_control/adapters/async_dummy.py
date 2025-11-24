@@ -11,6 +11,7 @@ import logging
 import time
 import concurrent.futures
 
+from odin_control._version import __version__
 from odin_control.adapters.adapter import ApiAdapterResponse, request_types, response_types
 from odin_control.adapters.async_adapter import AsyncApiAdapter
 from odin_control.adapters.async_parameter_tree import AsyncParameterTree
@@ -27,6 +28,8 @@ class AsyncDummyAdapter(AsyncApiAdapter):
     by sleeping in a thread pool executor. This shows that the calling server can remain responsive
     during long-running async tasks.
     """
+
+    version = __version__
 
     def __init__(self, **kwargs):
         """Intialize the AsyncDummy Adapter object.

@@ -16,6 +16,7 @@ except ImportError:
         "Cannot create a ProxyAdapter instance as requests package not installed"
     )
 
+from odin_control._version import __version__
 from odin_control.adapters.adapter import (
     ApiAdapter,
     ApiAdapterResponse,
@@ -121,6 +122,8 @@ class ProxyAdapter(ApiAdapter, BaseProxyAdapter):
     This class implements a proxy adapter, allowing odin-control to forward requests to
     other HTTP services.
     """
+
+    version = __version__
 
     def __init__(self, **kwargs):
         """

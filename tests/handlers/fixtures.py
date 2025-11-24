@@ -5,7 +5,7 @@ import pytest
 from unittest.mock import Mock
 
 from odin_control.http.handlers.api import ApiHandler, validate_api_request
-from odin_control.http.handlers.api_adapter_list import ApiAdapterListHandler
+from odin_control.http.handlers.api_adapter_info import ApiAdapterInfoHandler
 from odin_control.http.handlers.api_version import ApiVersionHandler
 from odin_control.adapters.adapter import ApiAdapterResponse
 from odin_control.util import wrap_result
@@ -51,6 +51,9 @@ class TestHandler(object):
         # Create a mock API adapter that returns appropriate responses
         api_adapter_mock = Mock()
         api_adapter_mock.is_async = async_adapter
+        api_adapter_mock.version = TEST_API_VERSION
+        api_adapter_mock.__class__.__module__ = self.__class__.__module__
+        api_adapter_mock.__class__.__name__ = 'TestApiAdapter'
         api_adapter_mock.get.return_value = wrap_result(self.json_dict_response, async_adapter)
         api_adapter_mock.post.return_value = wrap_result(self.json_dict_response, async_adapter)
         api_adapter_mock.put.return_value = wrap_result(self.json_dict_response, async_adapter)
@@ -109,13 +112,13 @@ def test_api_handler_cors(request):
     yield test_api_handler_cors
 
 @pytest.fixture(scope="class", params=[None, TEST_API_VERSION], ids=["no versioning", "versioned"])
-def test_api_adapter_list_handler(request):
-    """Parameterised test fixture for testing the ApiAdapterListHandler class."""
-    test_api_adapter_list_handler = TestHandler(
-        ApiAdapterListHandler, async_adapter=False, api_version=request.param
+def test_api_adapter_info_handler(request):
+    """Parameterised test fixture for testing the ApiAdapterInfoHandler class."""
+    test_api_adapter_info_handler = TestHandler(
+        ApiAdapterInfoHandler, async_adapter=False, api_version=request.param
     )
-    test_api_adapter_list_handler.request.headers = {'Accept': 'application/json'}
-    yield test_api_adapter_list_handler
+    test_api_adapter_info_handler.request.headers = {'Accept': 'application/json'}
+    yield test_api_adapter_info_handler
 
 @pytest.fixture(scope="class", params=[None, TEST_API_VERSION], ids=["no versioning", "versioned"])
 def test_api_version_handler(request):

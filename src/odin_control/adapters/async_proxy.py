@@ -13,6 +13,7 @@ import inspect
 import tornado
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 
+from odin_control._version import __version__
 from odin_control.adapters.adapter import (
     ApiAdapterResponse,
     request_types,
@@ -146,6 +147,8 @@ class AsyncProxyAdapter(AsyncApiAdapter, BaseProxyAdapter):
     This class implements a proxy adapter, allowing odin-control to forward requests to
     other HTTP services.
     """
+
+    version = __version__
 
     def __init__(self, **kwargs):
         """
