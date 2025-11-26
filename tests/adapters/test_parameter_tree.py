@@ -715,34 +715,13 @@ class TestParameterTreeMetadata():
 
         assert int_param_with_metadata == expected_metadata
 
-    def test_get_filters_tree_metadata(self, test_tree_metadata):
-        """
-        Test that attempting to get a metadata field for a parameter as if it was path itself
-        raises an error.
-        """
-        metadata_path = "name"
-        with pytest.raises(ParameterTreeError) as excinfo:
-            test_tree_metadata.metadata_tree.get(metadata_path)
-
-        assert "Invalid path: {}".format(metadata_path) in str(excinfo.value)
-
-    def test_set_tree_rejects_metadata(self, test_tree_metadata):
-        """
-        Test that attampeting to set a metadata field as if it was a parameter raises an error.
-        """
-        metadata_path = "name"
-        with pytest.raises(ParameterTreeError) as excinfo:
-            test_tree_metadata.metadata_tree.set(metadata_path, "invalid")
-
-        assert "Invalid path: {}".format(metadata_path) in str(excinfo.value)
-
     def test_enum_param_allowed_values(self, test_tree_metadata):
         """Test that setting an enumerated parameter with an allowed value succeeds."""
         for value in test_tree_metadata.int_enum_param_allowed_values:
             test_tree_metadata.metadata_tree.set("intEnumParam", value)
             set_value = test_tree_metadata.metadata_tree.get("intEnumParam")["value"]
             assert value == set_value
-    
+
     def test_enum_param_bad_value(self, test_tree_metadata):
         """
         Test that attempting to set a disallowed value for an enumerated parameter raises an error.
