@@ -243,27 +243,34 @@ class BaseParameterTree(object):
         # Initialise the subtree before descent
         subtree = self._tree
 
-        # If this is single level path, return the populated tree at the top level
-        if not levels:
-            return self._populate_tree(subtree, with_metadata)
-
-        # Descend the specified levels in the path, checking for a valid subtree of the appropriate
+        # If this is single level path, return the populated tree at the top level. Otherwise,
+        # descend the specified levels in the path, checking for a valid subtree of the appropriate
         # type
-        for level in levels:
-            if level in self.METADATA_FIELDS and not with_metadata:
-                raise ParameterTreeError("Invalid path: {}".format(path))
-            try:
-                if isinstance(subtree, dict):
-                    subtree = subtree[level]
-                elif isinstance(subtree, self.accessor_cls):
-                    subtree = subtree.get(with_metadata)[level]
-                else:
-                    subtree = subtree[int(level)]
-            except (KeyError, ValueError, IndexError):
-                raise ParameterTreeError("Invalid path: {}".format(path))
+        if not levels:
+            values = self._populate_tree(subtree, with_metadata)
+        else:
+            for level in levels:
+                if level in self.METADATA_FIELDS and not with_metadata:
+                    raise ParameterTreeError("Invalid path: {}".format(path))
+                try:
+                    if isinstance(subtree, dict):
+                        subtree = subtree[level]
+                    elif isinstance(subtree, self.accessor_cls):
+                        subtree = subtree.get(with_metadata)[level]
+                    else:
+                        subtree = subtree[int(level)]
+                except (KeyError, ValueError, IndexError):
+                    raise ParameterTreeError("Invalid path: {}".format(path))
 
-        # Return the populated tree at the appropriate path
-        return self._populate_tree({levels[-1]: subtree}, with_metadata)
+            # Return the populated tree at the appropriate path
+            values = self._populate_tree(subtree, with_metadata)
+
+        # If this is a request for a single leaf node (i.e. depth is 1 and only one value
+        # returned) without metadata, return a value dict rather than just the value itself
+        if not with_metadata and not isinstance(values, dict):
+            values = {'value': values}
+
+        return values
 
     def set(self, path, data, replace=False):
         """Set the values of the parameters in a tree.
@@ -487,6 +494,10 @@ class BaseParameterTree(object):
         :param cur_path: current path in the tree
         :returns: the update node at this point in the tree
         """
+        # If new data is a dict with a single 'value' field, extract that value for updating
+        if isinstance(new_data, dict) and len(new_data) == 1 and 'value' in new_data:
+            new_data = new_data['value']
+
         # Recurse down tree if this is a branch node
         if isinstance(node, dict) and isinstance(new_data, dict):
             try:

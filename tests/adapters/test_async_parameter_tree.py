@@ -137,7 +137,7 @@ class TestAsyncParameterAccessor():
 
     async def test_static_rw_accessor_get(self, test_param_accessor):
         """Test that a static RW accessor get call returns the correct value."""
-        value = await test_param_accessor.static_rw_accessor.get() 
+        value = await test_param_accessor.static_rw_accessor.get()
         assert value == test_param_accessor.static_rw_value
 
     async def test_static_rw_accessor_set(self, test_param_accessor):
@@ -145,7 +145,7 @@ class TestAsyncParameterAccessor():
         old_val = test_param_accessor.static_rw_value
         new_val = 1.234
         await test_param_accessor.static_rw_accessor.set(new_val)
-        value = await test_param_accessor.static_rw_accessor.get() 
+        value = await test_param_accessor.static_rw_accessor.get()
         assert value == new_val
 
         await test_param_accessor.static_rw_accessor.set(old_val)
@@ -284,7 +284,7 @@ class TestAsyncParameterAccessor():
             await test_param_accessor.async_rw_accessor.set(bad_value)
 
         assert "Type mismatch setting {}: got {} expected {}".format(
-                test_param_accessor.async_rw_path, bad_value_type, 
+                test_param_accessor.async_rw_path, bad_value_type,
                 type(test_param_accessor.async_rw_value).__name__
             ) in str(excinfo.value)
 
@@ -327,8 +327,8 @@ class TestAsyncParameterAccessor():
                 bad_value, test_param_accessor.md_minmax_metadata['max'], 
                 test_param_accessor.md_minmax_path
             ) in str(excinfo.value)
-        
-        
+
+
 class AsyncParameterTreeTestFixture(AwaitableTestFixture):
     """Container class for use in fixtures testing AsyncParameterTree."""
 
@@ -371,7 +371,7 @@ class AsyncParameterTreeTestFixture(AwaitableTestFixture):
             'listParam': self.list_values,
             'branch': AsyncParameterTree(deepcopy(self.nested_dict)),
         })
-       
+
         self.list_tree = AsyncParameterTree({
             'main' : [
                 self.simple_dict.copy(),
@@ -415,16 +415,16 @@ class TestAsyncParameterTree():
     async def test_simple_tree_single_values(self, test_param_tree):
         """Test that getting single values from a simple tree returns the correct values."""
         dt_int_val = await test_param_tree.simple_tree.get('intParam')
-        assert dt_int_val['intParam'] == test_param_tree.int_value
+        assert dt_int_val['value'] == test_param_tree.int_value
 
         dt_float_val = await test_param_tree.simple_tree.get('floatParam')
-        assert dt_float_val['floatParam'] == test_param_tree.float_value
+        assert dt_float_val['value'] == test_param_tree.float_value
 
         dt_bool_val = await test_param_tree.simple_tree.get('boolParam')
-        assert dt_bool_val['boolParam'] == test_param_tree.bool_value
+        assert dt_bool_val['value'] == test_param_tree.bool_value
 
         dt_str_val = await test_param_tree.simple_tree.get('strParam')
-        assert dt_str_val['strParam'] == test_param_tree.str_value
+        assert dt_str_val['value'] == test_param_tree.str_value
 
     async def test_simple_tree_missing_value(self, test_param_tree):
         """Test that getting a missing value from a simple tree raises an error."""
@@ -441,12 +441,12 @@ class TestAsyncParameterTree():
     async def test_nested_tree_branch_returns_dict(self, test_param_tree):
         """Test that getting a tree from within a nested tree returns a dict."""
         branch_vals = await test_param_tree.nested_tree.get('branch')
-        assert branch_vals['branch'] == test_param_tree.nested_dict['branch']
+        assert branch_vals == test_param_tree.nested_dict['branch']
 
     async def test_nested_tree_trailing_slash(self, test_param_tree):
         """Test that getting a tree with trailing slash returns the correct dict."""
         branch_vals = await test_param_tree.nested_tree.get('branch/')
-        assert branch_vals['branch'] == test_param_tree.nested_dict['branch']
+        assert branch_vals == test_param_tree.nested_dict['branch']
 
     async def test_set_with_extra_branch_paths(self, test_param_tree):
         """
@@ -462,7 +462,7 @@ class TestAsyncParameterTree():
 
     async def test_complex_tree_calls_leaf_nodes(self, test_param_tree):
         """
-        Test that accessing valyus in a complex tree returns the correct values for 
+        Test that accessing valyus in a complex tree returns the correct values for
         static and callable parameters.
         """
         complex_vals = await test_param_tree.complex_tree.get('')
@@ -472,8 +472,8 @@ class TestAsyncParameterTree():
     async def test_complex_tree_access_list_param(self, test_param_tree):
         """Test that getting a list parameter from a complex tree returns the appropriate values."""
         list_param_vals = await test_param_tree.complex_tree.get('listParam')
-        assert list_param_vals['listParam'] == test_param_tree.list_values
-    
+        assert list_param_vals['value'] == test_param_tree.list_values
+
     async def test_complex_tree_callable_readonly(self, test_param_tree):
         """
         Test that attempting to set the value of a RO callable parameter in a tree raises an
@@ -524,14 +524,14 @@ class TestAsyncParameterTree():
         Test that it is possible to get a value by index from a list parameter.
         """
         ret = await test_param_tree.list_tree.get("main/1")
-        assert ret == {'1':test_param_tree.list_values}
+        assert ret['value'] == test_param_tree.list_values
 
     async def test_list_tree_set_indexed(self, test_param_tree):
         """
         Test that it is possible to set a value by index on a list parameter.
         """
         await test_param_tree.list_tree.set("main/1/2", 7)
-        assert await test_param_tree.list_tree.get("main/1/2") == {'2': 7}
+        assert await test_param_tree.list_tree.get("main/1/2") == {'value': 7}
 
     async def test_list_tree_set_from_root(self, test_param_tree):
         """Test that it is possible to set a list tree from its root."""
@@ -548,14 +548,15 @@ class TestAsyncParameterTree():
         }
 
         await test_param_tree.list_tree.set("",tree_data)
-        assert await test_param_tree.list_tree.get("main") == tree_data
+        result = await test_param_tree.list_tree.get("main")
+        assert result['value'] == tree_data['main']
 
     async def test_list_tree_from_dict(self, test_param_tree):
-        """TEet that a list tree can be set with a dict of index/values."""
+        """Test that a list tree can be set with a dict of index/values."""
         new_list_param = {0: 0, 1: 1, 2: 2, 3: 3}
         await test_param_tree.simple_list_tree.set('list_param', new_list_param)
         result = await test_param_tree.simple_list_tree.get('list_param')
-        assert result['list_param']== list(new_list_param.values())
+        assert result['value']== list(new_list_param.values())
             
 
     async def test_list_tree_from_dict_bad_index(self, test_param_tree):
@@ -581,7 +582,7 @@ class TestAsyncParameterTree():
 
         assert "not a valid leaf node" in str(excinfo.value)
 
- 
+
 class AsyncRwParameterTreeTestFixture(AwaitableTestFixture):
     """Container class for use in async read-write parameter tree test fixtures."""
 
@@ -655,13 +656,13 @@ class TestAsyncRwParameterTree():
     async def test_rw_tree_simple_get_values(self, test_rw_tree):
         """Test getting simple values from a RW tree returns the correct values."""
         dt_rw_int_param = await test_rw_tree.rw_callable_tree.get('intCallableRwParam')
-        assert dt_rw_int_param['intCallableRwParam'] == test_rw_tree.int_rw_param
+        assert dt_rw_int_param['value'] == test_rw_tree.int_rw_param
 
         dt_ro_int_param = await test_rw_tree.rw_callable_tree.get('intCallableRoParam')
-        assert dt_ro_int_param['intCallableRoParam'] == test_rw_tree.int_ro_param
+        assert dt_ro_int_param['value'] == test_rw_tree.int_ro_param
 
         dt_rw_int_value = await test_rw_tree.rw_callable_tree.get('intCallableRwValue')
-        assert dt_rw_int_value['intCallableRwValue'] == test_rw_tree.int_rw_value
+        assert dt_rw_int_value['value'] == test_rw_tree.int_rw_value
 
     async def test_rw_tree_simple_set_value(self, test_rw_tree):
         """Test that setting a value in a RW tree updates and returns the correct value."""
@@ -669,7 +670,7 @@ class TestAsyncRwParameterTree():
         await test_rw_tree.rw_callable_tree.set('intCallableRwParam', new_int_value)
 
         dt_rw_int_param = await test_rw_tree.rw_callable_tree.get('intCallableRwParam')
-        assert dt_rw_int_param['intCallableRwParam'] == new_int_value
+        assert dt_rw_int_param['value'] == new_int_value
 
     async def test_rw_tree_set_ro_param(self, test_rw_tree):
         """Test that attempting to set a RO parameter raises an error."""
@@ -693,7 +694,7 @@ class TestAsyncRwParameterTree():
     async def test_rw_callable_nested_param_get(self, test_rw_tree):
         """Test the getting a nested callable RW parameter returns the correct value."""
         dt_nested_param = await test_rw_tree.rw_callable_tree.get('branch/nestedRwParam')
-        assert dt_nested_param['nestedRwParam'] == test_rw_tree.nested_rw_param
+        assert dt_nested_param['value'] == test_rw_tree.nested_rw_param
 
     async def test_rw_callable_nested_param_set(self, test_rw_tree):
         """Test that setting a nested callable RW parameter sets the correct value."""
@@ -703,26 +704,24 @@ class TestAsyncRwParameterTree():
 
     async def test_rw_callable_nested_tree_set(self, test_rw_tree):
         """Test the setting a value within a callable nested tree updated the value correctly."""
-        result = await test_rw_tree.rw_callable_tree.get('branch')
-        nested_branch = result['branch']
+        nested_branch = await test_rw_tree.rw_callable_tree.get('branch')
         new_rw_param_val = 45.876
         nested_branch['nestedRwParam'] = new_rw_param_val
         await test_rw_tree.rw_callable_tree.set('branch', nested_branch)
         result = await test_rw_tree.rw_callable_tree.get('branch')
-        assert result['branch']['nestedRwParam'], new_rw_param_val
+        assert result['nestedRwParam'], new_rw_param_val
 
     async def test_rw_callable_nested_tree_set_trailing_slash(self, test_rw_tree):
         """
         Test that setting a callable nested tree with a trailing slash in the path
         sets the value correctly.
         """
-        result = await test_rw_tree.rw_callable_tree.get('branch/')
-        nested_branch = result['branch']
+        nested_branch = await test_rw_tree.rw_callable_tree.get('branch/')
         new_rw_param_val = 24.601
         nested_branch['nestedRwParam'] = new_rw_param_val
         await test_rw_tree.rw_callable_tree.set('branch/', nested_branch)
         result = await test_rw_tree.rw_callable_tree.get('branch/')
-        assert result['branch']['nestedRwParam'] == new_rw_param_val
+        assert result['nestedRwParam'] == new_rw_param_val
 
 
 class AsyncParameterTreeMetadataTestFixture(AwaitableTestFixture):
@@ -787,15 +786,14 @@ class TestAsyncParameterTreeMetadata():
         int_param_with_metadata = await test_tree_metadata.metadata_tree.get(
             "intCallableRwParam",with_metadata=True)
         result = await test_tree_metadata.metadata_tree.get("intCallableRwParam")
-        int_param =  result["intCallableRwParam"]
+        int_param =  result["value"]
 
         expected_metadata = test_tree_metadata.int_rw_param_metadata
         expected_metadata["value"] = int_param
         expected_metadata["type"] = 'int'
         expected_metadata["writeable"] = True
-        expected_param = {"intCallableRwParam" : expected_metadata}
-        
-        assert int_param_with_metadata == expected_param
+
+        assert await int_param_with_metadata == expected_metadata
 
     async def test_get_filters_tree_metadata(self, test_tree_metadata):
         """
@@ -823,9 +821,9 @@ class TestAsyncParameterTreeMetadata():
         for value in test_tree_metadata.int_enum_param_allowed_values:
             await test_tree_metadata.metadata_tree.set("intEnumParam", value)
             result = await test_tree_metadata.metadata_tree.get("intEnumParam")
-            set_value = result["intEnumParam"]
+            set_value = result["value"]
             assert value == set_value
-    
+
     async def test_enum_param_bad_value(self, test_tree_metadata):
         """
         Test that attempting to set a disallowed value for an enumerated parameter raises an error.
@@ -839,7 +837,8 @@ class TestAsyncParameterTreeMetadata():
     async def test_ro_param_has_writeable_metadata_field(self, test_tree_metadata):
         """Test that a RO parameter has the writeable metadata field set to false."""
         ro_param = await test_tree_metadata.metadata_tree.get("floatRoParam", with_metadata=True)
-        assert ro_param["floatRoParam"]["writeable"] == False
+        result = await ro_param
+        assert result["writeable"] == False
 
     async def test_ro_param_not_writeable(self, test_tree_metadata):
         """Test that attempting to write to a RO parameter with metadata raises an error."""
@@ -851,19 +850,19 @@ class TestAsyncParameterTreeMetadata():
         """Test that a value parameter is writeable and has the correct metadata flag."""
         new_value = 90210
         await test_tree_metadata.metadata_tree.set("valueParam", new_value)
-        result = await test_tree_metadata.metadata_tree.get("valueParam", with_metadata=True)
-        set_param = result["valueParam"]
-        assert set_param["value"] == new_value
-        assert set_param["writeable"] == True
+        param = await test_tree_metadata.metadata_tree.get("valueParam", with_metadata=True)
+        result = await param
+        assert result["value"] == new_value
+        assert result["writeable"] == True
 
     async def test_rw_param_min_no_max(self, test_tree_metadata):
         """Test that a parameter with a minimum but no maximum works as expected."""
         new_value = 2
         await test_tree_metadata.metadata_tree.set("minNoMaxParam", new_value)
-        result = await test_tree_metadata.metadata_tree.get("minNoMaxParam", with_metadata=True)
-        set_param = result["minNoMaxParam"]
-        assert set_param["value"] == new_value
-        assert set_param["writeable"] == True
+        param = await test_tree_metadata.metadata_tree.get("minNoMaxParam", with_metadata=True)
+        result = await param
+        assert result["value"] == new_value
+        assert result["writeable"] == True
 
     async def test_rw_param_below_min_value(self, test_tree_metadata):
         """
@@ -875,7 +874,7 @@ class TestAsyncParameterTreeMetadata():
             await test_tree_metadata.metadata_tree.set("intCallableRwParam", low_value)
 
         assert "{} is below the minimum value {} for {}".format(
-                low_value, test_tree_metadata.int_rw_param_metadata["min"], 
+                low_value, test_tree_metadata.int_rw_param_metadata["min"],
                 "intCallableRwParam") in str(excinfo.value)
 
     async def test_rw_param_above_max_value(self, test_tree_metadata):
@@ -888,7 +887,7 @@ class TestAsyncParameterTreeMetadata():
             await test_tree_metadata.metadata_tree.set("intCallableRwParam", high_value)
 
         assert "{} is above the maximum value {} for {}".format(
-                high_value, test_tree_metadata.int_rw_param_metadata["max"], 
+                high_value, test_tree_metadata.int_rw_param_metadata["max"],
                 "intCallableRwParam") in str(excinfo.value)
 
 
@@ -943,7 +942,7 @@ class TestAsyncParamTreeMutable():
         new_data = 75
         await test_tree_mutable.param_tree.set('bonus', new_data)
         val = await test_tree_mutable.param_tree.get('bonus')
-        assert val['bonus'] == new_data
+        assert val['value'] == new_data
 
     async def test_mutable_put_new_branch_node(self, test_tree_mutable):
 
@@ -951,7 +950,8 @@ class TestAsyncParamTreeMutable():
         await test_tree_mutable.param_tree.set('extra', new_node)
 
         val = await test_tree_mutable.param_tree.get('extra')
-        assert val['extra'] == new_node
+        print(val)
+        assert val == new_node
 
     async def test_mutable_put_new_sibling_node(self, test_tree_mutable):
 
@@ -960,14 +960,14 @@ class TestAsyncParamTreeMutable():
 
         await test_tree_mutable.param_tree.set(path, new_node)
         val = await test_tree_mutable.param_tree.get(path)
-        assert 'new' in val[path]
+        assert 'new' in val
 
     async def test_mutable_put_overwrite_param_accessor_read_only(self, test_tree_mutable):
 
         new_node = {"Node": "Broke Accessor"}
         with pytest.raises(ParameterTreeError) as excinfo:
             await test_tree_mutable.param_tree.set('read', new_node)
-        
+
         assert "is read-only" in str(excinfo.value)
 
     async def test_mutable_put_overwrite_param_accessor_read_write(self, test_tree_mutable):
@@ -987,7 +987,7 @@ class TestAsyncParamTreeMutable():
 
         await test_tree_mutable.param_tree.set(path, new_node)
         val = await test_tree_mutable.param_tree.get(path)
-        assert val[path]['double_nest'] == new_node['double_nest']
+        assert val['double_nest'] == new_node['double_nest']
 
     async def test_mutable_put_merge_nested_path(self, test_tree_mutable):
 
@@ -1003,8 +1003,8 @@ class TestAsyncParamTreeMutable():
 
         await test_tree_mutable.param_tree.set(path, new_node)
         val = await test_tree_mutable.param_tree.get(path)
-        assert val[path]['double_nest']['nested_val'] == new_node['double_nest']['nested_val']
-        assert 'dont_touch' in val[path]['double_nest']
+        assert val['double_nest']['nested_val'] == new_node['double_nest']['nested_val']
+        assert 'dont_touch' in val['double_nest']
 
     async def test_mutable_delete_method(self, test_tree_mutable):
 
@@ -1051,14 +1051,14 @@ class TestAsyncParamTreeMutable():
 
         test_tree_mutable.param_tree.delete(path)
         val = await test_tree_mutable.param_tree.get('nest/list')
-        assert '3' not in val['list']
+        assert '3' not in val['value']
 
     async def test_mutable_delete_from_dict_in_list(self, test_tree_mutable):
         path = 'nest/list/2/list_test'
 
         test_tree_mutable.param_tree.delete(path)
         val = await test_tree_mutable.param_tree.get('nest/list')
-        assert {'list_test': "test"} not in val['list']
+        assert {'list_test': "test"} not in val['value']
 
     async def test_mutable_nested_tree_in_immutable_tree(self, test_tree_mutable):
 
@@ -1073,7 +1073,7 @@ class TestAsyncParamTreeMutable():
         path = 'nest/tree/extra'
         await new_tree.set(path, new_node)
         val = await new_tree.get(path)
-        assert val['extra'] == new_node
+        assert val == new_node
 
     async def test_mutable_nested_tree_external_change(self, test_tree_mutable):
 
@@ -1086,7 +1086,7 @@ class TestAsyncParamTreeMutable():
         path = 'tree/extra'
         await test_tree_mutable.param_tree.set('extra', new_node)
         val = await new_tree.get(path)
-        assert val['extra'] == new_node
+        assert val == new_node
 
     async def test_mutable_nested_tree_delete(self, test_tree_mutable):
 
@@ -1130,4 +1130,5 @@ class TestAsyncParamTreeMutable():
         path = 'empty'
         await test_tree_mutable.param_tree.set(path, new_node)
         val = await test_tree_mutable.param_tree.get(path)
-        assert val[path] == new_node
+        print(val)
+        assert val== new_node
