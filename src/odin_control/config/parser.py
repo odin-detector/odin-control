@@ -9,11 +9,7 @@ from argparse import ArgumentParser
 from functools import partial
 import tornado.options
 
-if sys.version_info[0] == 3:                  # pragma: no cover
-    from configparser import ConfigParser as NativeConfigParser
-else:                                         # pragma: no cover
-    from ConfigParser import SafeConfigParser as NativeConfigParser
-    NativeConfigParser.read_file = NativeConfigParser.readfp
+from configparser import ConfigParser as NativeConfigParser
 
 
 class ConfigError(Exception):
@@ -25,7 +21,7 @@ class ConfigError(Exception):
     pass
 
 
-class ConfigParser(object):
+class ConfigParser():
     """Parses configuration options from the command-line and from a file.
 
     Provides parsing of program configuration options from both command-line arguments and

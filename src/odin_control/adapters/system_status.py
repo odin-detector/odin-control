@@ -19,12 +19,9 @@ Created on 20 June 2018
 
 Alan Greer, OSL
 """
-from __future__ import print_function
-
 import logging
 import os
 import psutil
-from future.utils import with_metaclass
 from tornado.ioloop import IOLoop
 from odin_control.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
 from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeError
@@ -110,19 +107,7 @@ class SystemStatusAdapter(ApiAdapter):
         return ApiAdapterResponse(response, status_code=status_code)
 
 
-class Singleton(type):
-    """Singleton metaclass for use with SystemMonitor to ensure only one instance is created."""
-
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        """Ensure only a single instance of any class is created."""
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
-
-
-class SystemStatus(with_metaclass(Singleton, object)):
+class SystemStatus():
     """Class to monitor disks, network and processes running on a server."""
     def __init__(self, *args, **kwargs):
         """Initalise the Server Monitor.

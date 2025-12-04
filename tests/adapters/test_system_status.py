@@ -3,19 +3,15 @@
 Tim Nicholls, STFC Application Engineering Group.
 """
 
-import sys
 import platform
 import psutil
 import logging
 
 import pytest
 
-if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest.mock import Mock, patch
-else:                         # pragma: no cover
-    from mock import Mock, patch
+from unittest.mock import Mock, patch
 
-from odin_control.adapters.system_status import SystemStatusAdapter, SystemStatus, Singleton
+from odin_control.adapters.system_status import SystemStatusAdapter, SystemStatus
 from odin_control.adapters.parameter_tree import ParameterTreeError
 
 from tests.utils import log_message_seen
@@ -101,11 +97,6 @@ def test_system_status():
 class TestSystemStatus():
     """Test cases for the SystemStatus class."""
 
-    def test_system_status_single_instance(self, test_system_status):
-        """Test that the SystemStatus class exhibits singleton behaviour."""
-        new_instance = SystemStatus()
-        assert test_system_status.system_status == new_instance
-
     def test_system_status_rate(self, test_system_status):
         """Test that the status update interval is calculated from the rate correctly. """
         update_interval = 1.0 / test_system_status.rate
@@ -188,16 +179,12 @@ class TestSystemStatus():
 
     def test_default_rate_argument(self, test_system_status):
         """Test that that the default monitoring rate argument is applied correctly."""
-        stash_singleton = dict(Singleton._instances)
-        Singleton._instances = {}
         temp_system_status = SystemStatus(
             interfaces=test_system_status.interfaces,
             disks=test_system_status.disks,
             processes=test_system_status.processes,
         )
         assert pytest.approx(1.0) == temp_system_status._update_interval
-        Singleton._instances = {}
-        Singleton._instances = dict(stash_singleton)
 
     def test_num_processes_change(self, test_system_status, caplog):
         """Test that monitoring processes correctly detects a change in the number of processes."""

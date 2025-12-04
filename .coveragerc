@@ -1,5 +1,5 @@
 [run]
-omit = *_version*
+omit = */_version.py
 
 [paths]
 source=
@@ -7,4 +7,4 @@ source=
     .tox/py*/lib/python*/site-packages/
 
 [report]
-omit = *_version*
+omit = */_version.py

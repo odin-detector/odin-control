@@ -9,7 +9,6 @@ import logging
 import platform
 import time
 import tornado
-from future.utils import with_metaclass
 
 from odin_control.adapters.adapter import (ApiAdapter, ApiAdapterResponse,
                                    request_types, response_types, wants_metadata)
@@ -96,19 +95,7 @@ class SystemInfoAdapter(ApiAdapter):
         return ApiAdapterResponse(response, status_code=status_code)
 
 
-class Singleton(type):
-    """Singleton metaclass for use with SystemInfo to ensure only one instance is created."""
-
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        """Ensure only a single instance of any class is created."""
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
-
-
-class SystemInfo(with_metaclass(Singleton, object)):
+class SystemInfo():
     """SystemInfo - class that extracts and stores information about system-level parameters."""
 
     # __metaclass__ = Singleton

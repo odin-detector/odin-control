@@ -307,7 +307,7 @@ class BaseParameterTree(object):
         # Merge data with tree
         if replace:
             if not self.mutable:
-                raise ParameterTreeError("Invalid Replace Attempt: Tree Not Mutable")
+                raise ParameterTreeError("Invalid replace attempt: tree not mutable")
             merged = data
         else:
             merged = self._merge_tree(merge_child, data, path)

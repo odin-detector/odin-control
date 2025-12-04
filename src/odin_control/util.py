@@ -1,18 +1,11 @@
-"""Odin Server Utility Functions
+"""Utility functions for odin-control.
 
-This module implements utility methods for Odin Server.
+This module implements utility methods for odin-control.
 """
-import sys
+import asyncio
 
-from tornado import version_info
 from tornado.escape import json_decode
 from tornado.ioloop import IOLoop
-
-PY3 = sys.version_info >= (3,)
-
-if PY3:
-    from odin_control.async_util import get_async_event_loop, wrap_async
-    unicode = str
 
 
 def decode_request_body(request):
@@ -33,36 +26,6 @@ def decode_request_body(request):
     return body
 
 
-def convert_unicode_to_string(obj):
-    """
-    Convert all unicode parts of a dictionary or list to standard strings.
-
-    This method will not handle special characters well due to the difference between uft-8
-    and unicode.
-
-    It is recursive, so if the object passed is a collection (dict or list) it will call
-    itself for each object in the collection
-
-    :param obj: the dictionary, list, or unicode string
-
-    :return: the same data type as obj, but with unicode strings converted to python strings.
-    """
-    if PY3:
-        # Python 3 strings ARE unicode, so no need to encode them
-        return obj  # pragma: no cover
-    if isinstance(obj, dict):
-        # Obj is a dictionary. We need to recurse this method over each key and value
-        return {convert_unicode_to_string(key): convert_unicode_to_string(value)
-                for key, value in obj.items()}
-    elif isinstance(obj, list):
-        # Obj is a list. We need to recurse over each object in the list
-        return [convert_unicode_to_string(element) for element in obj]
-    elif isinstance(obj, unicode):
-        return obj.encode("utf-8")
-    # Obj is none of the above, just return it
-    return obj
-
-
 def wrap_result(result, is_async=True):
     """
     Conditionally wrap a result in an aysncio Future if being used in async code on python 3.
@@ -74,7 +37,7 @@ def wrap_result(result, is_async=True):
 
     :return: either the result or a Future wrapping the result
     """
-    if is_async and PY3:
+    if is_async:
         return wrap_async(result)
     else:
         return result
@@ -96,15 +59,59 @@ def run_in_executor(executor, func, *args):
 
     :return: a Future wrapping the task
     """
-    # In python 3, try to get the current asyncio event loop, otherwise create a new one
-    if PY3:
-        get_async_event_loop()
+    # Try to get the current asyncio event loop, otherwise create a new one
+    get_async_event_loop()
 
     # Run the function in the specified executor, handling tornado version 4 where there was no
     # run_in_executor implementation
-    if version_info[0] <= 4:
-        future = executor.submit(func, *args)
-    else:
-        future = IOLoop.current().run_in_executor(executor, func, *args)
+    future = IOLoop.current().run_in_executor(executor, func, *args)
 
     return future
+
+def wrap_async(object):
+    """Wrap an object in an async future.
+
+    This function wraps an object in an async future and is called from wrap_result when
+    async objects are wrapped in python 3. A future is created, its result set to the
+    object passed in, and returned to the caller.
+
+    :param object: object to wrap in a future
+    :return: a Future with object as its result
+    """
+    future = asyncio.Future()
+    future.set_result(object)
+    return future
+
+
+def get_async_event_loop():
+    """Get the asyncio event loop.
+
+    This function obtains and returns the current asyncio event loop. If no loop is present, a new
+    one is created and set as the event loop.
+
+    :return: an asyncio event loop
+    """
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    return loop
+
+
+def run_async(func, *args, **kwargs):
+    """Run an async function synchronously in an event loop.
+
+    This function can be used to run an async function synchronously, i.e. without the need for an
+    await() call. The function is run on an asyncio event loop and the result is returned.
+
+    :param func: async function to run
+    :param args: positional arguments to function
+    :param kwargs:: keyword arguments to function
+    :return: result of function
+    """
+    loop = get_async_event_loop()
+    result = loop.run_until_complete(func(*args, **kwargs))
+    return result
+

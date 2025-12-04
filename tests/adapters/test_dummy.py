@@ -1,15 +1,10 @@
-import sys
-
 import pytest
 
 from odin_control.adapters.dummy import DummyAdapter, IacDummyAdapter
 from odin_control.adapters.adapter import (ApiAdapter, ApiAdapterRequest,
                                    ApiAdapterResponse, request_types, response_types)
 
-if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest.mock import Mock
-else:                         # pragma: no cover
-    from mock import Mock
+from unittest.mock import Mock
 
 
 class DummyAdapterTestFixture(object):
@@ -35,7 +30,7 @@ class TestDummyAdapter():
         expected_response = {
             'response': 'DummyAdapter: GET on path {}'.format(test_dummy_adapter.path)
             }
-        response = test_dummy_adapter.adapter.get(test_dummy_adapter.path, 
+        response = test_dummy_adapter.adapter.get(test_dummy_adapter.path,
             test_dummy_adapter.request)
         assert response.data == expected_response
         assert response.status_code == 200

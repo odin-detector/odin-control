@@ -1,80 +1,18 @@
-"""API-related classes for the ODIN server.
+"""API route implementation for odin-control.
 
-This module implements a number of classes used by the ODIN server for routing and handling
-API calls.
+This module implements an API route object used by odin-control to handle API-related requests.
 
 Tim Nicholls, STFC Application Engineering Group
 """
 
 import importlib
 import logging
-import json
 
-import tornado.web
-
+from odin_control.http.handlers.api import ApiError, ApiHandler
+from odin_control.http.handlers.api_adapter_list import ApiAdapterListHandler
+from odin_control.http.handlers.api_version import ApiVersionHandler
 from odin_control.http.routes.route import Route
-from odin_control.util import PY3
-from odin_control.http.handlers.base import ApiError, API_VERSION
-if PY3:
-    from odin_control.http.handlers.async_api import AsyncApiHandler as ApiHandler
-    from odin_control.async_util import run_async
-else:
-    from odin_control.http.handlers.api import ApiHandler
-
-
-class ApiVersionHandler(tornado.web.RequestHandler):
-    """API version handler to allow client to resolve supported version.
-
-    This request handler implements the GET verb to allow a call to the appropriate URI to return
-    the supported API version as JSON.
-    """
-
-    def get(self):
-        """Handle API version GET requests."""
-        accept_types = self.request.headers.get('Accept', 'application/json').split(',')
-        if "*/*" not in accept_types and 'application/json' not in accept_types:
-            self.set_status(406)
-            self.write('Requested content types not supported')
-            return
-
-        self.write(json.dumps({'api': API_VERSION}))
-
-
-class ApiAdapterListHandler(tornado.web.RequestHandler):
-    """API adapter list handler to return a list of loaded adapters.
-
-    This request hander implements the GET verb to allow a call to the appropriate URI to return
-    a JSON-encoded list of adapters loaded by the server.
-    """
-
-    def initialize(self, route):
-        """Initialize the API adapter list handler.
-
-        :param route: ApiRoute object calling the handler (allows adapters to be resolved)
-        """
-        self.route = route
-
-    def get(self, version):
-        """Handle API adapter list GET requests.
-
-        This handler returns a JSON-encoded list of adapters loaded into the server.
-
-        :param version: API version
-        """
-        # Validate the API version explicity - can't use the validate_api_request decorator here
-        if version != str(API_VERSION):
-            self.set_status(400)
-            self.write("API version {} is not supported".format(version))
-            return
-
-        # Validate the accept type requested is appropriate
-        accept_types = self.request.headers.get('Accept', 'application/json').split(',')
-        if '*/*' not in accept_types and 'application/json' not in accept_types:
-            self.set_status(406)
-            self.write('Request content types not supported')
-            return
-
-        self.write({'adapters': [adapter for adapter in self.route.adapters]})
+from odin_control.util import run_async
 
 
 class ApiRoute(Route):
@@ -95,10 +33,14 @@ class ApiRoute(Route):
         self.add_handler((r"/api/?", ApiVersionHandler))
 
         # Define a handler which can return a list of loaded adapters
-        self.add_handler((r'/api/(.*?)/adapters/?', ApiAdapterListHandler, dict(route=self)))
+        self.add_handler(
+            (r"/api/(.*?)/adapters/?", ApiAdapterListHandler, dict(route=self))
+        )
 
         # Build a dict of params to be passed to API handler initialisation calls
-        handler_params = dict(route=self, enable_cors=enable_cors, cors_origin=cors_origin)
+        handler_params = dict(
+            route=self, enable_cors=enable_cors, cors_origin=cors_origin
+        )
 
         # Define the handler for API calls. The expected URI syntax, which is
         # enforced by the validate_api_request decorator, is the following:
@@ -123,13 +65,13 @@ class ApiRoute(Route):
         :param fail_ok: Allow the adapter import and registration to fail without raising an error
         """
         # Resolve the adapter module and class name from the dotted module path in the config object
-        (module_name, class_name) = adapter_config.module.rsplit('.', 1)
+        (module_name, class_name) = adapter_config.module.rsplit(".", 1)
 
         # Try to import the module, resolve the class in the module and create an instance of it
         try:
             adapter_module = importlib.import_module(module_name)
             adapter_class = getattr(adapter_module, class_name)
-            if PY3 and adapter_class.is_async:
+            if adapter_class.is_async:
                 adapter = run_async(adapter_class, **adapter_config.options())
             else:
                 adapter = adapter_class(**adapter_config.options())
@@ -138,13 +80,18 @@ class ApiRoute(Route):
         except (ImportError, AttributeError) as e:
             logging.error(
                 "Failed to register API adapter %s for path %s with dispatcher: %s",
-                adapter_config.module, adapter_config.name, e)
+                adapter_config.module,
+                adapter_config.name,
+                e,
+            )
             if not fail_ok:
                 raise ApiError(e)
         else:
             logging.debug(
                 "Registered API adapter class %s from module %s for path %s",
-                class_name, module_name, adapter_config.name
+                class_name,
+                module_name,
+                adapter_config.name,
             )
 
     def has_adapter(self, subsystem):
@@ -171,8 +118,8 @@ class ApiRoute(Route):
         """
         for adapter_name, adapter in self.adapters.items():
             try:
-                cleanup_method = getattr(adapter, 'cleanup')
-                if PY3 and adapter.is_async:
+                cleanup_method = getattr(adapter, "cleanup")
+                if adapter.is_async:
                     run_async(cleanup_method)
                 else:
                     cleanup_method()
@@ -187,8 +134,8 @@ class ApiRoute(Route):
         """
         for adapter_name, adapter in self.adapters.items():
             try:
-                initialize_method = getattr(adapter, 'initialize')
-                if PY3 and adapter.is_async:
+                initialize_method = getattr(adapter, "initialize")
+                if adapter.is_async:
                     run_async(initialize_method, self.adapters)
                 else:
                     initialize_method(self.adapters)

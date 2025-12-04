@@ -8,20 +8,15 @@ Tim Nicholls, STFC Detector Systems Software Group.
 
 import asyncio
 import math
-import sys
 
 from copy import deepcopy
 
 import pytest
 
-if sys.version_info[0] < 3:
-    pytest.skip("Skipping async tests", allow_module_level=True)
-else:
-
-    from tests.async_utils import AwaitableTestFixture, asyncio_fixture_decorator
-    from odin_control.adapters.async_parameter_tree import (
-        AsyncParameterAccessor, AsyncParameterTree, ParameterTreeError
-    )
+from tests.async_utils import AwaitableTestFixture, asyncio_fixture_decorator
+from odin_control.adapters.async_parameter_tree import (
+    AsyncParameterAccessor, AsyncParameterTree, ParameterTreeError
+)
 
 
 class AsyncParameterAccessorTestFixture(AwaitableTestFixture):

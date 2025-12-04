@@ -1,18 +1,11 @@
-import sys
 import os
-from contextlib import contextmanager
 from tempfile import NamedTemporaryFile
 
 import pytest
 
 import tornado.options
 
-if sys.version_info[0] == 3:  # pragma: no cover
-    from io import StringIO
-    from configparser import ConfigParser as NativeConfigParser
-else:                         # pragma: no cover
-    from StringIO import StringIO
-    from ConfigParser import SafeConfigParser as NativeConfigParser
+from configparser import ConfigParser as NativeConfigParser
 
 from odin_control.config.parser import ConfigParser, ConfigOption, ConfigError, AdapterConfig, _parse_multiple_arg
 

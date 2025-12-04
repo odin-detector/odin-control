@@ -1,29 +1,22 @@
-import sys
 import json
 
 import pytest
 
-if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest.mock import Mock
-    import asyncio
-    async_allowed = True
-else:                         # pragma: no cover
-    from mock import Mock
-    async_allowed = False
+from unittest.mock import Mock
 
-from odin_control.http.handlers.base import BaseApiHandler, API_VERSION, ApiError, validate_api_request
-from odin_control.http.routes.api import ApiHandler
+from odin_control.http.handlers.api import ApiHandler, API_VERSION, validate_api_request
+from odin_control.http.handlers.api_adapter_list import ApiAdapterListHandler
+from odin_control.http.handlers.api_version import ApiVersionHandler
 from odin_control.adapters.adapter import ApiAdapterResponse
-from odin_control.config.parser import AdapterConfig
 from odin_control.util import wrap_result
 
 
 class TestHandler(object):
     """Class to create appropriate mocked objects to allow the ApiHandler to be tested."""
 
-    def __init__(self, handler_cls, async_adapter=async_allowed, enable_cors=False):
+    def __init__(self, handler_cls, async_adapter=True, with_route=True, **handler_kwargs):
         """Initialise the TestHandler."""
-        self.enable_cors = enable_cors
+        self.handler_kwargs = handler_kwargs
 
         # Initialise attribute to receive output of patched write() method
         self.write_data = None
@@ -51,6 +44,8 @@ class TestHandler(object):
         self.route.adapters = {}
         self.route.adapter = lambda subsystem: self.route.adapters[subsystem]
         self.route.has_adapter = lambda subsystem: subsystem in self.route.adapters
+        if with_route:
+            handler_kwargs['route'] = self.route
 
         # Create a mock API adapter that returns appropriate responses
         api_adapter_mock = Mock()
@@ -62,13 +57,12 @@ class TestHandler(object):
         self.route.adapters[self.subsystem] = api_adapter_mock
 
         # Create the handler and mock its write method with the local version
-        self.handler = handler_cls(self.app, self.request,
-            route=self.route, enable_cors=self.enable_cors, cors_origin="*"
-        )
+        self.handler = handler_cls(self.app, self.request, **handler_kwargs)
+
         self.handler.write = self.mock_write
         self.handler.dummy_get = self.dummy_get
 
-        self.respond = self.handler.respond
+        # self.respond = self.handler.respond
         self.headers = lambda: self.handler._headers
 
     def mock_write(self, chunk):
@@ -88,14 +82,7 @@ class TestHandler(object):
         )
         self.respond(response)
 
-if async_allowed:
-    fixture_params = [True, False]
-    fixture_ids = ["async", "sync"]
-else:
-    fixture_params = [False]
-    fixture_ids = ["sync"]
-
-@pytest.fixture(scope="class", params=fixture_params, ids=fixture_ids)
+@pytest.fixture(scope="class", params=[True, False], ids=["async", "sync"])
 def test_api_handler(request):
     """
     Parameterised test fixture for testing the APIHandler class.
@@ -103,17 +90,29 @@ def test_api_handler(request):
     The fixture parameters and id lists are set depending on whether async code is
     allowed on the current platform (e.g. python 2 vs 3).
     """
-    test_api_handler = TestHandler(ApiHandler, async_adapter=request.param)
+    test_api_handler = TestHandler(
+        ApiHandler, async_adapter=request.param, enable_cors=False, cors_origin="*"
+    )
+    yield test_api_handler
+
+@pytest.fixture(scope="class", params=[True, False], ids=["CORS enabled", "CORS disabled"])
+def test_api_handler_cors(request):
+    """Test fixture for testing the ApiHandler class CORS support."""
+    test_api_handler = TestHandler(
+        ApiHandler, async_adapter=False,enable_cors=request.param, cors_origin="*"
+    )
     yield test_api_handler
 
 @pytest.fixture(scope="class")
-def test_base_handler():
-    """Test fixture for testing the BaseHandler class."""
-    test_base_handler = TestHandler(BaseApiHandler)
-    yield test_base_handler
+def test_api_adapter_list_handler():
+    """Test fixture for testing the ApiAdapterListHandler class."""
+    test_api_adapter_list_handler = TestHandler(ApiAdapterListHandler, async_adapter=False)
+    test_api_adapter_list_handler.request.headers = {'Accept': 'application/json'}
+    yield test_api_adapter_list_handler
 
-@pytest.fixture(scope="class", params=[True, False], ids=["CORS enabled", "CORS disabled"])
-def test_base_handler_cors(request):
-    """Test fixture for testing the BaseHandler class."""
-    test_base_handler = TestHandler(BaseApiHandler, enable_cors=request.param)
-    yield test_base_handler
+@pytest.fixture(scope="class")
+def test_api_version_handler():
+    """Test fixture for testing the ApiVersionHandler class."""
+    test_api_version_handler = TestHandler(ApiVersionHandler, async_adapter=False, with_route=False)
+    test_api_version_handler.request.headers = {'Accept': 'application/json'}
+    yield test_api_version_handler

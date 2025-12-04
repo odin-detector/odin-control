@@ -3,14 +3,9 @@
 Tim Nicholls, STFC Application Engineering Group.
 """
 
-import sys
-
 import pytest
 
-if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest.mock import Mock
-else:                         # pragma: no cover
-    from mock import Mock
+from unittest.mock import Mock
 
 from odin_control.adapters.system_info import SystemInfoAdapter, SystemInfo
 
@@ -23,11 +18,6 @@ def test_system_info():
 
 class TestSystemInfo():
     """Test cases for the SystemInfo class."""
-
-    def test_system_info_single_instance(self, test_system_info):
-        """Test that the SystemInfo class exhibits singleton behaviour."""
-        new_instance = SystemInfo()
-        assert test_system_info == new_instance
 
     def test_system_info_get(self, test_system_info):
         """Test the calling the GET method of system info returns a dict."""

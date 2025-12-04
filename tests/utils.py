@@ -4,19 +4,14 @@ Utility classes to support testing the ODIN framework
 Tim Nicholls, STFC Application Engineering Group
 """
 
-import sys
 import time
 import threading
-import logging
 import os
 
 from tempfile import NamedTemporaryFile
 
-if sys.version_info[0] == 3:  # pragma: no cover
-    from configparser import ConfigParser
-    import asyncio
-else:                         # pragma: no cover
-    from ConfigParser import SafeConfigParser as ConfigParser
+from configparser import ConfigParser
+import asyncio
 
 from tornado.ioloop import IOLoop
 
@@ -98,8 +93,7 @@ class OdinTestServer(object):
         self.stop()
 
     def _run_server(self, server_args):
-        if sys.version_info[0] == 3:  # pragma: no cover
-            asyncio.set_event_loop(asyncio.new_event_loop())
+        asyncio.set_event_loop(asyncio.new_event_loop())
 
         self.server_event_loop = IOLoop.current()
         main.main(server_args)
