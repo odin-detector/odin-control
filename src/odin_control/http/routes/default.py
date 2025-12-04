@@ -8,7 +8,7 @@ Tim Nicholls, STFC Application Engineering
 import logging
 import os
 import tornado.web
-from odin.http.routes.route import Route
+from odin_control.http.routes.route import Route
 
 
 class DefaultHandler(tornado.web.StaticFileHandler):

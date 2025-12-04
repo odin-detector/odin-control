@@ -1,8 +1,8 @@
-"""odin.config.parser - configuration parsing for the ODIN server.
+"""odin_control.config.parser - configuration parsing for the ODIN server.
 
 Tim Nicholls, STFC Application Engineering Group
 """
-from odin._version import __version__
+from odin_control._version import __version__
 
 import sys
 from argparse import ArgumentParser

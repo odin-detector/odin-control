@@ -1,12 +1,12 @@
 """
-odin.adapters.adapter.py - base API adapter implmentation for the ODIN server.
+odin_control.adapters.adapter.py - base API adapter implmentation for the ODIN server.
 
 Tim Nicholls, STFC Application Engineering Group
 """
 
 import logging
 
-from odin.util import wrap_result
+from odin_control.util import wrap_result
 
 class ApiAdapter(object):
     """

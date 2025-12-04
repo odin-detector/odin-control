@@ -14,7 +14,7 @@ else:                         # pragma: no cover
     from StringIO import StringIO
     from ConfigParser import SafeConfigParser as NativeConfigParser
 
-from odin.config.parser import ConfigParser, ConfigOption, ConfigError, AdapterConfig, _parse_multiple_arg
+from odin_control.config.parser import ConfigParser, ConfigOption, ConfigError, AdapterConfig, _parse_multiple_arg
 
 
 class TestConfigOption():
@@ -122,11 +122,11 @@ class AdapterTestConfig():
         self.adapters = ['dummy', 'dummy2']
         self.options = {
         'dummy' : {
-            'module'     : 'odin.adapters.dummy.DummyAdapter',
+            'module'     : 'odin_control.adapters.dummy.DummyAdapter',
             'test_param' : '13.46',
         },
         'dummy2' : {
-            'module'     : 'odin.adapters.dummy.DummyAdapter',
+            'module'     : 'odin_control.adapters.dummy.DummyAdapter',
             'other_param' : 'wibble',
         },
     }

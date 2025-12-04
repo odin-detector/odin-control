@@ -8,8 +8,8 @@ Tim Nicholls, STFC Detector Systems Software Group.
 
 import tornado.web
 
-from odin.adapters.adapter import ApiAdapterResponse
-from odin.util import wrap_result
+from odin_control.adapters.adapter import ApiAdapterResponse
+from odin_control.util import wrap_result
 API_VERSION = 0.1
 
 

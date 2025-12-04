@@ -5,7 +5,7 @@ import pytest
 if sys.version_info[0] < 3:
     pytest.skip("Skipping async tests", allow_module_level=True)
 else:
-    from odin.adapters.async_adapter import AsyncApiAdapter
+    from odin_control.adapters.async_adapter import AsyncApiAdapter
     from unittest.mock import Mock
 
 class AsyncApiAdapterTestFixture(object):

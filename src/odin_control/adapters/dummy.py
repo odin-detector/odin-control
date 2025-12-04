@@ -12,9 +12,9 @@ Tim Nicholls, STFC Application Engineering
 import logging
 from tornado.ioloop import PeriodicCallback
 
-from odin.adapters.adapter import (ApiAdapter, ApiAdapterRequest,
+from odin_control.adapters.adapter import (ApiAdapter, ApiAdapterRequest,
                                    ApiAdapterResponse, request_types, response_types)
-from odin.util import decode_request_body
+from odin_control.util import decode_request_body
 
 
 class DummyAdapter(ApiAdapter):

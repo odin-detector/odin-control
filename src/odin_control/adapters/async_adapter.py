@@ -1,5 +1,5 @@
 """
-odin.adapters.adapter.py - base asynchronous API adapter implmentation for the ODIN server.
+odin_control.adapters.adapter.py - base asynchronous API adapter implmentation for the ODIN server.
 
 Tim Nicholls, STFC Detector Systems Software Group
 """
@@ -8,7 +8,7 @@ import asyncio
 import logging
 import inspect
 
-from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse
+from odin_control.adapters.adapter import ApiAdapter, ApiAdapterResponse
 
 
 class AsyncApiAdapter(ApiAdapter):

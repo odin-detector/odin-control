@@ -7,7 +7,7 @@ if sys.version_info[0] == 3:  # pragma: no cover
 else:                         # pragma: no cover
     from mock import Mock
 
-from odin.adapters.adapter import (ApiAdapter, ApiAdapterResponse, ApiAdapterRequest,
+from odin_control.adapters.adapter import (ApiAdapter, ApiAdapterResponse, ApiAdapterRequest,
                                    request_types, response_types, wants_metadata)
 
 class ApiAdapterTestFixture(object):

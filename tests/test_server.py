@@ -9,8 +9,8 @@ if sys.version_info[0] == 3:  # pragma: no cover
 else:                         # pragma: no cover
     import mock
 
-from odin.http.server import HttpServer
-from odin import main
+from odin_control.http.server import HttpServer
+from odin_control import main
 
 from tests.utils import OdinTestServer, log_message_seen
 from tests.ssl_utils import SslTestCert
@@ -20,7 +20,7 @@ def odin_test_server():
     """Test fixture for starting an odin test server instance with a dummy adapter loaded."""
     adapter_config = {
         'dummy': {
-            'module': 'odin.adapters.dummy.DummyAdapter',
+            'module': 'odin_control.adapters.dummy.DummyAdapter',
             'background_task_enable': 1,
             'background_task_interval': 0.1,
         }

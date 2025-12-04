@@ -8,7 +8,7 @@ import re
 
 import pytest
 
-from odin.http.routes.default import DefaultRoute
+from odin_control.http.routes.default import DefaultRoute
 from tests.utils import log_message_seen
 
 class TestDefaultRoute():

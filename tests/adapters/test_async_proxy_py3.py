@@ -15,10 +15,10 @@ if sys.version_info[0] < 3:
 else:
     from tornado.ioloop import TimeoutError
     from tornado.httpclient import HTTPResponse
-    from odin.adapters.async_proxy import AsyncProxyTarget, AsyncProxyAdapter
+    from odin_control.adapters.async_proxy import AsyncProxyTarget, AsyncProxyAdapter
     from unittest.mock import Mock
     from tests.adapters.test_proxy import ProxyTestHandler, ProxyTargetTestFixture, ProxyTestServer
-    from odin.util import convert_unicode_to_string
+    from odin_control.util import convert_unicode_to_string
     from tests.utils import log_message_seen
     from tests.async_utils import AwaitableTestFixture, asyncio_fixture_decorator
     try:

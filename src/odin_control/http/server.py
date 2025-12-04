@@ -1,4 +1,4 @@
-"""odin.http.server - ODIN HTTP Server class.
+"""odin_control.http.server - ODIN HTTP Server class.
 
 This module provides the core HTTP server class used in ODIN, which handles all client requests,
 handing off API requests to the appropriate API route and adapter plugins, and defining the
@@ -14,9 +14,9 @@ import tornado.ioloop
 import tornado.web
 from tornado.log import access_log
 
-from odin.config.parser import ConfigError
-from odin.http.routes.api import ApiRoute
-from odin.http.routes.default import DefaultRoute
+from odin_control.config.parser import ConfigError
+from odin_control.http.routes.api import ApiRoute
+from odin_control.http.routes.default import DefaultRoute
 
 
 class HttpServer(object):

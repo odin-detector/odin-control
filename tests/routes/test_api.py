@@ -8,8 +8,8 @@ if sys.version_info[0] == 3:  # pragma: no cover
 else:                         # pragma: no cover
     from mock import Mock
 
-from odin.http.routes.api import ApiRoute, ApiHandler, ApiError, API_VERSION
-from odin.config.parser import AdapterConfig
+from odin_control.http.routes.api import ApiRoute, ApiHandler, ApiError, API_VERSION
+from odin_control.config.parser import AdapterConfig
 
 @pytest.fixture(scope="class")
 def test_api_route():
@@ -26,7 +26,7 @@ class TestApiRoute(object):
 
     def test_register_adapter(self, test_api_route):
         """Test that it is possible to register an adapter with the API route object."""
-        adapter_config = AdapterConfig('dummy', 'odin.adapters.dummy.DummyAdapter')
+        adapter_config = AdapterConfig('dummy', 'odin_control.adapters.dummy.DummyAdapter')
         test_api_route.register_adapter(adapter_config)
 
         assert test_api_route.has_adapter('dummy')
@@ -34,7 +34,7 @@ class TestApiRoute(object):
     def test_register_adapter_badmodule(self, test_api_route):
         """Test that registering an adapter with a bad module name raises an error."""
         adapter_name = 'dummy'
-        adapter_config = AdapterConfig(adapter_name, 'odin.adapters.bad_dummy.DummyAdapter')
+        adapter_config = AdapterConfig(adapter_name, 'odin_control.adapters.bad_dummy.DummyAdapter')
 
         with pytest.raises(ApiError) as excinfo:
             test_api_route.register_adapter(adapter_config, fail_ok=False)
@@ -43,7 +43,7 @@ class TestApiRoute(object):
 
     def test_register_adapter_badclass(self, test_api_route):
         """Test that registering an adapter with a bad class name raises an error."""
-        adapter_config = AdapterConfig('dummy', 'odin.adapters.dummy.BadAdapter')
+        adapter_config = AdapterConfig('dummy', 'odin_control.adapters.dummy.BadAdapter')
 
         with pytest.raises(ApiError) as excinfo:
             test_api_route.register_adapter(adapter_config, fail_ok=False)
@@ -56,7 +56,7 @@ class TestApiRoute(object):
         cause an error
         """
         adapter_name = 'dummy_no_clean'
-        adapter_config = AdapterConfig(adapter_name, 'odin.adapters.dummy.DummyAdapter')
+        adapter_config = AdapterConfig(adapter_name, 'odin_control.adapters.dummy.DummyAdapter')
         test_api_route.register_adapter(adapter_config)
         test_api_route.adapters[adapter_name].cleanup = Mock(side_effect=AttributeError())
 
@@ -74,7 +74,7 @@ class TestApiRoute(object):
         raise an error.
         """
         adapter_name = 'dummy_no_clean'
-        adapter_config = AdapterConfig(adapter_name, 'odin.adapters.dummy.DummyAdapter')
+        adapter_config = AdapterConfig(adapter_name, 'odin_control.adapters.dummy.DummyAdapter')
         test_api_route.register_adapter(adapter_config)
         test_api_route.adapters[adapter_name].initialize = Mock(side_effect=AttributeError())
 

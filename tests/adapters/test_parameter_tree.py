@@ -7,7 +7,7 @@ from copy import deepcopy
 
 import pytest
 
-from odin.adapters.parameter_tree import ParameterAccessor, ParameterTree, ParameterTreeError
+from odin_control.adapters.parameter_tree import ParameterAccessor, ParameterTree, ParameterTreeError
 
 
 class ParameterAccessorTestFixture(object):

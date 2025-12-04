@@ -2,8 +2,8 @@ import sys
 
 import pytest
 
-from odin.adapters.dummy import DummyAdapter, IacDummyAdapter
-from odin.adapters.adapter import (ApiAdapter, ApiAdapterRequest,
+from odin_control.adapters.dummy import DummyAdapter, IacDummyAdapter
+from odin_control.adapters.adapter import (ApiAdapter, ApiAdapterRequest,
                                    ApiAdapterResponse, request_types, response_types)
 
 if sys.version_info[0] == 3:  # pragma: no cover

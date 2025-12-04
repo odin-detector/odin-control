@@ -21,10 +21,10 @@ from tornado.web import Application, RequestHandler
 from tornado.httpserver import HTTPServer
 import tornado.gen
 
-from odin.adapters.proxy import ProxyTarget, ProxyAdapter
-from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
-from odin.adapters.adapter import wants_metadata
-from odin.util import convert_unicode_to_string
+from odin_control.adapters.proxy import ProxyTarget, ProxyAdapter
+from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeError
+from odin_control.adapters.adapter import wants_metadata
+from odin_control.util import convert_unicode_to_string
 from tests.utils import log_message_seen
 
 if sys.version_info[0] == 3:  # pragma: no cover
@@ -318,11 +318,11 @@ class TestProxyAdapter():
         requests package is not installed.
         """
         monkeypatch.delitem(sys.modules, 'requests', raising=False)
-        monkeypatch.delitem(sys.modules, 'odin.adapters.proxy')
+        monkeypatch.delitem(sys.modules, 'odin_control.adapters.proxy')
         monkeypatch.setattr(builtins, '__import__', monkey_import_importerror)
 
         with pytest.raises(ImportError) as excinfo:
-            from odin.adapters.proxy import ProxyAdapter
+            from odin_control.adapters.proxy import ProxyAdapter
 
         assert("requests package not installed" in str(excinfo.value))
 

@@ -6,7 +6,7 @@ is not required.
 
 Tim Nicholls, STFC Detector Systems Software Group.
 """
-from odin.adapters.base_parameter_tree import (
+from odin_control.adapters.base_parameter_tree import (
     BaseParameterAccessor, BaseParameterTree, ParameterTreeError
 )
 

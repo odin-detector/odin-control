@@ -15,8 +15,8 @@ if sys.version_info[0] == 3:  # pragma: no cover
 else:                         # pragma: no cover
     from mock import Mock, patch
 
-from odin.adapters.system_status import SystemStatusAdapter, SystemStatus, Singleton
-from odin.adapters.parameter_tree import ParameterTreeError
+from odin_control.adapters.system_status import SystemStatusAdapter, SystemStatus, Singleton
+from odin_control.adapters.parameter_tree import ParameterTreeError
 
 from tests.utils import log_message_seen
 

@@ -9,8 +9,8 @@ else:                         # pragma: no cover
     from mock import Mock
 
 
-from odin.http.handlers.base import BaseApiHandler, API_VERSION, ApiError, validate_api_request
-from odin.adapters.adapter import ApiAdapterResponse
+from odin_control.http.handlers.base import BaseApiHandler, API_VERSION, ApiError, validate_api_request
+from odin_control.adapters.adapter import ApiAdapterResponse
 from tests.handlers.fixtures import test_base_handler, test_base_handler_cors
 
 

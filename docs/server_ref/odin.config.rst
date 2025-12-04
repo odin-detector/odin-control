@@ -1,13 +1,13 @@
-odin.config package
+odin_control.config package
 ===================
 
 Submodules
 ----------
 
-odin.config.parser module
+odin_control.config.parser module
 -------------------------
 
-.. automodule:: odin.config.parser
+.. automodule:: odin_control.config.parser
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ odin.config.parser module
 Module contents
 ---------------
 
-.. automodule:: odin.config
+.. automodule:: odin_control.config
     :members:
     :undoc-members:
     :show-inheritance:

@@ -19,7 +19,7 @@ if sys.version_info[0] < 3:
 else:
 
     from tests.async_utils import AwaitableTestFixture, asyncio_fixture_decorator
-    from odin.adapters.async_parameter_tree import (
+    from odin_control.adapters.async_parameter_tree import (
         AsyncParameterAccessor, AsyncParameterTree, ParameterTreeError
     )
 

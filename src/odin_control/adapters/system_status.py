@@ -3,7 +3,7 @@
 Example config file section for odin-control:
 
 [adapter.status]
-module = odin.adapters.system_status.SystemStatusAdapter
+module = odin_control.adapters.system_status.SystemStatusAdapter
 disks = /home/gnx91527
 interfaces = p3p1, p3p2
 processes = stFrameProcessor1.sh, stFrameProcessor3.sh
@@ -26,8 +26,8 @@ import os
 import psutil
 from future.utils import with_metaclass
 from tornado.ioloop import IOLoop
-from odin.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
-from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
+from odin_control.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
+from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeError
 
 
 class SystemStatusAdapter(ApiAdapter):

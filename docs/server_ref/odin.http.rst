@@ -1,4 +1,4 @@
-odin.http package
+odin_control.http package
 =================
 
 Subpackages
@@ -6,15 +6,15 @@ Subpackages
 
 .. toctree::
 
-    odin.http.routes
+    odin_control.http.routes
 
 Submodules
 ----------
 
-odin.http.server module
+odin_control.http.server module
 -----------------------
 
-.. automodule:: odin.http.server
+.. automodule:: odin_control.http.server
     :members:
     :undoc-members:
     :show-inheritance:
@@ -23,7 +23,7 @@ odin.http.server module
 Module contents
 ---------------
 
-.. automodule:: odin.http
+.. automodule:: odin_control.http
     :members:
     :undoc-members:
     :show-inheritance:

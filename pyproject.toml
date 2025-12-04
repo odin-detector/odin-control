@@ -43,20 +43,20 @@ graylog = [
 ]
 
 [project.scripts]
-odin_control = "odin.main:main"
-odin_server = "odin.main:main_deprecate"
+odin_control = "odin_control.main:main"
+odin_server = "odin_control.main:main_deprecate"
 
 [project.urls]
 GitHub = "https://github.com/odin-detector/odin-control"
 
 [tool.setuptools_scm]
-version_file = "src/odin/_version.py"
+version_file = "src/odin_control/_version.py"
 
 [tool.coverage.paths]
 source = ["src", "**/site-packages/"]
 
 [tool.pytest.ini_options]
-addopts = "-vv --cov=odin --cov-report=term-missing --asyncio-mode=strict"
+addopts = "-vv --cov=odin_control --cov-report=term-missing --asyncio-mode=strict"
 
 [tool.tox]
 legacy_tox_ini = """
@@ -83,7 +83,7 @@ deps =
 setenv =
     py{38,39,310,311,312}: COVERAGE_FILE=.coverage.{envname}
 commands =
-    pytest --cov=odin --cov-report=term-missing --asyncio-mode=strict {posargs:-vv}
+    pytest --cov=odin_control --cov-report=term-missing --asyncio-mode=strict {posargs:-vv}
 depends =
     py{38,39,310,311,312}: clean
     report: py{38,39,310,311,312}

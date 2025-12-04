@@ -5,8 +5,8 @@ import concurrent.futures
 
 import pytest_asyncio
 
-from odin import util
-from odin import async_util
+from odin_control import util
+from odin_control import async_util
 
 if sys.version_info[0] < 3:
     pytest.skip("Skipping async tests", allow_module_level=True)

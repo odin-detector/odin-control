@@ -11,10 +11,10 @@ if sys.version_info[0] == 3:  # pragma: no cover
 else:                         # pragma: no cover
     from mock import Mock
 
-from odin import util
+from odin_control import util
 
 class TestUtil():
-    """Class to test utility functions in odin.util"""
+    """Class to test utility functions in odin_control.util"""
 
     def test_decode_request_body(self):
         """Test that the body a a request is correctly decoded."""
