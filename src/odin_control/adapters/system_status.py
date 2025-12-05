@@ -21,96 +21,17 @@ Alan Greer, OSL
 """
 import logging
 import os
+
 import psutil
 from tornado.ioloop import IOLoop
+
 from odin_control._version import __version__
-from odin_control.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
+from odin_control.adapters.adapter import ApiAdapter
+from odin_control.adapters.base_controller import BaseController
 from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeError
 
 
-class SystemStatusAdapter(ApiAdapter):
-    """System status adapter class for the ODIN server.
-
-    This adapter provides ODIN clients with information about the server disks, network
-    and processes.
-    """
-
-    version = __version__
-
-    def __init__(self, **kwargs):
-        """Initialize the SystemInfoAdapter object.
-
-        This constructor initializes the SystemInfoAdapter object, including resolving any
-        system-level information that the adapter can provide to clients subsequently.
-
-        :param kwargs: keyword arguments specifying options
-        """
-        super(SystemStatusAdapter, self).__init__(**kwargs)
-        self.system_status = SystemStatus(None, **kwargs)
-        logging.debug('SystemStatusAdapter loaded')
-
-    @response_types('application/json', default='application/json')
-    def get(self, path, request):
-        """Handle an HTTP GET request.
-
-        This method handles an HTTP GET request, returning a JSON response.
-
-        :param path: URI path of request
-        :param request: HTTP request object
-        :return: an ApiAdapterResponse object containing the appropriate response
-        """
-        response = {}
-        try:
-            response = self.system_status.get(path)
-            status_code = 200
-        except ParameterTreeError as param_err:
-            response = {'error': str(param_err)}
-            status_code = 400
-
-        logging.debug(response)
-        content_type = 'application/json'
-
-        return ApiAdapterResponse(response, content_type=content_type,
-                                  status_code=status_code)
-
-    @request_types("application/json", "application/vnd.odin-native")
-    @response_types('application/json', default='application/json')
-    def put(self, path, request):
-        """Handle an HTTP PUT request.
-
-        This method handles an HTTP PUT request, returning a JSON response.
-
-        :param path: URI path of request
-        :param request: HTTP request object
-        :return: an ApiAdapterResponse object containing the appropriate response
-        """
-        response = {'response': 'SystemStatusAdapter: PUT on path {}'.format(path)}
-        content_type = 'application/json'
-        status_code = 200
-
-        logging.debug(response)
-
-        return ApiAdapterResponse(response, content_type=content_type,
-                                  status_code=status_code)
-
-    def delete(self, path, request):
-        """Handle an HTTP DELETE request.
-
-        This method handles an HTTP DELETE request, returning a JSON response.
-
-        :param path: URI path of request
-        :param request: HTTP request object
-        :return: an ApiAdapterResponse object containing the appropriate response
-        """
-        response = 'SystemStatusAdapter: DELETE on path {}'.format(path)
-        status_code = 200
-
-        logging.debug(response)
-
-        return ApiAdapterResponse(response, status_code=status_code)
-
-
-class SystemStatus():
+class SystemStatusController(BaseController):
     """Class to monitor disks, network and processes running on a server."""
     def __init__(self, *args, **kwargs):
         """Initalise the Server Monitor.
@@ -200,12 +121,13 @@ class SystemStatus():
         """Return process status information."""
         return self._process_status
 
-    def get(self, path):
-        """Return the requested path value"""
-        return self._status.get(path)
+    def get(self, path, with_metadata=False):
+        """Return the requested path value."""
+        return self._status.get(path, with_metadata=with_metadata)
 
     def update_loop(self):
         """Handle update loop tasks.
+
         This method handles background update tasks executed periodically in the tornado
         IOLoop instance. This includes monitoring all status from the server.
         """
@@ -274,8 +196,7 @@ class SystemStatus():
             self._log.exception(exc)
 
     def monitor_processes(self):
-        """Loops over active processes and retrieves the statistics from them."""
-
+        """Loop over active processes and retrieves the statistics from them."""
         for process_name in self._processes:
 
             self._process_status[process_name] = {}
@@ -343,8 +264,11 @@ class SystemStatus():
         return processes
 
     def find_processes_by_name(self, name):
-        """Return a list of process matching 'name' that is not this process (in the case
-        where the process name was passed as an argument to this process)."""
+        """Find processes by name.
+
+        Returns a list of process matching 'name' that is not this process (in the case
+        where the process name was passed as an argument to this process).
+        """
         processes = []
         for proc in psutil.process_iter():
             process = None
@@ -369,3 +293,14 @@ class SystemStatus():
                     processes.append(process)
 
         return processes
+
+class SystemStatusAdapter(ApiAdapter):
+    """System status adapter class for the ODIN server.
+
+    This adapter provides ODIN clients with information about the server disks, network
+    and processes.
+    """
+
+    version = __version__
+    controller_cls = SystemStatusController
+    error_cls = ParameterTreeError

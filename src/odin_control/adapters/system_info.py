@@ -5,110 +5,21 @@ information about the system to clients.
 
 Tim Nicholls, STFC Application Engineering
 """
-import logging
 import platform
 import time
 
 import tornado
 
 from odin_control._version import __version__
-from odin_control.adapters.adapter import (
-    ApiAdapter,
-    ApiAdapterResponse,
-    request_types,
-    response_types,
-    wants_metadata,
-)
+from odin_control.adapters.adapter import ApiAdapter
+from odin_control.adapters.base_controller import BaseController
 from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeError
 
 
-class SystemInfoAdapter(ApiAdapter):
-    """System info adapter class for the ODIN server.
+class SystemInfoController(BaseController):
+    """SystemInfoController class that extracts and stores system-level parameters."""
 
-    This adapter provides ODIN clients with information about the server and the system that it is
-    running on.
-    """
-
-    version = __version__
-
-    def __init__(self, **kwargs):
-        """Initialize the SystemInfoAdapter object.
-
-        This constructor initializes the SystemInfoAdapter object, including resolving any
-        system-level information that the adapter can provide to clients subsequently.
-
-        :param kwargs: keyword arguments specifying options
-        """
-        super(SystemInfoAdapter, self).__init__(**kwargs)
-        self.system_info = SystemInfo()
-        logging.debug('SystemInfoAdapter loaded')
-
-    @response_types('application/json', default='application/json')
-    def get(self, path, request):
-        """Handle an HTTP GET request.
-
-        This method handles an HTTP GET request, returning a JSON response.
-
-        :param path: URI path of request
-        :param request: HTTP request object
-        :return: an ApiAdapterResponse object containing the appropriate response
-        """
-        try:
-            response = self.system_info.get(path, wants_metadata(request))
-            status_code = 200
-        except ParameterTreeError as param_error:
-            response = {'error': str(param_error)}
-            status_code = 400
-
-        logging.debug(response)
-        content_type = 'application/json'
-
-        return ApiAdapterResponse(response, content_type=content_type,
-                                  status_code=status_code)
-
-    @request_types("application/json", "application/vnd.odin-native")
-    @response_types('application/json', default='application/json')
-    def put(self, path, request):
-        """Handle an HTTP PUT request.
-
-        This method handles an HTTP PUT request, returning a JSON response.
-
-        :param path: URI path of request
-        :param request: HTTP request object
-        :return: an ApiAdapterResponse object containing the appropriate response
-        """
-        response = {'response': 'SystemInfoAdapter: PUT on path {}'.format(path)}
-        content_type = 'application/json'
-        status_code = 200
-
-        logging.debug(response)
-
-        return ApiAdapterResponse(response, content_type=content_type,
-                                  status_code=status_code)
-
-    def delete(self, path, request):
-        """Handle an HTTP DELETE request.
-
-        This method handles an HTTP DELETE request, returning a JSON response.
-
-        :param path: URI path of request
-        :param request: HTTP request object
-        :return: an ApiAdapterResponse object containing the appropriate response
-        """
-        response = 'SystemInfoAdapter: DELETE on path {}'.format(path)
-        status_code = 200
-
-        logging.debug(response)
-
-        return ApiAdapterResponse(response, status_code=status_code)
-
-
-class SystemInfo():
-    """SystemInfo - class that extracts and stores information about system-level parameters."""
-
-    # __metaclass__ = Singleton
-
-    def __init__(self):
+    def __init__(self, options=None):
         """Initialise the SystemInfo object.
 
         This constructor initlialises the SystemInfo object, extracting various system-level
@@ -184,3 +95,14 @@ class SystemInfo():
         :param path: path to retrieve from tree
         """
         return self.param_tree.get(path, with_metadata)
+
+class SystemInfoAdapter(ApiAdapter):
+    """System info adapter class for the ODIN server.
+
+    This adapter provides ODIN clients with information about the server and the system that it is
+    running on.
+    """
+
+    version = __version__
+    controller_cls = SystemInfoController
+    error_cls = ParameterTreeError
