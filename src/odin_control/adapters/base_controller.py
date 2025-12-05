@@ -7,7 +7,7 @@ Tim Nicholls, STFC Detector Systems Software Group
 """
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Dict
 
 
 class BaseError(Exception):
@@ -45,9 +45,9 @@ class BaseController(ABC):
 
         :param options: Dictionary containing configuration options for the controller.
         """
-        pass
+        ...  # pragma: no cover
 
-    def initialize(self, adapters: dict[str, object]) -> None:
+    def initialize(self, adapters: Dict[str, object]) -> None:
         """Initialize the controller with access to other adapters.
 
         This method is called after all adapters have been loaded and allows
@@ -55,7 +55,7 @@ class BaseController(ABC):
 
         :param adapters: Dictionary mapping adapter names to adapter instances.
         """
-        pass
+        self.adapters = adapters
 
     def cleanup(self) -> None:
         """Clean up controller resources and state.
@@ -64,10 +64,10 @@ class BaseController(ABC):
         close connections, or perform other shutdown tasks when the controller
         is being stopped or destroyed.
         """
-        pass
+        ...
 
     @abstractmethod
-    def get(self, path: str, with_metadata: bool = False) -> dict[str, Any]:
+    def get(self, path: str, with_metadata: bool = False) -> Dict[str, Any]:
         """Get data from the controller at the specified path.
 
         :param path: The path string identifying the resource to retrieve.
@@ -75,9 +75,9 @@ class BaseController(ABC):
 
         :return: The requested data, format depends on controller implementation.
         """
-        pass
+        ...   # pragma: no cover
 
-    def set(self, path: str, data: dict[str, Any]) -> None:
+    def set(self, path: str, data: Dict[str, Any]) -> None:
         """Set data in the controller at the specified path.
 
         :param path: The path string identifying the resource to modify.
@@ -85,7 +85,7 @@ class BaseController(ABC):
         """
         raise NotImplementedError()
 
-    def create(self, path: str, data: dict[str, Any]) -> dict[str, Any]:
+    def create(self, path: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new resource at the specified path.
 
         :param path: The path string identifying where to create the resource.

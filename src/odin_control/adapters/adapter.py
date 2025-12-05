@@ -28,12 +28,15 @@ class ApiAdapter():
     to the controller.
     """
 
-    is_async = False
-    version = "unknown"  # Derived classes should override this with a relevant version string
-
     # Derived classes can specify controller and error classes to use
     controller_cls = None
     error_cls = BaseError
+
+    # Derived classes should override this with a relevant version string
+    version = "unknown"
+
+    # Flag to indicate if adapter is async; default to False
+    is_async = False
 
     def __init__(self, **kwargs):
         """Initialise the ApiAdapter object.
@@ -112,7 +115,7 @@ class ApiAdapter():
     def put(self, path, request):
         """Handle an HTTP PUT request.
 
-        This method is a default implementation of the PUT request handler for adapter. It calls
+        This method is a default implementation of the PUT request handler for adapters. It calls
         the set method of the controller with the specified data and returns the result of a
         subsequent get call. Error handling is provided to catch controller errors and return
         appropriate error responses.
@@ -209,7 +212,7 @@ class ApiAdapter():
     def cleanup(self):
         """Clean up adapter state.
 
-        This is a default implementation of the cleanup mechanism provided to allow adapters
+        This method is a default implementation of the cleanup mechanism provided to allow adapters
         to clean up their state (e.g. disconnect cleanly from the device being controlled, set
         some status message).
         """
