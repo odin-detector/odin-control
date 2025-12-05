@@ -35,17 +35,6 @@ class TestUtil():
         response = util.decode_request_body(request)
         assert response == request.body
 
-    @pytest.mark.parametrize("is_async", [True, False], ids=["async", "sync"])
-    def test_wrap_result(self, is_async):
-        """Test that the wrap_result utility correctly wraps results in a future when needed."""
-        result = 321
-        wrapped_result = util.wrap_result(result, is_async)
-        if is_async:
-            assert isinstance(wrapped_result, asyncio.Future)
-            assert wrapped_result.result() == result
-        else:
-            assert wrapped_result == result
-
     def test_run_in_executor(self):
         """Test that the run_in_executor utility can correctly nest asynchronous tasks."""
         # Container for task results modified by inner functions
@@ -83,24 +72,6 @@ class TestUtil():
         assert task_result['outer_completed'] is True
 
 class TestUtilAsync():
-
-    @pytest.mark.asyncio
-    async def test_wrap_result(self):
-        """Test that the wrap_result utility correctly wraps results in a future when needed."""
-        result = 321
-        wrapped = util.wrap_result(result, True)
-        await wrapped
-        assert isinstance(wrapped, asyncio.Future)
-        assert wrapped.result() == result
-
-    @pytest.mark.asyncio
-    async def test_wrap_async(self):
-        """Test that the wrap_async fuction correctly wraps results in a future."""
-        result = 987
-        wrapped = util.wrap_async(result)
-        await wrapped
-        assert isinstance(wrapped, asyncio.Future)
-        assert wrapped.result() == result
 
     @pytest.mark.asyncio
     async def test_run_in_executor(self):

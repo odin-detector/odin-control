@@ -8,7 +8,7 @@ from odin_control.http.handlers.api import ApiHandler, validate_api_request
 from odin_control.http.handlers.api_adapter_info import ApiAdapterInfoHandler
 from odin_control.http.handlers.api_version import ApiVersionHandler
 from odin_control.adapters.adapter import ApiAdapterResponse
-from odin_control.util import wrap_result
+from odin_control.adapters.util import wrap_result
 
 TEST_API_VERSION = "0.1"
 

@@ -7,7 +7,7 @@ Tim Nicholls, STFC Detector Systems Software Group.
 from tornado.web import RequestHandler
 
 from odin_control.adapters.adapter import ApiAdapterResponse
-from odin_control.util import wrap_result
+from odin_control.adapters.util import wrap_result
 
 
 class ApiError(Exception):
