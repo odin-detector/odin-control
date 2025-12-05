@@ -25,7 +25,7 @@ def odin_test_server():
     access_logging='debug'
 
     test_server = OdinTestServer(
-        adapter_config=adapter_config, access_logging=access_logging
+        adapter_config=adapter_config, access_logging=access_logging, server_api_version=0.1
     )
     yield test_server
     test_server.stop()
@@ -88,7 +88,7 @@ class TestOdinServer(object):
             headers=headers
         )
         assert result.status_code == 200
-        assert result.json()['api'] == odin_test_server.server_api_version
+        assert result.json()['version'] == odin_test_server.server_api_version
 
     def test_api_version_bad_accept(self, odin_test_server):
         """Test that bad accept heeader content type returns an error and message."""
@@ -105,7 +105,7 @@ class TestOdinServer(object):
         headers = {'Accept': 'application/json'}
         result = requests.get(odin_test_server.build_url('adapters/'), headers=headers)
         assert result.status_code == 200
-        assert result.json()['adapters'] == ['dummy']
+        assert 'dummy' in result.json()['adapters']
 
     def test_api_adapter_list_bad_version(self, odin_test_server):
         """Test that the API route rejects an adapter list GET with a bad API version."""
@@ -196,6 +196,7 @@ class ServerConfig():
         self.access_logging = None
         self.enable_cors = True
         self.cors_origin = "*"
+        self.api_version = "0.1"
 
     def resolve_adapters(self):
         return []

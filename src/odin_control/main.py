@@ -5,19 +5,21 @@ configuration options, loading adapters and creating the appropriate HTTP server
 
 Tim Nicholls, STFC Application Engineering Group
 """
-import sys
+
 import logging
 import signal
+import sys
 import threading
 
 import tornado.ioloop
 from tornado.autoreload import add_reload_hook
 
+from odin_control.config.parser import ConfigError, ConfigParser
 from odin_control.http.server import HttpServer
-from odin_control.config.parser import ConfigParser, ConfigError
 from odin_control.logconfig import add_graylog_handler
 
 _stop_ioloop = False  # Global variable to indicate ioloop should be shut down
+
 
 def main(argv=None):
     """Run the odin-control server.
@@ -31,40 +33,51 @@ def main(argv=None):
     config = ConfigParser()
 
     # Define configuration options and add to the configuration parser
-    config.define('http_addr', default='0.0.0.0', option_help='Set HTTP/S server address')
-    config.define('http_port', default=8888, option_help='Set HTTP server port')
-    config.define('enable_http', default=True, option_help='Enable HTTP')
-    config.define('https_port', default=8443, option_help='Set HTTPS server port')
-    config.define('enable_https', default=False, option_help='Enable HTTPS')
-    config.define('ssl_cert_file', default='cert.pem', option_help='Set SSL certificate file for HTTPS')
-    config.define('ssl_key_file', default='key.pem', option_help='Set SSL key file for HTTPS')
-    config.define('debug_mode', default=False, option_help='Enable tornado debug mode')
-    config.define('access_logging', default=None, option_help="Set the tornado access log level",
-                  metavar="debug|info|warning|error|none")
-    config.define('static_path', default='./static', option_help='Set path for static file content')
-    config.define('enable_cors', default=False,
-                  option_help='Enable cross-origin resource sharing (CORS)')
-    config.define('cors_origin', default='*', option_help='Specify allowed CORS origin')
-    config.define('graylog_server', default=None, option_help="Graylog server address and :port")
-    config.define('graylog_logging_level', default=logging.INFO, option_help="Graylog logging level")
-    config.define('graylog_static_fields', default=None,
-                  option_help="Comma separated list of key=value pairs to add to every log message metadata")
+    config.define("http_addr", default="0.0.0.0", option_help="Set HTTP/S server address")
+    config.define("http_port", default=8888, option_help="Set HTTP server port")
+    config.define("enable_http", default=True, option_help="Enable HTTP")
+    config.define("https_port", default=8443, option_help="Set HTTPS server port")
+    config.define("enable_https", default=False, option_help="Enable HTTPS")
+    config.define(
+        "ssl_cert_file", default="cert.pem", option_help="Set SSL certificate file for HTTPS"
+    )
+    config.define("ssl_key_file", default="key.pem", option_help="Set SSL key file for HTTPS")
+    config.define("debug_mode", default=False, option_help="Enable tornado debug mode")
+    config.define(
+        "access_logging",
+        default=None,
+        option_help="Set the tornado access log level",
+        metavar="debug|info|warning|error|none",
+    )
+    config.define("static_path", default="./static", option_help="Set path for static file content")
+    config.define(
+        "enable_cors", default=False, option_help="Enable cross-origin resource sharing (CORS)"
+    )
+    config.define("cors_origin", default="*", option_help="Specify allowed CORS origin")
+    config.define("api_version", default=None, option_help="Set the API version string in URLs")
+    config.define("graylog_server", default=None, option_help="Graylog server address and :port")
+    config.define(
+        "graylog_logging_level", default=logging.INFO, option_help="Graylog logging level"
+    )
+    config.define(
+        "graylog_static_fields",
+        default=None,
+        option_help="Comma separated list of key=value pairs to add to every log message metadata",
+    )
 
     # Parse configuration options and any configuration file specified
     try:
         config.parse(argv)
     except ConfigError as e:
-        logging.error('Failed to parse configuration: %s', e)
+        logging.error("Failed to parse configuration: %s", e)
         return 2
 
     if config.graylog_server is not None:
         add_graylog_handler(
-            config.graylog_server,
-            config.graylog_logging_level,
-            config.graylog_static_fields
+            config.graylog_server, config.graylog_logging_level, config.graylog_static_fields
         )
 
-     # Get the Tornado ioloop instance
+    # Get the Tornado ioloop instance
     ioloop = tornado.ioloop.IOLoop.instance()
 
     # Launch the HTTP server with the parsed configuration
@@ -87,7 +100,7 @@ def main(argv=None):
         :param _: unused stack frame
         """
         global _stop_ioloop
-        logging.info('%s signal received, shutting down', sig_name)
+        logging.info("%s signal received, shutting down", sig_name)
 
         # Stop the HTTP server
         http_server.stop()
@@ -105,16 +118,16 @@ def main(argv=None):
         """
         global _stop_ioloop
         if _stop_ioloop:
-             logging.debug("Stopping ioloop")
+            logging.debug("Stopping ioloop")
 
-             # Stop the ioloop
-             ioloop.stop()
+            # Stop the ioloop
+            ioloop.stop()
 
     # Register a shutdown signal handler and start an ioloop stop callback only if this is the
     # main thread
     if isinstance(threading.current_thread(), threading._MainThread):  # pragma: no cover
-        signal.signal(signal.SIGINT, lambda signum, frame: shutdown_handler('Interrupt'))
-        signal.signal(signal.SIGTERM, lambda signum, frame: shutdown_handler('Terminate'))
+        signal.signal(signal.SIGINT, lambda signum, frame: shutdown_handler("Interrupt"))
+        signal.signal(signal.SIGTERM, lambda signum, frame: shutdown_handler("Terminate"))
         tornado.ioloop.PeriodicCallback(stop_ioloop, 1000).start()
 
     # Start the ioloop
@@ -128,7 +141,7 @@ def main(argv=None):
     # At shutdown, clean up the state of the loaded adapters
     http_server.cleanup_adapters()
 
-    logging.info('ODIN server shutdown')
+    logging.info("ODIN server shutdown")
 
     return 0
 
@@ -141,8 +154,9 @@ def main_deprecate(argv=None):  # pragma: no cover
     printing a deprecation warning.
     """
     import warnings
+
     with warnings.catch_warnings():
-        warnings.simplefilter('always', DeprecationWarning)
+        warnings.simplefilter("always", DeprecationWarning)
         message = """
 
 The odin_server script entry point is deprecated and will be removed in future releases. Consider
@@ -154,5 +168,5 @@ using \'odin_control\' instead
     main(argv)
 
 
-if __name__ == '__main__':  # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     sys.exit(main())

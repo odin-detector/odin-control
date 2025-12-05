@@ -8,12 +8,18 @@ Tim Nicholls, STFC Application Engineering
 import logging
 import platform
 import time
+
 import tornado
 
-from odin_control.adapters.adapter import (ApiAdapter, ApiAdapterResponse,
-                                   request_types, response_types, wants_metadata)
-from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeError
 from odin_control._version import __version__
+from odin_control.adapters.adapter import (
+    ApiAdapter,
+    ApiAdapterResponse,
+    request_types,
+    response_types,
+    wants_metadata,
+)
+from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeError
 
 
 class SystemInfoAdapter(ApiAdapter):
@@ -22,6 +28,8 @@ class SystemInfoAdapter(ApiAdapter):
     This adapter provides ODIN clients with information about the server and the system that it is
     running on.
     """
+
+    version = __version__
 
     def __init__(self, **kwargs):
         """Initialize the SystemInfoAdapter object.

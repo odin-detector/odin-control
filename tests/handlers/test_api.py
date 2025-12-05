@@ -2,9 +2,14 @@ import json
 
 import pytest
 
-from odin_control.http.handlers.api import API_VERSION, ApiError
 from odin_control.adapters.adapter import ApiAdapterResponse
-from tests.handlers.fixtures import test_api_handler, test_api_handler_cors
+from odin_control.http.handlers.api import ApiError
+from tests.handlers.fixtures import (
+    test_api_handler,
+    test_api_handler_cors,
+    test_api_handler_no_versioning,
+)
+
 
 class TestApiHandler():
     """Test cases for the ApiHandler class."""
@@ -50,32 +55,36 @@ class TestApiHandler():
     @pytest.mark.asyncio
     async def test_handler_valid_get(self, test_api_handler):
         """Test that the handler creates a valid status and response to a GET request."""
-        await test_api_handler.handler.get(str(API_VERSION),
-            test_api_handler.subsystem, test_api_handler.path)
+        await test_api_handler.handler.get(
+            test_api_handler.route.api_version, test_api_handler.subsystem, test_api_handler.path
+        )
         assert test_api_handler.handler.get_status() == 200
         assert json.loads(test_api_handler.write_data) == test_api_handler.json_dict_response.data
 
     @pytest.mark.asyncio
     async def test_handler_valid_post(self, test_api_handler):
         """Test that the handler creates a valid status and response to a POST request."""
-        await test_api_handler.handler.post(str(API_VERSION),
-            test_api_handler.subsystem, test_api_handler.path)
+        await test_api_handler.handler.post(
+            test_api_handler.route.api_version, test_api_handler.subsystem, test_api_handler.path
+        )
         assert test_api_handler.handler.get_status() == 200
         assert json.loads(test_api_handler.write_data) == test_api_handler.json_dict_response.data
 
     @pytest.mark.asyncio
     async def test_handler_valid_put(self, test_api_handler):
         """Test that the handler creates a valid status and response to a PUT request."""
-        await test_api_handler.handler.put(str(API_VERSION),
-            test_api_handler.subsystem, test_api_handler.path)
+        await test_api_handler.handler.put(
+            test_api_handler.route.api_version, test_api_handler.subsystem, test_api_handler.path
+        )
         assert test_api_handler.handler.get_status() == 200
         assert json.loads(test_api_handler.write_data) == test_api_handler.json_dict_response.data
 
     @pytest.mark.asyncio
     async def test_handler_valid_delete(self, test_api_handler):
         """Test that the handler creates a valid status and response to a DELETE request."""
-        await test_api_handler.handler.delete(str(API_VERSION),
-            test_api_handler.subsystem, test_api_handler.path)
+        await test_api_handler.handler.delete(
+            test_api_handler.route.api_version, test_api_handler.subsystem, test_api_handler.path
+        )
         assert test_api_handler.handler.get_status() == 200
         assert json.loads(test_api_handler.write_data) == test_api_handler.json_dict_response.data
 
@@ -83,8 +92,9 @@ class TestApiHandler():
     async def test_bad_api_version(self, test_api_handler):
         """Test that a bad API version in a GET call to the handler yields an error."""
         bad_version = 0.1234
-        await test_api_handler.handler.get(str(bad_version),
-            test_api_handler.subsystem, test_api_handler.path)
+        await test_api_handler.handler.get(
+            str(bad_version), test_api_handler.subsystem, test_api_handler.path
+        )
         assert test_api_handler.handler.get_status() == 400
         assert "API version {} is not supported".format(bad_version) in test_api_handler.write_data
 
@@ -92,10 +102,67 @@ class TestApiHandler():
     async def test_bad_subsystem(self, test_api_handler):
         """Test that a bad subsystem in a GET call to the handler yields an error."""
         bad_subsystem = 'missing'
-        await test_api_handler.handler.get(str(API_VERSION), bad_subsystem, test_api_handler.path)
+        await test_api_handler.handler.get(
+            test_api_handler.route.api_version, bad_subsystem, test_api_handler.path
+        )
         assert test_api_handler.handler.get_status() == 400
         assert "No API adapter registered for subsystem {}".format(bad_subsystem) \
             in test_api_handler.write_data
+
+
+class TestApiHandlerNoVersioning():
+    """Test cases for the ApiHandler class with no API versioning."""
+
+    @pytest.mark.asyncio
+    async def test_handler_valid_get(self, test_api_handler_no_versioning):
+        """Test that the handler creates a valid status and response to a GET request."""
+        await test_api_handler_no_versioning.handler.get(
+            test_api_handler_no_versioning.subsystem, test_api_handler_no_versioning.path
+        )
+        assert test_api_handler_no_versioning.handler.get_status() == 200
+        assert json.loads(test_api_handler_no_versioning.write_data) == \
+            test_api_handler_no_versioning.json_dict_response.data
+
+    @pytest.mark.asyncio
+    async def test_handler_valid_post(self, test_api_handler_no_versioning):
+        """Test that the handler creates a valid status and response to a POST request."""
+        await test_api_handler_no_versioning.handler.post(
+            test_api_handler_no_versioning.subsystem, test_api_handler_no_versioning.path
+        )
+        assert test_api_handler_no_versioning.handler.get_status() == 200
+        assert json.loads(test_api_handler_no_versioning.write_data) == \
+            test_api_handler_no_versioning.json_dict_response.data
+
+    @pytest.mark.asyncio
+    async def test_handler_valid_put(self, test_api_handler_no_versioning):
+        """Test that the handler creates a valid status and response to a PUT request."""
+        await test_api_handler_no_versioning.handler.put(
+            test_api_handler_no_versioning.subsystem, test_api_handler_no_versioning.path
+        )
+        assert test_api_handler_no_versioning.handler.get_status() == 200
+        assert json.loads(test_api_handler_no_versioning.write_data) == \
+            test_api_handler_no_versioning.json_dict_response.data
+
+    @pytest.mark.asyncio
+    async def test_handler_valid_delete(self, test_api_handler_no_versioning):
+        """Test that the handler creates a valid status and response to a DELETE request."""
+        await test_api_handler_no_versioning.handler.delete(
+            test_api_handler_no_versioning.subsystem, test_api_handler_no_versioning.path
+        )
+        assert test_api_handler_no_versioning.handler.get_status() == 200
+        assert json.loads(test_api_handler_no_versioning.write_data) == \
+            test_api_handler_no_versioning.json_dict_response.data
+
+    @pytest.mark.asyncio
+    async def test_bad_subsystem(self, test_api_handler_no_versioning):
+        """Test that a bad subsystem in a GET call to the handler yields an error."""
+        bad_subsystem = 'missing'
+        await test_api_handler_no_versioning.handler.get(
+            bad_subsystem, test_api_handler_no_versioning.path
+        )
+        assert test_api_handler_no_versioning.handler.get_status() == 400
+        assert "No API adapter registered for subsystem {}".format(bad_subsystem) \
+            in test_api_handler_no_versioning.write_data
 
 class TestApiHandlerCorsSupport():
 

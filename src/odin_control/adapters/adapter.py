@@ -18,6 +18,7 @@ class ApiAdapter(object):
     """
 
     is_async = False
+    version = "unknown"
 
     def __init__(self, **kwargs):
         """Initialise the ApiAdapter object.

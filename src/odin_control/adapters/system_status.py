@@ -23,6 +23,7 @@ import logging
 import os
 import psutil
 from tornado.ioloop import IOLoop
+from odin_control._version import __version__
 from odin_control.adapters.adapter import ApiAdapter, ApiAdapterResponse, request_types, response_types
 from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeError
 
@@ -33,6 +34,8 @@ class SystemStatusAdapter(ApiAdapter):
     This adapter provides ODIN clients with information about the server disks, network
     and processes.
     """
+
+    version = __version__
 
     def __init__(self, **kwargs):
         """Initialize the SystemInfoAdapter object.

@@ -43,7 +43,10 @@ class HttpServer(object):
                 )
 
         # Create an API route
-        self.api_route = ApiRoute(enable_cors=config.enable_cors, cors_origin=config.cors_origin)
+        self.api_route = ApiRoute(
+            enable_cors=config.enable_cors, cors_origin=config.cors_origin,
+            api_version=config.api_version
+        )
 
         # Resolve the list of adapters specified
         try:

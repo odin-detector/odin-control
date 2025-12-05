@@ -12,6 +12,7 @@ Tim Nicholls, STFC Application Engineering
 import logging
 from tornado.ioloop import PeriodicCallback
 
+from odin_control._version import __version__
 from odin_control.adapters.adapter import (ApiAdapter, ApiAdapterRequest,
                                    ApiAdapterResponse, request_types, response_types)
 from odin_control.util import decode_request_body
@@ -23,6 +24,8 @@ class DummyAdapter(ApiAdapter):
     This dummy adapter implements the basic operation of an adapter including initialisation
     and HTTP verb methods (GET, PUT, DELETE) with various request and response types allowed.
     """
+
+    version = __version__
 
     def __init__(self, **kwargs):
         """Initialize the DummyAdapter object.
@@ -148,6 +151,8 @@ class IacDummyAdapter(ApiAdapter):
     This dummy adapter impelements the basic operations of GET and PUT,
     and allows another adapter to interact with it via these methods.
     """
+
+    version = __version__
 
     def __init__(self, **kwargs):
         """Initialize the dummy target adapter.
