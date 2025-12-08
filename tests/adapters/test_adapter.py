@@ -31,7 +31,7 @@ class TestApiAdapter():
     """Class to test the ApiAdapter object."""
 
     def test_adapter_get(self, test_api_adapter):
-        """Test the the adapter responds to a GET request correctly by returning a 405 code and
+        """Test that the adapter responds to a GET request correctly by returning a 405 code and
         appropriate message due to the lack of a controller.
         """
         response = test_api_adapter.adapter.get(test_api_adapter.path, test_api_adapter.request)
@@ -39,7 +39,7 @@ class TestApiAdapter():
         assert response.status_code == 405
 
     def test_adapter_post(self, test_api_adapter):
-        """Test the the adapter responds to a POST request correctly by returning a 405 code and
+        """Test that the adapter responds to a POST request correctly by returning a 405 code and
         appropriate message due to the lack of a controller.
         """
 
@@ -48,7 +48,7 @@ class TestApiAdapter():
         assert response.status_code == 405
 
     def test_adapter_put(self, test_api_adapter):
-        """Test the the adapter responds to a PUT request correctly by returning a 405 code and
+        """Test that the adapter responds to a PUT request correctly by returning a 405 code and
         appropriate message due to the lack of a controller.
         """
         response = test_api_adapter.adapter.put(test_api_adapter.path, test_api_adapter.request)
@@ -56,7 +56,7 @@ class TestApiAdapter():
         assert response.status_code == 405
 
     def test_adapter_delete(self, test_api_adapter):
-        """Test the the adapter responds to a DELETE request correctly by returning a 405 code and
+        """Test that the adapter responds to a DELETE request correctly by returning a 405 code and
         appropriate message due to the lack of a controller.
         """
         response = test_api_adapter.adapter.delete(test_api_adapter.path, test_api_adapter.request)
@@ -69,7 +69,7 @@ class TestApiAdapter():
         assert opts == test_api_adapter.adapter_options
 
     def test_api_adapter_initialize(self, test_api_adapter, caplog):
-        """Test the the initialize method logs the correct message when no controller is set."""
+        """Test that the initialize method logs the correct message when no controller is set."""
         with caplog.at_level('DEBUG'):
             test_api_adapter.adapter.initialize({})
             assert any(record.levelname == 'WARNING' for record in caplog.records)
@@ -77,7 +77,7 @@ class TestApiAdapter():
             assert f"{test_api_adapter.adapter.name} has no controller configured" in caplog.text
 
     def test_api_adapter_cleanup(self, test_api_adapter, caplog):
-        """Test the the cleanup function logs the correct message when no controller is set."""
+        """Test that the cleanup function logs the correct message when no controller is set."""
         with caplog.at_level('DEBUG'):
             test_api_adapter.adapter.cleanup()
             assert any(record.levelname == 'WARNING' for record in caplog.records)
@@ -137,7 +137,6 @@ class TestApiAdapterWithIncompleteController():
         """Test that a PUT to an adapter with an incomplete controller (no set method) handles
         NotImplementedError.
         """
-        print("request body:", test_api_adapter_with_incomplete_controller.request.body)
         response = test_api_adapter_with_incomplete_controller.adapter.put(
             test_api_adapter_with_incomplete_controller.path,
             test_api_adapter_with_incomplete_controller.request
@@ -258,7 +257,7 @@ class TestApiAdapterWithController():
                     caplog.text)
 
     @pytest.mark.parametrize("with_metadata", [False, True])
-    def test_adapter_with_controller_get(
+    def test_api_adapter_with_controller_get(
             self, test_api_adapter_with_controller, with_metadata
         ):
         """Test that the controller get method is called and returns the correct response."""
@@ -276,7 +275,7 @@ class TestApiAdapterWithController():
         }
         assert response.status_code == 200
 
-    def test_adapter_with_controller_get_error(
+    def test_api_adapter_with_controller_get_error(
             self, test_api_adapter_with_controller
         ):
         """Test that the controller get method raises an error and is handled correctly."""
@@ -287,13 +286,13 @@ class TestApiAdapterWithController():
         assert response.data == {"error": "Test error raised from controller get method"}
         assert response.status_code == 400
 
-    def test_adapter_with_controller_put(
+    def test_api_adapter_with_controller_put(
             self, test_api_adapter_with_controller
         ):
+        """Test that the controller set method is called and returns the correct response."""
         request = test_api_adapter_with_controller.request
         request.data = b'{"key": "value"}'
 
-        """Test that the controller set method is called and returns the correct response."""
         response = test_api_adapter_with_controller.adapter.put(
             test_api_adapter_with_controller.path,
             test_api_adapter_with_controller.request
@@ -305,7 +304,7 @@ class TestApiAdapterWithController():
         }
         assert response.status_code == 200
 
-    def test_adapter_with_controller_put_error(
+    def test_api_adapter_with_controller_put_error(
             self, test_api_adapter_with_controller
         ):
         """Test that the controller set method raises an error and is handled correctly."""
@@ -319,7 +318,7 @@ class TestApiAdapterWithController():
         assert response.data == {"error": "Test error raised from controller set method"}
         assert response.status_code == 400
 
-    def test_adapter_with_controller_put_decode_error(
+    def test_api_adapter_with_controller_put_decode_error(
             self, test_api_adapter_with_controller
         ):
         """Test that a decode error in the PUT request body is handled correctly."""
@@ -334,7 +333,7 @@ class TestApiAdapterWithController():
         assert "Failed to decode PUT request body" in response.data["error"]
         assert response.status_code == 400
 
-    def test_adapter_with_controller_post(
+    def test_api_adapter_with_controller_post(
             self, test_api_adapter_with_controller
         ):
         """Test that the controller create method is called and returns the correct response."""
@@ -348,7 +347,7 @@ class TestApiAdapterWithController():
         assert response.data == {"key": "value"}
         assert response.status_code == 200
 
-    def test_adapter_with_controller_post_error(
+    def test_api_adapter_with_controller_post_error(
             self, test_api_adapter_with_controller
         ):
         """Test that the controller create method raises an error and is handled correctly."""
@@ -362,7 +361,7 @@ class TestApiAdapterWithController():
         assert response.data == {"error": "Test error raised from controller create method"}
         assert response.status_code == 400
 
-    def test_adapter_with_controller_post_decode_error(
+    def test_api_adapter_with_controller_post_decode_error(
             self, test_api_adapter_with_controller
         ):
         """Test that a decode error in the POST request body is handled correctly."""
@@ -377,7 +376,7 @@ class TestApiAdapterWithController():
         assert "Failed to decode POST request body" in response.data["error"]
         assert response.status_code == 400
 
-    def test_adapter_with_controller_delete(
+    def test_api_adapter_with_controller_delete(
             self, test_api_adapter_with_controller
         ):
         """Test that the controller delete method is called and returns the correct response."""
@@ -390,7 +389,7 @@ class TestApiAdapterWithController():
         }
         assert response.status_code == 200
 
-    def test_adapter_with_controller_delete_error(
+    def test_api_adapter_with_controller_delete_error(
             self, test_api_adapter_with_controller
         ):
         """Test that the controller delete method raises an error and is handled correctly."""
