@@ -241,25 +241,21 @@ class BaseParameterTree(object):
         # Initialise the subtree before descent
         subtree = self._tree
 
-        # If this is single level path, return the populated tree at the top level. Otherwise,
-        # descend the specified levels in the path, checking for a valid subtree of the appropriate
-        # type
-        if not levels:
-            values = self._populate_tree(subtree, with_metadata)
-        else:
-            for level in levels:
-                try:
-                    if isinstance(subtree, dict):
-                        subtree = subtree[level]
-                    elif isinstance(subtree, self.accessor_cls):
-                        subtree = subtree.get(with_metadata)[level]
-                    else:
-                        subtree = subtree[int(level)]
-                except (KeyError, ValueError, IndexError):
-                    raise ParameterTreeError("Invalid path: {}".format(path))
+        # Descend the specified levels in the path, checking for a valid subtree of the appropriate
+        # type, A single level path returns the populated tree at the top level.
+        for level in levels:
+            try:
+                if isinstance(subtree, dict):
+                    subtree = subtree[level]
+                elif isinstance(subtree, self.accessor_cls):
+                    subtree = subtree.get(with_metadata)[level]
+                else:
+                    subtree = subtree[int(level)]
+            except (KeyError, ValueError, IndexError):
+                raise ParameterTreeError("Invalid path: {}".format(path))
 
-            # Return the populated tree at the appropriate path
-            values = self._populate_tree(subtree, with_metadata)
+        # Return the populated tree at the appropriate path
+        values = self._populate_tree(subtree, with_metadata)
 
         # If this is a request for a single leaf node (i.e. depth is 1 and only one value
         # returned) without metadata, return a value dict rather than just the value itself
