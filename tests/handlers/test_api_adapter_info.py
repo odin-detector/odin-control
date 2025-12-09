@@ -14,7 +14,6 @@ class TestApiAdapterInfoHandler():
         test_api_adapter_info_handler.handler.get(test_api_adapter_info_handler.route.api_version)
 
         adapter_list = json.loads(test_api_adapter_info_handler.write_data)
-        print(adapter_list)
         assert 'adapters' in adapter_list
         assert isinstance(adapter_list['adapters'], dict)
         assert test_api_adapter_info_handler.subsystem in adapter_list['adapters']

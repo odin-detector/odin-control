@@ -82,7 +82,6 @@ class TestAsyncDummyAdapter():
             test_dummy_adapter.rw_path, test_dummy_adapter.request)
 
         assert isinstance(response.data, dict)
-        print(response.data)
         assert response.data['value'] == rw_request.body
         assert response.status_code == 200
 

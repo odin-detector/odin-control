@@ -376,5 +376,5 @@ class TestAsyncProxyAdapter():
         response = await async_proxy_adapter_fixture.adapter.get(path, async_proxy_adapter_fixture.request)
         access_counts = [server.get_access_count() for server in async_proxy_adapter_fixture.test_servers]
 
-        # assert path in response.data
+        assert all(key in response.data for key in ProxyTestHandler.data.keys())
         assert sum(access_counts) == 1

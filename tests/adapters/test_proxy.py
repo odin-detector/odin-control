@@ -491,5 +491,5 @@ class TestProxyAdapter():
         response = proxy_adapter_test.adapter.get(path, proxy_adapter_test.request)
         access_counts = [server.get_access_count() for server in proxy_adapter_test.test_servers]
 
-        #assert path in response.data
+        assert all(key in response.data for key in ProxyTestHandler.data.keys())
         assert sum(access_counts) == 1

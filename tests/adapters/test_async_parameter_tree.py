@@ -929,7 +929,6 @@ class TestAsyncParamTreeMutable():
         await test_tree_mutable.param_tree.set('extra', new_node)
 
         val = await test_tree_mutable.param_tree.get('extra')
-        print(val)
         assert val == new_node
 
     async def test_mutable_put_new_sibling_node(self, test_tree_mutable):
@@ -1109,5 +1108,4 @@ class TestAsyncParamTreeMutable():
         path = 'empty'
         await test_tree_mutable.param_tree.set(path, new_node)
         val = await test_tree_mutable.param_tree.get(path)
-        print(val)
         assert val== new_node

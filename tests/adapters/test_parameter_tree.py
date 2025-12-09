@@ -365,7 +365,6 @@ class TestParameterTree():
         the correct value.
         """
         accessor_val = test_param_tree.complex_tree.get('callableAccessorParam/one')
-        print(accessor_val, test_param_tree.accessor_params['one'])
         assert accessor_val['value']==  test_param_tree.accessor_params['one']
 
     def test_complex_tree_callable_readonly(self, test_param_tree):
