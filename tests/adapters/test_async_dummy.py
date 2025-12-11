@@ -82,7 +82,7 @@ class TestAsyncDummyAdapter():
             test_dummy_adapter.rw_path, test_dummy_adapter.request)
 
         assert isinstance(response.data, dict)
-        assert response.data[test_dummy_adapter.rw_path] == rw_request.body
+        assert response.data['value'] == rw_request.body
         assert response.status_code == 200
 
     async def test_adapter_put_bad_path(self, test_dummy_adapter):

@@ -176,8 +176,6 @@ class BaseParameterTree(object):
     interfacing of those to the underlying device or object.
     """
 
-    METADATA_FIELDS = ["name", "description"]
-
     def __init__(self, tree, mutable=False):
         """Initialise the BaseParameterTree object.
 
@@ -243,15 +241,9 @@ class BaseParameterTree(object):
         # Initialise the subtree before descent
         subtree = self._tree
 
-        # If this is single level path, return the populated tree at the top level
-        if not levels:
-            return self._populate_tree(subtree, with_metadata)
-
         # Descend the specified levels in the path, checking for a valid subtree of the appropriate
-        # type
+        # type, A single level path returns the populated tree at the top level.
         for level in levels:
-            if level in self.METADATA_FIELDS and not with_metadata:
-                raise ParameterTreeError("Invalid path: {}".format(path))
             try:
                 if isinstance(subtree, dict):
                     subtree = subtree[level]
@@ -263,7 +255,14 @@ class BaseParameterTree(object):
                 raise ParameterTreeError("Invalid path: {}".format(path))
 
         # Return the populated tree at the appropriate path
-        return self._populate_tree({levels[-1]: subtree}, with_metadata)
+        values = self._populate_tree(subtree, with_metadata)
+
+        # If this is a request for a single leaf node (i.e. depth is 1 and only one value
+        # returned) without metadata, return a value dict rather than just the value itself
+        if not with_metadata and not isinstance(values, dict):
+            values = {'value': values}
+
+        return values
 
     def set(self, path, data, replace=False):
         """Set the values of the parameters in a tree.
@@ -289,8 +288,6 @@ class BaseParameterTree(object):
 
         # Descend the tree and validate each element of the path
         for level in levels:
-            if level in self.METADATA_FIELDS:
-                raise ParameterTreeError("Invalid path: {}".format(path))
             try:
                 merge_parent = merge_child
                 if isinstance(merge_child, dict):
@@ -335,8 +332,7 @@ class BaseParameterTree(object):
         self.set(path, data, replace=True)
 
     def delete(self, path=''):
-        """
-        Remove Parameters from a Mutable Tree.
+        """Delete parameters from a mutable tree.
 
         This method deletes selected parameters from a tree, if that tree has been flagged as
         Mutable. Deletion of Branch Nodes means all child nodes of that Branch Node are also deleted
@@ -427,18 +423,6 @@ class BaseParameterTree(object):
 
         return node
 
-    def __remove_metadata(self, node):
-        """Remove metadata fields from a node.
-
-        Used internally to return a parameter tree without metadata fields
-
-        :param node: tree node to return without metadata fields
-        :returns: generator yeilding items in node minus metadata
-        """
-        for key, val in node.items():
-            if key not in self.METADATA_FIELDS:
-                yield key, val
-
     def _populate_tree(self, node, with_metadata=False):
         """Recursively populate a tree with values.
 
@@ -452,17 +436,7 @@ class BaseParameterTree(object):
         """
         # If this is a branch node recurse down the tree
         if isinstance(node, dict):
-            if with_metadata:
-                branch = {
-                    k: self._populate_tree(v, with_metadata) for k, v
-                    in node.items()
-                }
-            else:
-                branch = {
-                    k: self._populate_tree(v, with_metadata) for k, v
-                    in self.__remove_metadata(node)
-                }
-            return branch
+            return {k: self._populate_tree(v, with_metadata) for k, v in node.items()}
 
         if isinstance(node, list):
             return [self._populate_tree(item, with_metadata) for item in node]
@@ -487,11 +461,15 @@ class BaseParameterTree(object):
         :param cur_path: current path in the tree
         :returns: the update node at this point in the tree
         """
+        # If new data is a dict with a single 'value' field, extract that value for updating
+        if isinstance(new_data, dict) and len(new_data) == 1 and 'value' in new_data:
+            new_data = new_data['value']
+
         # Recurse down tree if this is a branch node
         if isinstance(node, dict) and isinstance(new_data, dict):
             try:
                 update = {}
-                for k, v in self.__remove_metadata(new_data):
+                for k, v in new_data.items():
                     mutable = self.mutable or any(
                         cur_path.startswith(part) for part in self.mutable_paths
                     )

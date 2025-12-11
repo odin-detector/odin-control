@@ -257,7 +257,7 @@ class TestAsyncProxyAdapter():
         response = await async_proxy_adapter_fixture.adapter.get(
             "{}/{}".format(node, path), async_proxy_adapter_fixture.request)
 
-        assert response.data["even_more"] == ProxyTestHandler.data["more"]["even_more"]
+        assert response.data == ProxyTestHandler.data["more"]["even_more"]
         assert async_proxy_adapter_fixture.adapter.param_tree.get('')['status'][node]['status_code'] == 200
 
     @pytest.mark.asyncio
@@ -271,7 +271,7 @@ class TestAsyncProxyAdapter():
         response = await async_proxy_adapter_fixture.adapter.get(
             "{}/{}".format(node, path), async_proxy_adapter_fixture.request)
 
-        assert response.data["even_more"] == ProxyTestHandler.data["more"]["even_more"]
+        assert response.data == ProxyTestHandler.data["more"]["even_more"]
         assert async_proxy_adapter_fixture.adapter.param_tree.get('')['status'][node]['status_code'] == 200
 
     @pytest.mark.asyncio
@@ -287,7 +287,7 @@ class TestAsyncProxyAdapter():
             "{}/{}".format(node, path), async_proxy_adapter_fixture.request)
 
         assert async_proxy_adapter_fixture.adapter.param_tree.get('')['status'][node]['status_code'] == 200
-        assert response.data["more"]["replace"] == "been replaced"
+        assert response.data["replace"] == "been replaced"
 
     @pytest.mark.asyncio
     async def test_adapter_get_bad_path(self, async_proxy_adapter_fixture):
@@ -376,5 +376,5 @@ class TestAsyncProxyAdapter():
         response = await async_proxy_adapter_fixture.adapter.get(path, async_proxy_adapter_fixture.request)
         access_counts = [server.get_access_count() for server in async_proxy_adapter_fixture.test_servers]
 
-        assert path in response.data
+        assert all(key in response.data for key in ProxyTestHandler.data.keys())
         assert sum(access_counts) == 1

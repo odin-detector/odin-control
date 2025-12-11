@@ -219,7 +219,7 @@ class BaseProxyTarget(object):
                         del path_elems[-1]
 
                     # Traverse down the data tree for each element
-                    for elem in path_elems[:-1]:
+                    for elem in path_elems:
                         data_ref = data_ref[elem]
 
                 # Update the data or metadata with the body of the response
