@@ -21,6 +21,7 @@ Alan Greer, OSL
 """
 import logging
 import os
+from dataclasses import dataclass, fields
 
 import psutil
 from tornado.ioloop import IOLoop
@@ -31,99 +32,101 @@ from odin_control.adapters.base_controller import BaseController
 from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeError
 
 
+class ParameterTreeMixin:
+    """Mixin class to provide ParameterTree functionality to dataclasses."""
+
+    def __iter__(self):
+        """Generate an iterator over the field names in the dataclass."""
+        for field in fields(self):
+            yield field.name
+
+    def as_tree(self):
+        """Return a ParameterTree representation of the dataclass."""
+        return ParameterTree({
+            name: (lambda name=name: getattr(self, name), None) for name in self
+        })
+
+@dataclass
+class DiskStatus(ParameterTreeMixin):
+    """Dataclass to hold disk status information."""
+    total: int = 0
+    used: int = 0
+    free: int = 0
+    percent: float = 0.0
+
+@dataclass
+class InterfaceStatus(ParameterTreeMixin):
+    """Dataclass to hold network interface status information."""
+    bytes_sent: int = 0
+    bytes_recv: int = 0
+    packets_sent: int = 0
+    packets_recv: int = 0
+    errin: int = 0
+    errout: int = 0
+    dropin: int = 0
+    dropout: int = 0
+
+@dataclass
+class ProcessStatus(ParameterTreeMixin):
+    """Dataclass to hold process status information."""
+    cpu_percent: float = 0.0
+    cpu_affinity: list = None
+    memory_percent: float = 0.0
+    memory_rss: int = 0
+    memory_vms: int = 0
+    memory_shared: int = 0
+
+
 class SystemStatusController(BaseController):
     """Class to monitor disks, network and processes running on a server."""
-    def __init__(self, *args, **kwargs):
+
+    def __init__(self, options=None):
         """Initalise the Server Monitor.
 
         Creates the parameter tree for status and process monitoring.
         """
         self._log = logging.getLogger(".".join([__name__, self.__class__.__name__]))
-        self._processes = {}
-        self._process_status = {}
+        self._disks = {}
+        self._disk_status = {}
+        self._disk_tree = {}
         self._interfaces = []
         self._interface_status = {}
-        self._disks = []
-        self._disk_status = {}
-
-        # The parameter tree will contain general server information as well as information
-        # relating to each process.  We need to initialise the top level tree
-        tree = {
-            'status': {
-                'disk': (self.get_disk_status, None),
-                'network': (self.get_interface_status, None),
-                'process': (self.get_process_status, None)
-            }
-        }
+        self._network_tree = {}
+        self._processes = {}
+        self._process_tree = {}
 
         # Add any disks that we need to monitor
-        if 'disks' in kwargs:
-            disks = kwargs['disks'].split(',')
-            for disk in disks:
-                if os.path.isdir(disk.strip()):
-                    self._disks.append(disk.strip())
-
-        for disk in self._disks:
-            self._disk_status[disk.replace("/", "_")] = {
-                'total': None,
-                'used': None,
-                'free': None,
-                'percent': None
-            }
+        if 'disks' in options:
+            self.add_disks(options['disks'].split(','))
 
         # Add any network interfaces that we need to monitor
-        available_interfaces = list(psutil.net_io_counters(pernic=True))
-        if 'interfaces' in kwargs:
-            interfaces = kwargs['interfaces'].split(',')
-            for interface in interfaces:
-                if interface.strip() in available_interfaces:
-                    self._interfaces.append(interface.strip())
-
-        for interface in self._interfaces:
-            self._interface_status[interface] = {
-                'bytes_sent': None,
-                'bytes_recv': None,
-                'packets_sent': None,
-                'packets_recv': None,
-                'errin': None,
-                'errout': None,
-                'dropin': None,
-                'dropout': None
-            }
+        if 'interfaces' in options:
+            self.add_interfaces(options['interfaces'].split(','))
 
         # Add any processes that we need to monitor
-        if 'processes' in kwargs:
-            processes = kwargs['processes'].split(',')
-            for process in processes:
-                self.add_processes(process.strip())
-
-        for process in self._processes:
-            self._process_status[process] = {}
-
-        self._status = ParameterTree(tree)
+        if 'processes' in options:
+            self.add_processes(options['processes'].split(','))
 
         # Setup the time between status updates
-        if 'rate' in kwargs:
-            self._update_interval = float(1.0 / kwargs['rate'])
+        if 'rate' in options:
+            self._update_interval = float(1.0 / options['rate'])
         else:
             self._update_interval = 1.0
+
+        # Build the parameter tree - this is mutable, allowing the process subtree to be replaced on
+        # each monitoring update as the number of monitored processes can change
+        self.param_tree = ParameterTree({
+            'disk': self._disk_tree,
+            'network': self._network_tree,
+            'process': self._process_tree,
+        }, mutable=True)
+
+        # Start the update loop
         self.update_loop()
-
-    def get_disk_status(self):
-        """Return disk status information."""
-        return self._disk_status
-
-    def get_interface_status(self):
-        """Return network status information."""
-        return self._interface_status
-
-    def get_process_status(self):
-        """Return process status information."""
-        return self._process_status
 
     def get(self, path, with_metadata=False):
         """Return the requested path value."""
-        return self._status.get(path, with_metadata=with_metadata)
+        return self.param_tree.get(path, with_metadata=with_metadata)
 
     def update_loop(self):
         """Handle update loop tasks.
@@ -140,25 +143,62 @@ class SystemStatusController(BaseController):
         # Schedule the update loop to run in the IOLoop instance again after appropriate interval
         IOLoop.instance().call_later(self._update_interval, self.update_loop)
 
-    def add_processes(self, process_name):
+    def add_disks(self, disks):
+        """Add disks to monitor.
+
+        :param disks the disk mount points to monitor
+        """
+        for disk in disks:
+            disk = disk.strip()
+            if os.path.isdir(disk):
+
+                path = disk.replace("/", "_")
+
+                self._disks[path] = disk
+                self._disk_status[path] = DiskStatus()
+                self._disk_tree[path] = self._disk_status[path].as_tree()
+
+                logging.debug("Adding disk %s to monitor list", disk)
+
+    def add_interfaces(self, interfaces):
+        """Add a new network interface to monitor.
+
+        :param interface the name of the network interface to monitor
+        """
+        available_interfaces = list(psutil.net_io_counters(pernic=True))
+
+        for interface in interfaces:
+            interface = interface.strip()
+            if interface in available_interfaces:
+                self._interfaces.append(interface)
+                self._interface_status[interface] = InterfaceStatus()
+                self._network_tree[interface] = self._interface_status[interface].as_tree()
+
+                logging.debug("Adding interface %s to monitor list", interface)
+
+    def add_processes(self, processes):
         """Add a new process to monitor.
 
         :param process_name the name of the process to monitor
         """
-        if process_name not in self._processes:
-            self._log.debug("Adding process %s to monitor list", process_name)
-            try:
-                self._processes[process_name] = self.find_processes(process_name)
-                self._log.debug(
-                    "Found %d proceses with name %s",
-                    len(self._processes[process_name]), process_name
-                )
+        for process_name in processes:
+            process_name = process_name.strip()
 
-            except Exception as exc:
-                self._log.debug(
-                    "Unable to add process %s to the monitor list: %s",
-                    process_name, str(exc)
-                )
+            if process_name not in self._processes:
+                self._log.debug("Adding process %s to monitor list", process_name)
+                try:
+                    self._processes[process_name] = self.find_processes(process_name)
+
+                    self._log.debug(
+                        "Found %d proceses with name %s",
+                        len(self._processes[process_name]), process_name
+                    )
+
+                except Exception as exc:
+                    self._log.debug(
+                        "Unable to add process %s to the monitor list: %s",
+                        process_name, str(exc)
+                    )
 
     def monitor(self):
         """Executed at regular interval.  Calls the specific monitoring methods."""
@@ -168,14 +208,12 @@ class SystemStatusController(BaseController):
 
     def monitor_disks(self):
         """Loops over disks and retrieves the usage statistics."""
-        for disk in self._disks:
+        for path, disk in self._disks.items():
             try:
                 usage = psutil.disk_usage(disk)
-                path = str(disk.replace("/", "_"))
-                self._disk_status[path]['total'] = usage.total
-                self._disk_status[path]['used'] = usage.used
-                self._disk_status[path]['free'] = usage.free
-                self._disk_status[path]['percent'] = usage.percent
+                for field in self._disk_status[path]:
+                    setattr(self._disk_status[path], field, getattr(usage, field))
+
             except Exception as exc:
                 self._log.exception(exc)
 
@@ -184,25 +222,26 @@ class SystemStatusController(BaseController):
         try:
             network = psutil.net_io_counters(pernic=True)
             for interface in self._interfaces:
-                self._interface_status[interface]['bytes_sent'] = network[interface].bytes_sent
-                self._interface_status[interface]['bytes_recv'] = network[interface].bytes_recv
-                self._interface_status[interface]['packets_sent'] = network[interface].packets_sent
-                self._interface_status[interface]['packets_recv'] = network[interface].packets_recv
-                self._interface_status[interface]['errin'] = network[interface].errin
-                self._interface_status[interface]['errout'] = network[interface].errout
-                self._interface_status[interface]['dropin'] = network[interface].dropin
-                self._interface_status[interface]['dropout'] = network[interface].dropout
+                for field in self._interface_status[interface]:
+                    setattr(
+                        self._interface_status[interface],
+                        field,
+                        getattr(network[interface], field)
+                    )
         except Exception as exc:
             self._log.exception(exc)
 
     def monitor_processes(self):
         """Loop over active processes and retrieves the statistics from them."""
+        self._process_tree = {}
+
         for process_name in self._processes:
 
-            self._process_status[process_name] = {}
+            self._process_tree[process_name] = {}
 
             num_processes_old = len(self._processes[process_name])
             self._processes[process_name] = self.find_processes(process_name)
+
             if len(self._processes[process_name]) != num_processes_old:
                 self._log.debug(
                     "Number of processes named %s is now %d",
@@ -210,34 +249,29 @@ class SystemStatusController(BaseController):
                 )
 
             for process in self._processes[process_name]:
-                process_status = {}
+                process_status = ProcessStatus()
                 try:
                     pid = process.pid
                     memory_info = process.memory_info()
 
-                    process_status['cpu_percent'] = process.cpu_percent(interval=0.0)
+                    process_status.cpu_percent = process.cpu_percent(interval=0.0)
                     if hasattr(process, 'cpu_affinity'):
-                        process_status['cpu_affinity'] = process.cpu_affinity()
-                    else:
-                        process_status['cpu_affinity'] = None
-                    process_status['memory_percent'] = process.memory_percent()
+                        process_status.cpu_affinity = process.cpu_affinity()
+                    process_status.memory_percent = process.memory_percent()
 
-                    process_status['memory_rss'] = getattr(
-                        memory_info, 'rss', None
-                    )
-                    process_status['memory_vms'] = getattr(
-                        memory_info, 'vms', None
-                    )
-                    process_status['memory_shared'] = getattr(
-                        memory_info, 'shared', None
-                    )
+                    process_status.memory_rss = getattr(memory_info, 'rss', None)
+                    process_status.memory_vms = getattr(memory_info, 'vms', None)
+                    process_status.memory_shared = getattr(memory_info, 'shared', None)
 
                 except psutil.NoSuchProcess:
                     self._log.error("Process %s no longer exists", process_name)
                 except psutil.AccessDenied:
                     self._log.error("Access to process %s denied by operating system", process_name)
                 else:
-                    self._process_status[process_name][pid] = process_status
+                    self._process_tree[process_name][str(pid)] = process_status.as_tree()
+
+        self.param_tree.replace('process', self._process_tree)
+
 
     def find_processes(self, process_name):
         """Find processes matching a name and return a list of process objects.
@@ -256,7 +290,7 @@ class SystemStatusController(BaseController):
             # Attempt to access process and remove if access denied
             try:
                 _ = process.cpu_percent()
-            except psutil.AccessDenied:
+            except (psutil.AccessDenied, psutil.ZombieProcess, psutil.NoSuchProcess):
                 pass
             else:
                 processes.append(process)

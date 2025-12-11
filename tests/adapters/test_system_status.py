@@ -74,8 +74,13 @@ class SystemStatusTestFixture():
 
         scoped_patcher.setattr(psutil, "process_iter", mock_process_iter)
 
-        self.system_status = SystemStatusController(
-            interfaces=self.interfaces, disks=self.disks, processes=self.processes, rate=self.rate)
+        options = {
+            'interfaces': self.interfaces,
+            'disks': self.disks,
+            'processes': self.processes,
+            'rate': self.rate,
+        }
+        self.system_status = SystemStatusController(options=options)
 
 
 #@pytest.fixture(scope="class")
@@ -109,7 +114,7 @@ class TestSystemStatus():
 
     def test_system_status_add_processes(self, test_system_status):
         """Test that adding a process to SystemStatus works correctly."""
-        test_system_status.system_status.add_processes('proc1')
+        test_system_status.system_status.add_processes(['proc1'])
         assert 'proc1' in test_system_status.system_status._processes
 
     def test_system_status_check_bad_nic(self, test_system_status):
@@ -123,19 +128,19 @@ class TestSystemStatus():
         """Test that getting the status of a network interface returns a dict."""
         test_system_status.system_status.monitor_network()
         result = test_system_status.system_status.get(
-            'status/network/{}'.format(test_system_status.lo_iface))
+            'network/{}'.format(test_system_status.lo_iface))
         assert type(result) is dict
 
     def test_system_status_monitor_disks(self, test_system_status):
         """Test that getting the status of a system disk returns a dict."""
         test_system_status.system_status.monitor_disks()
-        result = test_system_status.system_status.get('status/disk/_')
+        result = test_system_status.system_status.get('disk/_')
         assert type(result) is dict
 
     def test_system_status_monitor_processes(self, test_system_status):
         """Test that getting the status of a process returns a dict."""
         test_system_status.system_status.monitor_processes()
-        result = test_system_status.system_status.get('status/process/proc2')
+        result = test_system_status.system_status.get('process/proc2')
         assert type(result) is dict
 
     def test_system_status_monitor(self, test_system_status):
@@ -145,7 +150,7 @@ class TestSystemStatus():
 
     def test_bad_disk_exception(self, test_system_status):
         """Test that trying to monitor a bad disk does not raise an exception."""
-        test_system_status.system_status._disks.append("rubbish")
+        test_system_status.system_status._disks["rubbish"] = "rubbish"
         # Any exceptions caught whilst monitoring will be handled within the class
         test_system_status.system_status.monitor_disks()
 
@@ -179,11 +184,12 @@ class TestSystemStatus():
 
     def test_default_rate_argument(self, test_system_status):
         """Test that that the default monitoring rate argument is applied correctly."""
-        temp_system_status = SystemStatusController(
-            interfaces=test_system_status.interfaces,
-            disks=test_system_status.disks,
-            processes=test_system_status.processes,
-        )
+        options = {
+            'interfaces': test_system_status.interfaces,
+            'disks': test_system_status.disks,
+            'processes': test_system_status.processes,
+        }
+        temp_system_status = SystemStatusController(options=options)
         assert pytest.approx(1.0) == temp_system_status._update_interval
 
     def test_num_processes_change(self, test_system_status, caplog):
@@ -219,10 +225,10 @@ class TestSystemStatus():
         """Test that monitoring processes reports CPU affinity where implemented."""
 
         test_system_status.system_status.monitor_processes()
-        cpu_affinity_vals = [status['cpu_affinity'] for status in
-            test_system_status.system_status._process_status[
+        cpu_affinity_vals = [status.get('cpu_affinity')['value'] for status in
+            test_system_status.system_status._process_tree.get(
                 test_system_status.mocked_proc_name
-            ].values()
+            ).values()
         ]
         assert test_system_status.cpu_affinity_vals in cpu_affinity_vals
 
@@ -235,10 +241,10 @@ class TestSystemStatus():
         test_system_status.system_status.monitor_processes()
 
         test_system_status.system_status.monitor_processes()
-        cpu_affinity_vals = [status['cpu_affinity'] for status in
-            test_system_status.system_status._process_status[
+        cpu_affinity_vals = [status.get('cpu_affinity')['value'] for status in
+            test_system_status.system_status._process_tree.get(
                 test_system_status.mocked_proc_name
-            ].values()
+            ).values()
         ]
         assert None in cpu_affinity_vals
 
@@ -303,8 +309,8 @@ class TestSystemStatusAdapter():
         response = test_sysstatus_adapter.adapter.get(
             test_sysstatus_adapter.path, test_sysstatus_adapter.request)
 
-        assert type(response.data) == dict
-        assert 'status' in response.data
+        assert isinstance(response.data, dict)
+        assert all(key in response.data for key in ['disk', 'network', 'process'])
         assert response.status_code == 200
 
     def test_adapter_get_bad_path(self, test_sysstatus_adapter):
