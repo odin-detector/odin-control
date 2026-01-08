@@ -23,7 +23,7 @@ class BaseError(Exception):
 class BaseController(ABC):
     """Abstract base class for adapter controllers.
 
-    This class defines the interface that all adapter controllers must implementto provide
+    This class defines the interface that all adapter controllers must implement to provide
     consistent behavior across different adapter types. Controllers handle the core logic and device
     communication for adapters.
 

@@ -14,7 +14,23 @@ from .base_controller import BaseError  # noqa: F401
 
 
 class AsyncBaseController(ABC):
-    """Abstract base class for asynchronous controllers."""
+    """Abstract base class for asynchronous controllers.
+
+    This class defines the interface that all async adapter controllers must implement to provide
+    consistent behavior across different adapter types. Controllers handle the core logic and device
+    communication for adapters.
+
+    At a minimum, derived controller classes must implement the following methods:
+    - __init__(options)
+    - get(path, with_metadata=False)
+
+    The following methods can be optionally implemented to provide additional functionality:
+    - initialize(adapters)
+    - cleanup()
+    - set(path, data)
+    - create(path, data)
+    - delete(path)
+    """
 
     @abstractmethod
     def __init__(self, options):
