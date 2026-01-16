@@ -180,8 +180,8 @@ class AsyncProxyAdapterTestFixture(AwaitableTestFixture):
 @asyncio_fixture_decorator
 async def async_proxy_adapter_fixture():
     async_proxy_adapter_test = await AsyncProxyAdapterTestFixture()
-    adapters = [async_proxy_adapter_test]
-    await async_proxy_adapter_test.adapter.initialize([adapters])
+    adapters = {"async_proxy": async_proxy_adapter_test.adapter }
+    await async_proxy_adapter_test.adapter.initialize(adapters)
     yield async_proxy_adapter_test
     await async_proxy_adapter_test.adapter.cleanup()
 

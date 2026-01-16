@@ -7,12 +7,12 @@ import pytest
 
 from unittest.mock import Mock
 
-from odin_control.adapters.system_info import SystemInfoAdapter, SystemInfo
+from odin_control.adapters.system_info import SystemInfoAdapter, SystemInfoController
 
 @pytest.fixture(scope="class")
 def test_system_info():
     """Fixture for use in testing the SystemInfo class."""
-    test_system_info = SystemInfo()
+    test_system_info = SystemInfoController()
     yield test_system_info
 
 
@@ -33,6 +33,7 @@ class SystemInfoAdapterTestFixture():
         self.path = ''
         self.request = Mock()
         self.request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
+        self.request.body = b'{}'
 
 
 @pytest.fixture(scope="class")
@@ -68,23 +69,38 @@ class TestSystemInfoAdapter():
     def test_adapter_put(self, test_sysinfo_adapter):
         """Test that a PUT call to the adapter returns the appropriate response."""
         expected_response = {
-            'response': 'SystemInfoAdapter: PUT on path {}'.format(test_sysinfo_adapter.path)
+            'error': 'SystemInfoAdapter does not support PUT requests'
         }
 
         response = test_sysinfo_adapter.adapter.put(
             test_sysinfo_adapter.path, test_sysinfo_adapter.request)
 
         assert response.data == expected_response
-        assert response.status_code == 200
+        assert response.status_code == 405
+
+    def test_adapter_post(self, test_sysinfo_adapter):
+        """Test that a POST call to the adapter returns the appropriate response."""
+        expected_response = {
+            'error': 'SystemInfoAdapter does not support POST requests'
+        }
+
+        response = test_sysinfo_adapter.adapter.post(
+            test_sysinfo_adapter.path, test_sysinfo_adapter.request)
+
+        assert response.data == expected_response
+        assert response.status_code == 405
 
     def test_adapter_delete(self, test_sysinfo_adapter):
         """Test that a DELETE call to the adapter returns an appropriate response."""
+        expected_response = {
+            'error': 'SystemInfoAdapter does not support DELETE requests'
+        }
+
         response = test_sysinfo_adapter.adapter.delete(
             test_sysinfo_adapter.path, test_sysinfo_adapter.request)
 
-        assert response.data == 'SystemInfoAdapter: DELETE on path {}'.format(
-            test_sysinfo_adapter.path)
-        assert response.status_code == 200
+        assert response.data == expected_response
+        assert response.status_code == 405
 
     def test_adapter_put_bad_content_type(self, test_sysinfo_adapter):
         """Test that PUT call with a bad content type returns the appropriate error."""
@@ -116,8 +132,8 @@ class SystemInfoAdapterMetadataTestFixture():
         self.path = ''
         self.request = Mock()
         self.request.headers = {
-           'Accept': 'application/json;metadata=True', 
-           'Content-Type': 'application/json' 
+           'Accept': 'application/json;metadata=True',
+           'Content-Type': 'application/json'
         }
         self.response = self.adapter.get(self.path, self.request)
         self.top_level_metadata = ('name', 'description')
@@ -147,7 +163,7 @@ class TestSystemInfoAdapterMetadata():
 
     def test_adapter_params_have_metadata(self, test_sysinfo_metadata):
         """
-        Test that all parameters exposed by the adapter have value, type and writeable 
+        Test that all parameters exposed by the adapter have value, type and writeable
         metadata fields.
         """
         for (param, val) in test_sysinfo_metadata.response.data.items():

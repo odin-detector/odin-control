@@ -47,7 +47,7 @@ class TestDummyAdapter():
 
     def test_adapter_delete(self, test_dummy_adapter):
         """Test that a call to the DELETE method of the dummy adapter returns the correct response."""
-        response = test_dummy_adapter.adapter.delete(test_dummy_adapter.path, 
+        response = test_dummy_adapter.adapter.delete(test_dummy_adapter.path,
             test_dummy_adapter.request)
         assert response.data == 'DummyAdapter: DELETE on path {}'.format(test_dummy_adapter.path)
         assert response.status_code == 200

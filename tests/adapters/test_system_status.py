@@ -11,7 +11,7 @@ import pytest
 
 from unittest.mock import Mock, patch
 
-from odin_control.adapters.system_status import SystemStatusAdapter, SystemStatus
+from odin_control.adapters.system_status import SystemStatusAdapter, SystemStatusController
 from odin_control.adapters.parameter_tree import ParameterTreeError
 
 from tests.utils import log_message_seen
@@ -74,7 +74,7 @@ class SystemStatusTestFixture():
 
         scoped_patcher.setattr(psutil, "process_iter", mock_process_iter)
 
-        self.system_status = SystemStatus(
+        self.system_status = SystemStatusController(
             interfaces=self.interfaces, disks=self.disks, processes=self.processes, rate=self.rate)
 
 
@@ -179,7 +179,7 @@ class TestSystemStatus():
 
     def test_default_rate_argument(self, test_system_status):
         """Test that that the default monitoring rate argument is applied correctly."""
-        temp_system_status = SystemStatus(
+        temp_system_status = SystemStatusController(
             interfaces=test_system_status.interfaces,
             disks=test_system_status.disks,
             processes=test_system_status.processes,
@@ -285,6 +285,7 @@ class SystemStatusAdapterTestFixture():
         self.path = ''
         self.request = Mock()
         self.request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
+        self.request.body = b'{}'
 
 
 @pytest.fixture(scope="class")
@@ -319,23 +320,38 @@ class TestSystemStatusAdapter():
     def test_adapter_put(self, test_sysstatus_adapter):
         """Test that a PUT call to the adapter returns the appropriate response."""
         expected_response = {
-            'response': 'SystemStatusAdapter: PUT on path {}'.format(test_sysstatus_adapter.path)
+            'error': 'SystemStatusAdapter does not support PUT requests'
         }
 
         response = test_sysstatus_adapter.adapter.put(
             test_sysstatus_adapter.path, test_sysstatus_adapter.request)
 
         assert response.data == expected_response
-        assert response.status_code == 200
+        assert response.status_code == 405
+
+    def test_adapter_post(self, test_sysstatus_adapter):
+        """Test that a PUT call to the adapter returns the appropriate response."""
+        expected_response = {
+            'error': 'SystemStatusAdapter does not support POST requests'
+        }
+
+        response = test_sysstatus_adapter.adapter.post(
+            test_sysstatus_adapter.path, test_sysstatus_adapter.request)
+
+        assert response.data == expected_response
+        assert response.status_code == 405
 
     def test_adapter_delete(self, test_sysstatus_adapter):
         """Test that a DELETE call to the adapter returns the appropriate response."""
+        expected_response = {
+            'error': 'SystemStatusAdapter does not support DELETE requests'
+        }
+
         response = test_sysstatus_adapter.adapter.delete(
             test_sysstatus_adapter.path, test_sysstatus_adapter.request)
 
-        assert response.data == 'SystemStatusAdapter: DELETE on path {}'.format(
-            test_sysstatus_adapter.path)
-        assert response.status_code == 200
+        assert response.data == expected_response
+        assert response.status_code == 405
 
     def test_adapter_put_bad_content_type(self, test_sysstatus_adapter):
         """Test that a PUT call with a bad content type returns the appropriate 415 error."""

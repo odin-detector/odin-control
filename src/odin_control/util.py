@@ -26,23 +26,6 @@ def decode_request_body(request):
     return body
 
 
-def wrap_result(result, is_async=True):
-    """
-    Conditionally wrap a result in an aysncio Future if being used in async code on python 3.
-
-    This is to allow common functions for e.g. request validation, to be used in both
-    async and sync code across python variants.
-
-    :param is_async: optional flag for if desired outcome is a result wrapped in a future
-
-    :return: either the result or a Future wrapping the result
-    """
-    if is_async:
-        return wrap_async(result)
-    else:
-        return result
-
-
 def run_in_executor(executor, func, *args):
     """
     Run a function asynchronously in an executor.
@@ -67,21 +50,6 @@ def run_in_executor(executor, func, *args):
     future = IOLoop.current().run_in_executor(executor, func, *args)
 
     return future
-
-def wrap_async(object):
-    """Wrap an object in an async future.
-
-    This function wraps an object in an async future and is called from wrap_result when
-    async objects are wrapped in python 3. A future is created, its result set to the
-    object passed in, and returned to the caller.
-
-    :param object: object to wrap in a future
-    :return: a Future with object as its result
-    """
-    future = asyncio.Future()
-    future.set_result(object)
-    return future
-
 
 def get_async_event_loop():
     """Get the asyncio event loop.
