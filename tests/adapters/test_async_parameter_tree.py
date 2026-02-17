@@ -25,10 +25,10 @@ class AsyncParameterAccessorTestFixture(AwaitableTestFixture):
 
         super(AsyncParameterAccessorTestFixture, self).__init__(AsyncParameterAccessor)
 
-        self.static_rw_path = 'static_rw'
-        self.static_rw_value = 2.76923
-        self.static_rw_accessor = AsyncParameterAccessor(
-            self.static_rw_path + '/', self.static_rw_value
+        self.static_ro_path = 'static_ro'
+        self.static_ro_value = 2.76923
+        self.static_ro_accessor = AsyncParameterAccessor(
+            self.static_ro_path + '/', self.static_ro_value
         )
 
         self.sync_ro_value = 1234
@@ -135,20 +135,19 @@ async def test_param_accessor():
 class TestAsyncParameterAccessor():
     """Class to test AsyncParameterAccessor behaviour"""
 
-    async def test_static_rw_accessor_get(self, test_param_accessor):
-        """Test that a static RW accessor get call returns the correct value."""
-        value = await test_param_accessor.static_rw_accessor.get()
-        assert value == test_param_accessor.static_rw_value
+    async def test_static_ro_accessor_get(self, test_param_accessor):
+        """Test that a static RO accessor get call returns the correct value."""
+        value = await test_param_accessor.static_ro_accessor.get()
+        assert value == test_param_accessor.static_ro_value
 
-    async def test_static_rw_accessor_set(self, test_param_accessor):
-        """Test that a static RW accessor set call sets the correct value."""
-        old_val = test_param_accessor.static_rw_value
+    async def test_static_ro_accessor_set(self, test_param_accessor):
+        """Test that a static RO accessor set call raises an error."""
         new_val = 1.234
-        await test_param_accessor.static_rw_accessor.set(new_val)
-        value = await test_param_accessor.static_rw_accessor.get()
-        assert value == new_val
+        with pytest.raises(ParameterTreeError) as excinfo:
+            await test_param_accessor.static_ro_accessor.set(new_val)
 
-        await test_param_accessor.static_rw_accessor.set(old_val)
+        assert "Parameter {} is read-only".format(test_param_accessor.static_ro_path) \
+            in str(excinfo.value)
 
     async def test_sync_ro_accessor_get(self, test_param_accessor):
         """Test that a synchronous callable RO accessor get call returns the correct value."""
@@ -206,27 +205,27 @@ class TestAsyncParameterAccessor():
         value = await test_param_accessor.async_rw_accessor.get()
         assert value == new_val
 
-    async def test_static_rw_accessor_default_metadata(self, test_param_accessor):
+    async def test_static_ro_accessor_default_metadata(self, test_param_accessor):
         """Test that a static RW accessor has the appropriate default metadata."""
-        param = await test_param_accessor.static_rw_accessor.get(with_metadata=True)
+        param = await test_param_accessor.static_ro_accessor.get(with_metadata=True)
         assert(isinstance(param, dict))
-        assert param['value'] == test_param_accessor.static_rw_value
-        assert param['type'] == type(test_param_accessor.static_rw_value).__name__
-        assert param['writeable'] == True
+        assert param['value'] == test_param_accessor.static_ro_value
+        assert param['type'] == type(test_param_accessor.static_ro_value).__name__
+        assert not param['writeable']
 
     async def test_sync_ro_accessor_default_metadata(self, test_param_accessor):
         """Test that a synchronous callable RO accesor has the appropriate default metadata."""
         param = await test_param_accessor.sync_ro_accessor.get(with_metadata=True)
         assert param['value'] == test_param_accessor.sync_ro_value
         assert param['type'] == type(test_param_accessor.sync_ro_value).__name__
-        assert param['writeable'] == False
+        assert not param['writeable']
 
     async def test_sync_rw_accessor_default_metadata(self, test_param_accessor):
         """Test that a synchronous callable RW accesor has the appropriate default metadata."""
         param = await test_param_accessor.sync_rw_accessor.get(with_metadata=True)
         assert param['value'] == test_param_accessor.sync_rw_value
         assert param['type'] == type(test_param_accessor.sync_rw_value).__name__
-        assert param['writeable'] == True
+        assert param['writeable']
 
     async def test_sync_ro_accessor_default_metadata(self, test_param_accessor):
         """Test that a synchronous callable RO accesor has the appropriate default metadata."""
@@ -265,8 +264,8 @@ class TestAsyncParameterAccessor():
         bad_metadata = {bad_metadata_argument: 'bar'}
         with pytest.raises(ParameterTreeError) as excinfo:
             _ = await AsyncParameterAccessor(
-                test_param_accessor.static_rw_path + '/', 
-                test_param_accessor.static_rw_value, **bad_metadata
+                test_param_accessor.static_ro_path + '/',
+                test_param_accessor.static_ro_value, **bad_metadata
             )
 
         assert "Invalid metadata argument: {}".format(bad_metadata_argument) \
@@ -279,7 +278,7 @@ class TestAsyncParameterAccessor():
         """
         bad_value = 'bar'
         bad_value_type = type(bad_value).__name__
-        
+
         with pytest.raises(ParameterTreeError) as excinfo:
             await test_param_accessor.async_rw_accessor.set(bad_value)
 
@@ -736,6 +735,7 @@ class AsyncParameterTreeMetadataTestFixture(AwaitableTestFixture):
         self.int_ro_param = 1000
         self.int_enum_param = 0
         self.int_enum_param_allowed_values = [0, 1, 2, 3, 5, 8, 13]
+        self.min_no_max_param = 1
 
         self.int_rw_param_metadata = {
             "min": 0,
@@ -753,9 +753,12 @@ class AsyncParameterTreeMetadataTestFixture(AwaitableTestFixture):
             'intCallableRwParam': (
                 self.intCallableRwParamGet, self.intCallableRwParamSet, self.int_rw_param_metadata
             ),
-            'intEnumParam': (0, {"allowed_values": self.int_enum_param_allowed_values}),
+            'intEnumParam': (
+                self.intEnumParamGet, self.intEnumParamSet,
+                {"allowed_values": self.int_enum_param_allowed_values}
+            ),
             'valueParam': (24601,),
-            'minNoMaxParam': (1, {'min': 0})
+            'minNoMaxParam': (self.minNoMaxParamGet, self.minNoMaxParamSet,{'min': 0})
         }
         self.metadata_tree = AsyncParameterTree(self.metadata_tree_dict)
 
@@ -767,9 +770,25 @@ class AsyncParameterTreeMetadataTestFixture(AwaitableTestFixture):
 
     def floatRoParamGet(self):
         return self.float_ro_param
-    
+
     def intRoParamGet(self):
         return self.int_ro_param
+
+    async def intEnumParamGet(self):
+        await asyncio.sleep(0)
+        return self.int_enum_param
+
+    async def intEnumParamSet(self, value):
+        await asyncio.sleep(0)
+        self.int_enum_param = value
+
+    async def minNoMaxParamGet(self):
+        await asyncio.sleep(0)
+        return self.min_no_max_param
+
+    async def minNoMaxParamSet(self, value):
+        await asyncio.sleep(0)
+        self.min_no_max_param = value
 
 
 @asyncio_fixture_decorator(scope="class")
@@ -817,7 +836,7 @@ class TestAsyncParameterTreeMetadata():
         """Test that a RO parameter has the writeable metadata field set to false."""
         ro_param = await test_tree_metadata.metadata_tree.get("floatRoParam", with_metadata=True)
         result = await ro_param
-        assert result["writeable"] == False
+        assert not result["writeable"]
 
     async def test_ro_param_not_writeable(self, test_tree_metadata):
         """Test that attempting to write to a RO parameter with metadata raises an error."""
@@ -825,14 +844,16 @@ class TestAsyncParameterTreeMetadata():
             await test_tree_metadata.metadata_tree.set("floatRoParam", 3.141275)
         assert "Parameter {} is read-only".format("floatRoParam") in str(excinfo.value)
 
-    async def test_value_param_writeable(self, test_tree_metadata):
-        """Test that a value parameter is writeable and has the correct metadata flag."""
-        new_value = 90210
-        await test_tree_metadata.metadata_tree.set("valueParam", new_value)
+    async def test_value_param_not_writeable(self, test_tree_metadata):
+        """Test that a value parameter is not writeable and has the correct metadata flag."""
+        with pytest.raises(ParameterTreeError) as excinfo:
+            await test_tree_metadata.metadata_tree.set("valueParam", 90210)
+
+        assert "Parameter {} is read-only".format("valueParam") in str(excinfo.value)
+
         param = await test_tree_metadata.metadata_tree.get("valueParam", with_metadata=True)
         result = await param
-        assert result["value"] == new_value
-        assert result["writeable"] == True
+        assert not result["writeable"]
 
     async def test_rw_param_min_no_max(self, test_tree_metadata):
         """Test that a parameter with a minimum but no maximum works as expected."""

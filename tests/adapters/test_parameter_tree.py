@@ -14,9 +14,9 @@ class ParameterAccessorTestFixture(object):
     """Container class used in fixtures for testing ParameterAccessor."""
     def __init__(self):
 
-        self.static_rw_path = 'static_rw'
-        self.static_rw_value = 2.76923
-        self.static_rw_accessor = ParameterAccessor(self.static_rw_path + '/', self.static_rw_value)
+        self.static_ro_path = 'static_ro'
+        self.static_ro_value = 2.76923
+        self.static_ro_accessor = ParameterAccessor(self.static_ro_path + '/', self.static_ro_value)
 
         self.callable_ro_value = 1234
         self.callable_ro_path = 'callable_ro'
@@ -39,7 +39,7 @@ class ParameterAccessorTestFixture(object):
             "display_precision": 0,
         }
         self.md_accessor = ParameterAccessor(
-            self.md_param_path + '/', self.md_param_val, **self.md_param_metadata
+            self.md_param_path + '/', self.md_param_get, self.md_param_set, **self.md_param_metadata
         )
 
         self.md_minmax_path = 'minmaxparam'
@@ -49,7 +49,8 @@ class ParameterAccessorTestFixture(object):
             'max': 1000
         }
         self.md_minmax_accessor = ParameterAccessor(
-            self.md_minmax_path + '/', self.md_minmax_val, **self.md_minmax_metadata
+            self.md_minmax_path + '/', self.md_minmax_get, self.md_minmax_set,
+            **self.md_minmax_metadata
         )
 
     def callable_ro_get(self):
@@ -60,6 +61,18 @@ class ParameterAccessorTestFixture(object):
 
     def callable_rw_set(self, value):
         self.callable_rw_value = value
+
+    def md_param_get(self):
+        return self.md_param_val
+
+    def md_param_set(self, value):
+        self.md_param_val = value
+
+    def md_minmax_get(self):
+        return self.md_minmax_val
+
+    def md_minmax_set(self, value):
+        self.md_minmax_val = value
 
 
 @pytest.fixture(scope="class")
@@ -72,18 +85,18 @@ def test_param_accessor():
 class TestParameterAccessor():
     """Class to test ParameterAccessor behaviour."""
 
-    def test_static_rw_accessor_get(self, test_param_accessor):
-        """Test that a static RW accessor get call returns the correct value."""
-        assert test_param_accessor.static_rw_accessor.get() == test_param_accessor.static_rw_value
+    def test_static_ro_accessor_get(self, test_param_accessor):
+        """Test that a static RO accessor get call returns the correct value."""
+        assert test_param_accessor.static_ro_accessor.get() == test_param_accessor.static_ro_value
 
-    def test_static_rw_accessor_set(self, test_param_accessor):
-        """Test that a static RW accessor set call sets the correct value."""
-        old_val = test_param_accessor.static_rw_value
+    def test_static_ro_accessor_set(self, test_param_accessor):
+        """Test that a static RO accessor set call raises an error."""
         new_val = 1.234
-        test_param_accessor.static_rw_accessor.set(new_val)
-        assert test_param_accessor.static_rw_accessor.get() == new_val
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_param_accessor.static_ro_accessor.set(new_val)
 
-        test_param_accessor.static_rw_accessor.set(old_val)
+        assert "Parameter {} is read-only".format(test_param_accessor.static_ro_path) \
+            in str(excinfo.value)
 
     def test_callable_ro_accessor_get(self, test_param_accessor):
         """Test that a callable RO accessor get call returns the correct value."""
@@ -113,27 +126,27 @@ class TestParameterAccessor():
 
         test_param_accessor.callable_rw_accessor.set(old_val)
 
-    def test_static_rw_accessor_default_metadata(self, test_param_accessor):
-        """Test that a static RW accessor has the appropriate default metadata."""
-        param = test_param_accessor.static_rw_accessor.get(with_metadata=True)
+    def test_static_ro_accessor_default_metadata(self, test_param_accessor):
+        """Test that a static RO accessor has the appropriate default metadata."""
+        param = test_param_accessor.static_ro_accessor.get(with_metadata=True)
         assert(isinstance(param, dict))
-        assert param['value'] == test_param_accessor.static_rw_value
-        assert param['type'] == type(test_param_accessor.static_rw_value).__name__
-        assert param['writeable'] == True
+        assert param['value'] == test_param_accessor.static_ro_value
+        assert param['type'] == type(test_param_accessor.static_ro_value).__name__
+        assert not param['writeable']
 
     def test_callable_ro_accessor_default_metadata(self, test_param_accessor):
         """Test that a callable RO accesor has the appropriate default metadata."""
         param = test_param_accessor.callable_ro_accessor.get(with_metadata=True)
         assert param['value'] == test_param_accessor.callable_ro_value
         assert param['type'] == type(test_param_accessor.callable_ro_value).__name__
-        assert param['writeable'] == False
+        assert not param['writeable']
 
     def test_callable_rw_accessor_default_metadata(self, test_param_accessor):
         """Test that a callable RW accesor has the appropriate default metadata."""
         param = test_param_accessor.callable_rw_accessor.get(with_metadata=True)
         assert param['value'] == test_param_accessor.callable_rw_value
         assert param['type'] == type(test_param_accessor.callable_rw_value).__name__
-        assert param['writeable'] == True
+        assert param['writeable']
 
     def test_metadata_param_accessor_metadata(self, test_param_accessor):
         """Test that a parameter accessor has the correct metadata fields."""
@@ -143,7 +156,7 @@ class TestParameterAccessor():
             assert param[md_field] == test_param_accessor.md_param_metadata[md_field]
         assert param['value'] == test_param_accessor.md_param_val
         assert param['type'] == type(test_param_accessor.md_param_val).__name__
-        assert param['writeable'] == True
+        assert param['writeable']
 
     def test_param_accessor_bad_metadata_arg(self, test_param_accessor):
         """Test that a parameter accessor with a bad metadata argument raises an error."""
@@ -151,8 +164,8 @@ class TestParameterAccessor():
         bad_metadata = {bad_metadata_argument: 'bar'}
         with pytest.raises(ParameterTreeError) as excinfo:
             _ = ParameterAccessor(
-                test_param_accessor.static_rw_path + '/', 
-                test_param_accessor.static_rw_value, **bad_metadata
+                test_param_accessor.static_ro_path + '/',
+                test_param_accessor.static_ro_value, **bad_metadata
             )
 
         assert "Invalid metadata argument: {}".format(bad_metadata_argument) \
@@ -165,7 +178,7 @@ class TestParameterAccessor():
         """
         bad_value = 1.234
         bad_value_type = type(bad_value).__name__
-        
+
         with pytest.raises(ParameterTreeError) as excinfo:
             test_param_accessor.callable_rw_accessor.set(bad_value)
 
@@ -657,6 +670,7 @@ class ParameterTreeMetadataTestFixture():
         self.int_ro_param = 1000
         self.int_enum_param = 0
         self.int_enum_param_allowed_values = [0, 1, 2, 3, 5, 8, 13]
+        self.min_no_max_param = 1
 
         self.int_rw_param_metadata = {
             "min": 0,
@@ -674,9 +688,12 @@ class ParameterTreeMetadataTestFixture():
             'intCallableRwParam': (
                 self.intCallableRwParamGet, self.intCallableRwParamSet, self.int_rw_param_metadata
             ),
-            'intEnumParam': (0, {"allowed_values": self.int_enum_param_allowed_values}),
+            'intEnumParam': (
+                self.intEnumParamGet, self.intEnumParamSet,
+                {"allowed_values": self.int_enum_param_allowed_values}
+            ),
             'valueParam': (24601,),
-            'minNoMaxParam': (1, {'min': 0})
+            'minNoMaxParam': (self.minNoMaxParamGet, self.minNoMaxParamSet, {'min': 0})
         }
         self.metadata_tree = ParameterTree(self.metadata_tree_dict)
 
@@ -688,10 +705,21 @@ class ParameterTreeMetadataTestFixture():
 
     def floatRoParamGet(self):
         return self.float_ro_param
-    
+
     def intRoParamGet(self):
         return self.int_ro_param
 
+    def intEnumParamGet(self):
+        return self.int_enum_param
+
+    def intEnumParamSet(self, value):
+        self.int_enum_param = value
+
+    def minNoMaxParamGet(self):
+        return self.min_no_max_param
+
+    def minNoMaxParamSet(self, value):
+        self.min_no_max_param = value
 
 @pytest.fixture(scope="class")
 def test_tree_metadata():
@@ -734,7 +762,7 @@ class TestParameterTreeMetadata():
     def test_ro_param_has_writeable_metadata_field(self, test_tree_metadata):
         """Test that a RO parameter has the writeable metadata field set to false."""
         ro_param = test_tree_metadata.metadata_tree.get("floatRoParam", with_metadata=True)
-        assert ro_param["writeable"] == False
+        assert not ro_param["writeable"]
 
     def test_ro_param_not_writeable(self, test_tree_metadata):
         """Test that attempting to write to a RO parameter with metadata raises an error."""
@@ -742,14 +770,17 @@ class TestParameterTreeMetadata():
             test_tree_metadata.metadata_tree.set("floatRoParam", 3.141275)
         assert "Parameter {} is read-only".format("floatRoParam") in str(excinfo.value)
 
-    def test_value_param_writeable(self, test_tree_metadata):
-        """Test that a value parameter is writeable and has the correct metadata flag."""
-        new_value = 90210
-        test_tree_metadata.metadata_tree.set("valueParam", new_value)
-        set_param = test_tree_metadata.metadata_tree.get(
+    def test_value_param_not_writeable(self, test_tree_metadata):
+        """Test that a value parameter is not writeable and has the correct metadata flag."""
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_tree_metadata.metadata_tree.set("valueParam", 90201)
+
+        assert "Parameter {} is read-only".format("valueParam") in str(excinfo.value)
+
+        param = test_tree_metadata.metadata_tree.get(
             "valueParam", with_metadata=True)
-        assert set_param["value"] == new_value
-        assert set_param["writeable"] == True
+        assert not param["writeable"]
 
     def test_rw_param_min_no_max(self, test_tree_metadata):
         """Test that a parameter with a minimum but no maximum works as expected."""
@@ -758,7 +789,7 @@ class TestParameterTreeMetadata():
         set_param = test_tree_metadata.metadata_tree.get(
             "minNoMaxParam", with_metadata=True)
         assert set_param["value"] == new_value
-        assert set_param["writeable"] == True
+        assert set_param["writeable"]
 
     def test_rw_param_below_min_value(self, test_tree_metadata):
         """

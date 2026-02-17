@@ -75,11 +75,8 @@ class BaseParameterAccessor(object):
         # Update metadata keywords from arguments
         self.metadata.update(kwargs)
 
-        # Set the writeable metadata field based on specified accessors
-        if not callable(self._set) and callable(self._get):
-            self.metadata["writeable"] = False
-        else:
-            self.metadata["writeable"] = True
+        # Set the writeable metadata field if the setter is callable
+        self.metadata["writeable"] = callable(self._set)
 
     def get(self, with_metadata=False):
         """Get the value of the parameter.
@@ -156,13 +153,10 @@ class BaseParameterAccessor(object):
                 )
             )
 
-        # Set the new parameter value, either by calling the setter or updating the local
-        # value as appropriate
+        # Set the new parameter value by calling the setter
         response = None
         if callable(self._set):
             response = self._set(value)
-        elif not callable(self._get):
-            self._get = value
 
         return response
 
