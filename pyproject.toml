@@ -13,6 +13,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 description = "ODIN detector control system"
 dynamic = ["version"]
@@ -63,7 +64,7 @@ legacy_tox_ini = """
 # tox test configuration for odin-control
 
 [tox]
-envlist = clean,py{38,39,310,311,312,313},py{38}-pygelf,report
+envlist = clean,py{38,39,310,311,312,313,314},py{38}-pygelf,report
 
 [gh-actions]
 python =
@@ -73,22 +74,23 @@ python =
     3.11: py311
     3.12: py312
     3.13: py313
+    3.14: py314
 
 [testenv]
 deps =
     pytest
     pytest-cov
     py{38,38-pygelf}: pytest-asyncio<0.23
-    py{39,310,311,312,313}: pytest-asyncio
+    py{39,310,311,312,313,314}: pytest-asyncio
     requests
     py38: pygelf
 setenv =
-    py{38,39,310,311,312,313}: COVERAGE_FILE=.coverage.{envname}
+    py{38,39,310,311,312,313,314}: COVERAGE_FILE=.coverage.{envname}
 commands =
     pytest --cov=odin_control --cov-report=term-missing --asyncio-mode=strict {posargs:-vv}
 depends =
-    py{38,39,310,311,312,313}: clean
-    report: py{38,39,310,311,312,313}
+    py{38,39,310,311,312,313,314}: clean
+    report: py{38,39,310,311,312,313,314}
 
 [testenv:clean]
 skip_install = true
