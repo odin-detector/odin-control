@@ -4,10 +4,9 @@ This module implements the API request handler used by odin-control to pass API 
 
 Tim Nicholls, STFC Detector Systems Software Group.
 """
-from tornado.web import RequestHandler
-
 from odin_control.adapters.adapter import ApiAdapterResponse
 from odin_control.adapters.util import wrap_result
+from odin_control.http.handlers.cors_request import CorsRequestHandler
 
 
 class ApiError(Exception):
@@ -47,35 +46,13 @@ def validate_api_request(func):
     return wrapper
 
 
-class ApiHandler(RequestHandler):
+class ApiHandler(CorsRequestHandler):
     """API handler to transform requests into appropriate adapter calls.
 
     This handler maps incoming API requests onto the appropriate calls to methods in registered
     adapters. HTTP GET, PUT, POST, DELETE and OPTIONS verbs are supported. The handler also enforces
     a uniform response with the appropriate Content-Type header.
     """
-
-    def __init__(self, *args, **kwargs):
-        """Construct the ApiHandler object.
-
-        This method constructs the ApiHandler object, calling the superclass constructor and setting
-        the route object to None.
-        """
-        self.route = None
-        super().__init__(*args, **kwargs)
-
-    def initialize(self, route, enable_cors, cors_origin):
-        """Initialize the API handler.
-
-        :param route: ApiRoute object calling the handler (allows adapters to be resolved)
-        :param enable_cors: enable CORS support by setting appropriate headers
-        :param cors_origin: allowed origin for CORS requests
-        """
-        self.route = route
-        if enable_cors:
-            self.set_header("Access-Control-Allow-Origin", cors_origin)
-            self.set_header("Access-Control-Allow-Headers", "x-requested-with,content-type")
-            self.set_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
 
     def respond(self, response):
         """Respond to an API request.
@@ -98,18 +75,6 @@ class ApiHandler(RequestHandler):
                 )
 
         self.write(data)
-
-    def options(self, *_):
-        """Handle an API OPTIONS request.
-
-        This method handles an OPTION request to an API handler and is provided to allow
-        browser clients to employ CORS preflight requests to determine if non-simple requests
-        are allowed.
-
-        :param _: unused arguments passed to the method by the URI matching in the handler
-        """
-        # Set status to indicate successful request with no content returned
-        self.set_status(204)
 
     @validate_api_request
     async def get(self, subsystem, path=''):

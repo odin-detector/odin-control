@@ -115,7 +115,8 @@ def test_api_handler_cors(request):
 def test_api_adapter_info_handler(request):
     """Parameterised test fixture for testing the ApiAdapterInfoHandler class."""
     test_api_adapter_info_handler = TestHandler(
-        ApiAdapterInfoHandler, async_adapter=False, api_version=request.param
+        ApiAdapterInfoHandler, async_adapter=False, api_version=request.param,
+        enable_cors=False, cors_origin="*"
     )
     test_api_adapter_info_handler.request.headers = {'Accept': 'application/json'}
     yield test_api_adapter_info_handler
@@ -124,7 +125,8 @@ def test_api_adapter_info_handler(request):
 def test_api_version_handler(request):
     """Test fixture for testing the ApiVersionHandler class."""
     test_api_version_handler = TestHandler(
-        ApiVersionHandler, async_adapter=False, api_version=request.param
+        ApiVersionHandler, async_adapter=False, api_version=request.param,
+        enable_cors=False, cors_origin="*"
     )
     test_api_version_handler.request.headers = {'Accept': 'application/json'}
     yield test_api_version_handler

@@ -5,22 +5,15 @@ loaded API adapters through HTTP GET requests, returning the adapter information
 
 Tim Nicholls, STFC Detector Systems Software Group.
 """
-from tornado.web import RequestHandler
+from odin_control.http.handlers.cors_request import CorsRequestHandler
 
 
-class ApiAdapterInfoHandler(RequestHandler):
+class ApiAdapterInfoHandler(CorsRequestHandler):
     """API adapter info handler to return information about loaded adapters.
 
     This request hander implements the GET verb to allow a call to the appropriate URI to return
     a JSON-encoded dictionary of information about the adapters loaded by the server.
     """
-
-    def initialize(self, route):
-        """Initialize the API adapter info handler.
-
-        :param route: ApiRoute object calling the handler (allows adapters to be resolved)
-        """
-        self.route = route
 
     def get(self, version=None):
         """Handle API adapter info GET requests.
