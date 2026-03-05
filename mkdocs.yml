@@ -1,0 +1,49 @@
+# Site information
+site_name: odin-control
+site_url: https://odin-detector.github.io/odin-control
+
+# Repository information
+repo_url: http://github.com/odin-detector/odin-control
+
+# Configuration
+theme:
+  name: material
+  palette:
+    - scheme: slate
+  logo: images/odin.png
+  features:
+     - navigation.tabs
+     - navigation.sections
+     - content.code.copy
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+plugins:
+  - search
+  - gen-files:
+      scripts:
+      - docs/scripts/gen_ref_pages.py
+  - literate-nav:
+      nav_file: README.md
+      implicit_index: true
+  - section-index
+  - mkdocstrings:
+      handlers:
+        python:
+            options:
+              docstring_style: sphinx
+
+# Navigation
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - User Guide: user-guide/
+  - Developer Guide: developer-guide/
+  - API Reference: reference/
+  - Release notes: http://github.com/odin-detector/odin-control/releases

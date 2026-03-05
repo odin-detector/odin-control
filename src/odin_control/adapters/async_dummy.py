@@ -198,7 +198,7 @@ class AsyncDummyAdapter(AsyncApiAdapter):
 
         This async updates returns the current value of the async read/write parameter.
 
-        :param: new value to set parameter to
+        :param value: new value to set parameter to
         """
         await asyncio.sleep(0)
         self.async_rw_param = value

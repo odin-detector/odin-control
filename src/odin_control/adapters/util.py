@@ -151,7 +151,7 @@ def wants_metadata(request):
     the 'metadata=true' qualifier attached to the MIME-type.
 
     :param request: HTTPServerRequest or equivalent from client
-    :return boolean, True if metadata is requested.
+    :returns: boolean, True if metadata is requested.
     """
     wants_metadata = False
 

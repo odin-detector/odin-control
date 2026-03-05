@@ -61,10 +61,7 @@ class DummyAdapter(ApiAdapter):
     def background_task_callback(self):
         """Run the adapter background task.
 
-        This simply increments the background counter and sleeps for the specified interval,
-        before adding itself as a callback to the IOLoop instance to be called again.
-
-        :param task_interval: time to sleep until task is run again
+        This callback simply increments the background task counter.
         """
         logging.debug(
             "%s: background task running, count = %d", self.name, self.background_task_counter)

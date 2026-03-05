@@ -30,12 +30,18 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "requests",
-    "tox",
+    "mkdocs-material",
+    "mkdocs-gen-files",
+    "mkdocs-literate-nav",
+    "mkdocs-section-index",
+    "mkdocstrings",
+    "mkdocstrings-python",
     "pytest",
     "pytest-asyncio",
     "pytest-cov",
-    "ruff"
+    "requests",
+    "ruff",
+    "tox",
 ]
 sync_proxy = [
     "requests"

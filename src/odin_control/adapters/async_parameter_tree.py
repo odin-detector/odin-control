@@ -90,7 +90,7 @@ class AsyncParameterAccessor(BaseParameterAccessor):
         value is returned in a dictionary including all metadata for the parameter.
 
         :param with_metadata: include metadata in the response when set to True
-        :returns value of the parameter
+        :returns: value of the parameter
         """
         # Call the superclass get method
         value = super(AsyncParameterAccessor, self).get(with_metadata)

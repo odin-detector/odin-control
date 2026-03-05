@@ -27,8 +27,7 @@ def decode_request_body(request):
 
 
 def run_in_executor(executor, func, *args):
-    """
-    Run a function asynchronously in an executor.
+    """Run a function asynchronously in an executor.
 
     This method extends the behaviour of Tornado IOLoop equivalent to allow nested task execution
     without having to modify the underlying asyncio loop creation policy on python 3. If the
@@ -38,7 +37,7 @@ def run_in_executor(executor, func, *args):
 
     :param executor: a concurrent.futures.Executor instance to run the task in
     :param func: the function to execute
-    :param arg: list of arguments to pass to the function
+    :param args: list of arguments to pass to the function
 
     :return: a Future wrapping the task
     """
