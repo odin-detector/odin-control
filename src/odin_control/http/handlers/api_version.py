@@ -7,22 +7,15 @@ Tim Nicholls, STFC Detector Systems Software Group.
 """
 import json
 
-from tornado.web import RequestHandler
+from odin_control.http.handlers.cors_request import CorsRequestHandler
 
 
-class ApiVersionHandler(RequestHandler):
+class ApiVersionHandler(CorsRequestHandler):
     """API version handler to allow client to resolve supported version.
 
     This request handler implements the GET verb to allow a call to the appropriate URI to return
     the supported API version as JSON.
     """
-
-    def initialize(self, route):
-        """Initialise the ApiVersionHandler.
-
-        :param route: ApiRoute object calling the handler (allows API version to be resolved)
-        """
-        self.route = route
 
     def get(self):
         """Handle API version GET requests."""

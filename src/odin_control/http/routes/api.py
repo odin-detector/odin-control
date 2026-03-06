@@ -33,8 +33,13 @@ class ApiRoute(Route):
         # Store the API version string so it can be used by handlers
         self.api_version = api_version
 
+        # Build a dict of params to be passed to API handler initialisation calls
+        handler_params = {
+            "route": self, "enable_cors": enable_cors, "cors_origin": cors_origin
+        }
+
         # Define a default handler which can return the supported API version
-        self.add_handler((r"/api/?", ApiVersionHandler, {"route": self}))
+        self.add_handler((r"/api/?", ApiVersionHandler, handler_params))
 
         # Define the API handler URL specs depending on whether versioning is enabled
         if self.api_version:
@@ -45,14 +50,7 @@ class ApiRoute(Route):
             api_specs = [r"/api/(.*?)/(.*)", r"/api/(.*?)/?"]
 
         # Define a handler which can return a list of loaded adapters
-        self.add_handler(
-            (adapter_info_spec, ApiAdapterInfoHandler, {"route": self})
-        )
-
-        # Build a dict of params to be passed to API handler initialisation calls
-        handler_params = {
-            "route": self, "enable_cors": enable_cors, "cors_origin": cors_origin
-        }
+        self.add_handler((adapter_info_spec, ApiAdapterInfoHandler, handler_params))
 
         # Define the handler for API calls. The expected URI syntax, which is enforced by the
         # validate_api_request decorator, is the following:
