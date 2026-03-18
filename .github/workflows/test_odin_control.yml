@@ -34,18 +34,3 @@ jobs:
       with:
         name: ${{ matrix.python-version }}
         fail_ci_if_error: false
-
-  notify:
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
-    needs: build_and_test
-    steps:
-      - name: Slack Notification on completion
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_CHANNEL: odin-control-notify
-          SLACK_COLOR: ${{ needs.build_and_test.result }}
-          SLACK_ICON: https://avatars.githubusercontent.com/odin-detector?size=48
-          SLACK_TITLE: "odin-control CI tests completed: ${{ needs.build_and_test.result }}"
-          SLACK_USERNAME: odin-detector
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
