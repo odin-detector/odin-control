@@ -26,12 +26,7 @@ jobs:
     - name: Merge tox env specific coverage files
       run: |
         coverage combine
-        if [[ "${{ matrix.python-version }}" == 2.7* ]]; then
-            export COVERAGE_RC=.coveragerc-py27
-        else
-            export COVERAGE_RC=.coveragerc
-        fi
-        coverage xml --rcfile=$COVERAGE_RC
+        coverage xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       env:
