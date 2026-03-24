@@ -30,7 +30,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "mkdocs-material",
+    "properdocs",
+    "mkdocs-materialx",
     "mkdocs-gen-files",
     "mkdocs-literate-nav",
     "mkdocs-section-index",

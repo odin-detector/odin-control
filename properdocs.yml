@@ -7,9 +7,36 @@ repo_url: http://github.com/odin-detector/odin-control
 
 # Configuration
 theme:
-  name: material
+  name: materialx
+  topbar_style: primary   # glass primary accent
   palette:
-    - scheme: slate
+
+    # Palette toggle for auto (system preference)
+    - media: "(prefers-color-scheme)"
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
   logo: images/odin.png
   features:
      - navigation.tabs
