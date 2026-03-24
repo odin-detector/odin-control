@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-ProperDocs 1.6.7, mkdocs-materialx-10.1.0">
     
     
       
@@ -29,10 +29,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.e08026d9.min.css">
       
         
-        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.204eaadb.min.css">
       
       
 
@@ -53,6 +53,8 @@
     
       <link rel="stylesheet" href="../../../../assets/_mkdocstrings.css">
     
+      <link rel="stylesheet" href="../../../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -62,6 +64,8 @@
   </head>
   
   
+  
+  
     
     
       
@@ -69,12 +73,14 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" data-mx-topbar="primary">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="toc" type="checkbox" id="__toc" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
+    <label class="md-overlay" for="__toc"></label>
     <div data-md-component="skip">
       
         
@@ -124,7 +130,31 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
     
   
 </form>
@@ -136,10 +166,12 @@
     
     
       
+        
+      
       
         <label class="md-header__button md-icon" for="__search">
           
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.25 2a8.25 8.25 0 0 1 6.34 13.53l5.69 5.69a.749.749 0 0 1-.326 1.275.75.75 0 0 1-.734-.215l-5.69-5.69A8.25 8.25 0 1 1 10.25 2M3.5 10.25a6.75 6.75 0 1 0 13.5 0 6.75 6.75 0 0 0-13.5 0"/></svg>
         </label>
         <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
@@ -148,7 +180,7 @@
       <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.25 2a8.25 8.25 0 0 1 6.34 13.53l5.69 5.69a.749.749 0 0 1-.326 1.275.75.75 0 0 1-.734-.215l-5.69-5.69A8.25 8.25 0 1 1 10.25 2M3.5 10.25a6.75 6.75 0 1 0 13.5 0 6.75 6.75 0 0 0-13.5 0"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
@@ -162,7 +194,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0">
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -360,7 +392,7 @@
 </a>
     </div>
   
-  <ul class="md-nav__list" data-md-scrollfix>
+  <ul class="md-nav__list">
     
       
       
@@ -473,7 +505,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -655,7 +687,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -719,7 +751,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -862,7 +894,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -1380,7 +1412,7 @@
       <span class="md-nav__icon md-icon"></span>
       Table of contents
     </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+    <ul class="md-nav__list" data-md-component="toc">
       
         <li class="md-nav__item">
   <a href="#odin_control.config.parser" class="md-nav__link">
@@ -1653,7 +1685,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -1712,7 +1744,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -1863,7 +1895,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -2001,7 +2033,7 @@
       <span class="md-nav__icon md-icon"></span>
       Table of contents
     </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+    <ul class="md-nav__list" data-md-component="toc">
       
         <li class="md-nav__item">
   <a href="#odin_control.config.parser" class="md-nav__link">
@@ -2342,7 +2374,7 @@ be set as attributes using the set() method</p>
 <span class="normal"><a href="#__codelineno-0-448">448</a></span>
 <span class="normal"><a href="#__codelineno-0-449">449</a></span>
 <span class="normal"><a href="#__codelineno-0-450">450</a></span>
-<span class="normal"><a href="#__codelineno-0-451">451</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-399"><a id="__codelineno-0-399" name="__codelineno-0-399"></a><span class="k">class</span> <span class="nc">AdapterConfig</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-451">451</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-399"><a id="__codelineno-0-399" name="__codelineno-0-399"></a><span class="k">class</span><span class="w"> </span><span class="nc">AdapterConfig</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 </span><span id="__span-0-400"><a id="__codelineno-0-400" name="__codelineno-0-400"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;An adapter configuration container class.</span>
 </span><span id="__span-0-401"><a id="__codelineno-0-401" name="__codelineno-0-401"></a>
 </span><span id="__span-0-402"><a id="__codelineno-0-402" name="__codelineno-0-402"></a><span class="sd">    A simple container class used by ConfigParser to define the options for an API adapter. This</span>
@@ -2350,7 +2382,7 @@ be set as attributes using the set() method</p>
 </span><span id="__span-0-404"><a id="__codelineno-0-404" name="__codelineno-0-404"></a><span class="sd">    be set as attributes using the set() method</span>
 </span><span id="__span-0-405"><a id="__codelineno-0-405" name="__codelineno-0-405"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-406"><a id="__codelineno-0-406" name="__codelineno-0-406"></a>
-</span><span id="__span-0-407"><a id="__codelineno-0-407" name="__codelineno-0-407"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
+</span><span id="__span-0-407"><a id="__codelineno-0-407" name="__codelineno-0-407"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
 </span><span id="__span-0-408"><a id="__codelineno-0-408" name="__codelineno-0-408"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialise the AdapterConfig object.</span>
 </span><span id="__span-0-409"><a id="__codelineno-0-409" name="__codelineno-0-409"></a>
 </span><span id="__span-0-410"><a id="__codelineno-0-410" name="__codelineno-0-410"></a><span class="sd">        :param name: name of the adapter</span>
@@ -2360,7 +2392,7 @@ be set as attributes using the set() method</p>
 </span><span id="__span-0-414"><a id="__codelineno-0-414" name="__codelineno-0-414"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">module</span> <span class="o">=</span> <span class="n">module</span>
 </span><span id="__span-0-415"><a id="__codelineno-0-415" name="__codelineno-0-415"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_options</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="__span-0-416"><a id="__codelineno-0-416" name="__codelineno-0-416"></a>
-</span><span id="__span-0-417"><a id="__codelineno-0-417" name="__codelineno-0-417"></a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="__span-0-417"><a id="__codelineno-0-417" name="__codelineno-0-417"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="__span-0-418"><a id="__codelineno-0-418" name="__codelineno-0-418"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set an option for the adapter configuration object.</span>
 </span><span id="__span-0-419"><a id="__codelineno-0-419" name="__codelineno-0-419"></a>
 </span><span id="__span-0-420"><a id="__codelineno-0-420" name="__codelineno-0-420"></a><span class="sd">        :param option: name of the option</span>
@@ -2369,7 +2401,7 @@ be set as attributes using the set() method</p>
 </span><span id="__span-0-423"><a id="__codelineno-0-423" name="__codelineno-0-423"></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="__span-0-424"><a id="__codelineno-0-424" name="__codelineno-0-424"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="n">option</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 </span><span id="__span-0-425"><a id="__codelineno-0-425" name="__codelineno-0-425"></a>
-</span><span id="__span-0-426"><a id="__codelineno-0-426" name="__codelineno-0-426"></a>    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
+</span><span id="__span-0-426"><a id="__codelineno-0-426" name="__codelineno-0-426"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
 </span><span id="__span-0-427"><a id="__codelineno-0-427" name="__codelineno-0-427"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Containment check operator - allows ``in`` to check for presence of option.</span>
 </span><span id="__span-0-428"><a id="__codelineno-0-428" name="__codelineno-0-428"></a>
 </span><span id="__span-0-429"><a id="__codelineno-0-429" name="__codelineno-0-429"></a><span class="sd">        :param option: name of option to check for</span>
@@ -2377,7 +2409,7 @@ be set as attributes using the set() method</p>
 </span><span id="__span-0-431"><a id="__codelineno-0-431" name="__codelineno-0-431"></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="__span-0-432"><a id="__codelineno-0-432" name="__codelineno-0-432"></a>        <span class="k">return</span> <span class="n">option</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span>
 </span><span id="__span-0-433"><a id="__codelineno-0-433" name="__codelineno-0-433"></a>
-</span><span id="__span-0-434"><a id="__codelineno-0-434" name="__codelineno-0-434"></a>    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
+</span><span id="__span-0-434"><a id="__codelineno-0-434" name="__codelineno-0-434"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
 </span><span id="__span-0-435"><a id="__codelineno-0-435" name="__codelineno-0-435"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Attribute getter allowing adapter options to be accessed by object.option syntax.</span>
 </span><span id="__span-0-436"><a id="__codelineno-0-436" name="__codelineno-0-436"></a>
 </span><span id="__span-0-437"><a id="__codelineno-0-437" name="__codelineno-0-437"></a><span class="sd">        :param option: name option to get</span>
@@ -2389,7 +2421,7 @@ be set as attributes using the set() method</p>
 </span><span id="__span-0-443"><a id="__codelineno-0-443" name="__codelineno-0-443"></a>
 </span><span id="__span-0-444"><a id="__codelineno-0-444" name="__codelineno-0-444"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="n">option</span><span class="p">]</span>
 </span><span id="__span-0-445"><a id="__codelineno-0-445" name="__codelineno-0-445"></a>
-</span><span id="__span-0-446"><a id="__codelineno-0-446" name="__codelineno-0-446"></a>    <span class="k">def</span> <span class="nf">options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-0-446"><a id="__codelineno-0-446" name="__codelineno-0-446"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="__span-0-447"><a id="__codelineno-0-447" name="__codelineno-0-447"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a dictionary of the options set in the object.</span>
 </span><span id="__span-0-448"><a id="__codelineno-0-448" name="__codelineno-0-448"></a>
 </span><span id="__span-0-449"><a id="__codelineno-0-449" name="__codelineno-0-449"></a><span class="sd">        :return: dictionary of options</span>
@@ -2485,7 +2517,7 @@ be set as attributes using the set() method</p>
 <span class="normal"><a href="#__codelineno-0-429">429</a></span>
 <span class="normal"><a href="#__codelineno-0-430">430</a></span>
 <span class="normal"><a href="#__codelineno-0-431">431</a></span>
-<span class="normal"><a href="#__codelineno-0-432">432</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-426"><a id="__codelineno-0-426" name="__codelineno-0-426"></a><span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-432">432</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-426"><a id="__codelineno-0-426" name="__codelineno-0-426"></a><span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
 </span><span id="__span-0-427"><a id="__codelineno-0-427" name="__codelineno-0-427"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Containment check operator - allows ``in`` to check for presence of option.</span>
 </span><span id="__span-0-428"><a id="__codelineno-0-428" name="__codelineno-0-428"></a>
 </span><span id="__span-0-429"><a id="__codelineno-0-429" name="__codelineno-0-429"></a><span class="sd">    :param option: name of option to check for</span>
@@ -2599,7 +2631,7 @@ be set as attributes using the set() method</p>
 <span class="normal"><a href="#__codelineno-0-441">441</a></span>
 <span class="normal"><a href="#__codelineno-0-442">442</a></span>
 <span class="normal"><a href="#__codelineno-0-443">443</a></span>
-<span class="normal"><a href="#__codelineno-0-444">444</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-434"><a id="__codelineno-0-434" name="__codelineno-0-434"></a><span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-444">444</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-434"><a id="__codelineno-0-434" name="__codelineno-0-434"></a><span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
 </span><span id="__span-0-435"><a id="__codelineno-0-435" name="__codelineno-0-435"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Attribute getter allowing adapter options to be accessed by object.option syntax.</span>
 </span><span id="__span-0-436"><a id="__codelineno-0-436" name="__codelineno-0-436"></a>
 </span><span id="__span-0-437"><a id="__codelineno-0-437" name="__codelineno-0-437"></a><span class="sd">    :param option: name option to get</span>
@@ -2685,7 +2717,7 @@ be set as attributes using the set() method</p>
 <span class="normal"><a href="#__codelineno-0-412">412</a></span>
 <span class="normal"><a href="#__codelineno-0-413">413</a></span>
 <span class="normal"><a href="#__codelineno-0-414">414</a></span>
-<span class="normal"><a href="#__codelineno-0-415">415</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-407"><a id="__codelineno-0-407" name="__codelineno-0-407"></a><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-415">415</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-407"><a id="__codelineno-0-407" name="__codelineno-0-407"></a><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
 </span><span id="__span-0-408"><a id="__codelineno-0-408" name="__codelineno-0-408"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialise the AdapterConfig object.</span>
 </span><span id="__span-0-409"><a id="__codelineno-0-409" name="__codelineno-0-409"></a>
 </span><span id="__span-0-410"><a id="__codelineno-0-410" name="__codelineno-0-410"></a><span class="sd">    :param name: name of the adapter</span>
@@ -2743,7 +2775,7 @@ be set as attributes using the set() method</p>
 <span class="normal"><a href="#__codelineno-0-448">448</a></span>
 <span class="normal"><a href="#__codelineno-0-449">449</a></span>
 <span class="normal"><a href="#__codelineno-0-450">450</a></span>
-<span class="normal"><a href="#__codelineno-0-451">451</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-446"><a id="__codelineno-0-446" name="__codelineno-0-446"></a><span class="k">def</span> <span class="nf">options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-451">451</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-446"><a id="__codelineno-0-446" name="__codelineno-0-446"></a><span class="k">def</span><span class="w"> </span><span class="nf">options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="__span-0-447"><a id="__codelineno-0-447" name="__codelineno-0-447"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dictionary of the options set in the object.</span>
 </span><span id="__span-0-448"><a id="__codelineno-0-448" name="__codelineno-0-448"></a>
 </span><span id="__span-0-449"><a id="__codelineno-0-449" name="__codelineno-0-449"></a><span class="sd">    :return: dictionary of options</span>
@@ -2845,7 +2877,7 @@ be set as attributes using the set() method</p>
 <span class="normal"><a href="#__codelineno-0-421">421</a></span>
 <span class="normal"><a href="#__codelineno-0-422">422</a></span>
 <span class="normal"><a href="#__codelineno-0-423">423</a></span>
-<span class="normal"><a href="#__codelineno-0-424">424</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-417"><a id="__codelineno-0-417" name="__codelineno-0-417"></a><span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-424">424</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-417"><a id="__codelineno-0-417" name="__codelineno-0-417"></a><span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="__span-0-418"><a id="__codelineno-0-418" name="__codelineno-0-418"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Set an option for the adapter configuration object.</span>
 </span><span id="__span-0-419"><a id="__codelineno-0-419" name="__codelineno-0-419"></a>
 </span><span id="__span-0-420"><a id="__codelineno-0-420" name="__codelineno-0-420"></a><span class="sd">    :param option: name of the option</span>
@@ -2902,7 +2934,7 @@ be set as attributes using the set() method</p>
 <span class="normal"><a href="#__codelineno-0-18">18</a></span>
 <span class="normal"><a href="#__codelineno-0-19">19</a></span>
 <span class="normal"><a href="#__codelineno-0-20">20</a></span>
-<span class="normal"><a href="#__codelineno-0-21">21</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="k">class</span> <span class="nc">ConfigError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-21">21</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="k">class</span><span class="w"> </span><span class="nc">ConfigError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;ConfigParser exception class.</span>
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17"></a>
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18"></a><span class="sd">    A trivial exception class for signalling configuration parsing errors</span>
@@ -2983,14 +3015,14 @@ its type, default value and whether it has multiple values</p>
 <span class="normal"><a href="#__codelineno-0-393">393</a></span>
 <span class="normal"><a href="#__codelineno-0-394">394</a></span>
 <span class="normal"><a href="#__codelineno-0-395">395</a></span>
-<span class="normal"><a href="#__codelineno-0-396">396</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-359"><a id="__codelineno-0-359" name="__codelineno-0-359"></a><span class="k">class</span> <span class="nc">ConfigOption</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-396">396</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-359"><a id="__codelineno-0-359" name="__codelineno-0-359"></a><span class="k">class</span><span class="w"> </span><span class="nc">ConfigOption</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 </span><span id="__span-0-360"><a id="__codelineno-0-360" name="__codelineno-0-360"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A configuration option container class.</span>
 </span><span id="__span-0-361"><a id="__codelineno-0-361" name="__codelineno-0-361"></a>
 </span><span id="__span-0-362"><a id="__codelineno-0-362" name="__codelineno-0-362"></a><span class="sd">    A simple container class used internally by ConfigParser to define a configuration option,</span>
 </span><span id="__span-0-363"><a id="__codelineno-0-363" name="__codelineno-0-363"></a><span class="sd">    its type, default value and whether it has multiple values</span>
 </span><span id="__span-0-364"><a id="__codelineno-0-364" name="__codelineno-0-364"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-365"><a id="__codelineno-0-365" name="__codelineno-0-365"></a>
-</span><span id="__span-0-366"><a id="__codelineno-0-366" name="__codelineno-0-366"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">option_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="__span-0-366"><a id="__codelineno-0-366" name="__codelineno-0-366"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">option_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="__span-0-367"><a id="__codelineno-0-367" name="__codelineno-0-367"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialise the ConfigOption object.</span>
 </span><span id="__span-0-368"><a id="__codelineno-0-368" name="__codelineno-0-368"></a>
 </span><span id="__span-0-369"><a id="__codelineno-0-369" name="__codelineno-0-369"></a><span class="sd">        :param name: name of the option</span>
@@ -3173,7 +3205,7 @@ its type, default value and whether it has multiple values</p>
 <span class="normal"><a href="#__codelineno-0-393">393</a></span>
 <span class="normal"><a href="#__codelineno-0-394">394</a></span>
 <span class="normal"><a href="#__codelineno-0-395">395</a></span>
-<span class="normal"><a href="#__codelineno-0-396">396</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-366"><a id="__codelineno-0-366" name="__codelineno-0-366"></a><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">option_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-396">396</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-366"><a id="__codelineno-0-366" name="__codelineno-0-366"></a><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">option_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="__span-0-367"><a id="__codelineno-0-367" name="__codelineno-0-367"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialise the ConfigOption object.</span>
 </span><span id="__span-0-368"><a id="__codelineno-0-368" name="__codelineno-0-368"></a>
 </span><span id="__span-0-369"><a id="__codelineno-0-369" name="__codelineno-0-369"></a><span class="sd">    :param name: name of the option</span>
@@ -3570,7 +3602,7 @@ resolve_adapters() method can be used to extract adapter-specific options from a
 <span class="normal"><a href="#__codelineno-0-334">334</a></span>
 <span class="normal"><a href="#__codelineno-0-335">335</a></span>
 <span class="normal"><a href="#__codelineno-0-336">336</a></span>
-<span class="normal"><a href="#__codelineno-0-337">337</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="k">class</span> <span class="nc">ConfigParser</span><span class="p">():</span>
+<span class="normal"><a href="#__codelineno-0-337">337</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="k">class</span><span class="w"> </span><span class="nc">ConfigParser</span><span class="p">():</span>
 </span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Parses configuration options from the command-line and from a file.</span>
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26"></a>
 </span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="sd">    Provides parsing of program configuration options from both command-line arguments and</span>
@@ -3590,7 +3622,7 @@ resolve_adapters() method can be used to extract adapter-specific options from a
 </span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41"></a><span class="sd">    [adapter.&lt;adapter_name&gt;].</span>
 </span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43"></a>
-</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">has_adapters</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">has_adapters</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialise the configuration parser.</span>
 </span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a>
 </span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="sd">        :param has_adapters: if True, automatically define an --adapters option in the parser</span>
@@ -3621,7 +3653,7 @@ resolve_adapters() method can be used to extract adapter-specific options from a
 </span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">define</span><span class="p">(</span><span class="s1">&#39;adapters&#39;</span><span class="p">,</span> <span class="n">option_type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 </span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73"></a>                        <span class="n">option_help</span><span class="o">=</span><span class="s1">&#39;Comma-separated list of API adapters to load&#39;</span><span class="p">)</span>
 </span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74"></a>
-</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75"></a>    <span class="k">def</span> <span class="nf">define</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">option_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">option_help</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">define</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">option_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">option_help</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76"></a>               <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Define an option to be parsed from the command-line and/or a configuration file.</span>
 </span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78"></a>
@@ -3681,7 +3713,7 @@ resolve_adapters() method can be used to extract adapter-specific options from a
 </span><span id="__span-0-132"><a id="__codelineno-0-132" name="__codelineno-0-132"></a>        <span class="c1"># without error throughout the lifetime of the instance</span>
 </span><span id="__span-0-133"><a id="__codelineno-0-133" name="__codelineno-0-133"></a>        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 </span><span id="__span-0-134"><a id="__codelineno-0-134" name="__codelineno-0-134"></a>
-</span><span id="__span-0-135"><a id="__codelineno-0-135" name="__codelineno-0-135"></a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="__span-0-135"><a id="__codelineno-0-135" name="__codelineno-0-135"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="__span-0-136"><a id="__codelineno-0-136" name="__codelineno-0-136"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse command-line and file configuration options.</span>
 </span><span id="__span-0-137"><a id="__codelineno-0-137" name="__codelineno-0-137"></a>
 </span><span id="__span-0-138"><a id="__codelineno-0-138" name="__codelineno-0-138"></a><span class="sd">        This method parses command-line and file (if specified a ``--config`` argument)</span>
@@ -3739,7 +3771,7 @@ resolve_adapters() method can be used to extract adapter-specific options from a
 </span><span id="__span-0-190"><a id="__codelineno-0-190" name="__codelineno-0-190"></a>        <span class="c1"># Run the tornado parser callbacks to replicate the tornado parser behaviour</span>
 </span><span id="__span-0-191"><a id="__codelineno-0-191" name="__codelineno-0-191"></a>        <span class="n">tornado</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">run_parse_callbacks</span><span class="p">()</span>
 </span><span id="__span-0-192"><a id="__codelineno-0-192" name="__codelineno-0-192"></a>
-</span><span id="__span-0-193"><a id="__codelineno-0-193" name="__codelineno-0-193"></a>    <span class="k">def</span> <span class="nf">_parse_file_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="p">):</span>
+</span><span id="__span-0-193"><a id="__codelineno-0-193" name="__codelineno-0-193"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_file_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="p">):</span>
 </span><span id="__span-0-194"><a id="__codelineno-0-194" name="__codelineno-0-194"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse a configuration file (INTERNAL METHOD).</span>
 </span><span id="__span-0-195"><a id="__codelineno-0-195" name="__codelineno-0-195"></a>
 </span><span id="__span-0-196"><a id="__codelineno-0-196" name="__codelineno-0-196"></a><span class="sd">        :param config_file: name of configuration file to parse</span>
@@ -3795,7 +3827,7 @@ resolve_adapters() method can be used to extract adapter-specific options from a
 </span><span id="__span-0-246"><a id="__codelineno-0-246" name="__codelineno-0-246"></a>
 </span><span id="__span-0-247"><a id="__codelineno-0-247" name="__codelineno-0-247"></a>        <span class="k">return</span> <span class="n">file_config</span>
 </span><span id="__span-0-248"><a id="__codelineno-0-248" name="__codelineno-0-248"></a>
-</span><span id="__span-0-249"><a id="__codelineno-0-249" name="__codelineno-0-249"></a>    <span class="k">def</span> <span class="nf">_load_tornado_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-0-249"><a id="__codelineno-0-249" name="__codelineno-0-249"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_load_tornado_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="__span-0-250"><a id="__codelineno-0-250" name="__codelineno-0-250"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Load tornado options into the parser (INTERNAL METHOD).&quot;&quot;&quot;</span>
 </span><span id="__span-0-251"><a id="__codelineno-0-251" name="__codelineno-0-251"></a>        <span class="n">tornado_opts</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">_options</span>
 </span><span id="__span-0-252"><a id="__codelineno-0-252" name="__codelineno-0-252"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">allowed_options</span><span class="p">[</span><span class="s1">&#39;tornado&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -3809,13 +3841,13 @@ resolve_adapters() method can be used to extract adapter-specific options from a
 </span><span id="__span-0-260"><a id="__codelineno-0-260" name="__codelineno-0-260"></a>                    <span class="n">tornado_opts</span><span class="p">[</span><span class="n">opt</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">tornado_opts</span><span class="p">[</span><span class="n">opt</span><span class="p">]</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">tornado_opts</span><span class="p">[</span><span class="n">opt</span><span class="p">]</span><span class="o">.</span><span class="n">default</span>
 </span><span id="__span-0-261"><a id="__codelineno-0-261" name="__codelineno-0-261"></a>                <span class="p">)</span>
 </span><span id="__span-0-262"><a id="__codelineno-0-262" name="__codelineno-0-262"></a>
-</span><span id="__span-0-263"><a id="__codelineno-0-263" name="__codelineno-0-263"></a>    <span class="k">def</span> <span class="nf">_version_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="__span-0-263"><a id="__codelineno-0-263" name="__codelineno-0-263"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_version_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="__span-0-264"><a id="__codelineno-0-264" name="__codelineno-0-264"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Print the odin server version information and exit.&quot;&quot;&quot;</span>
 </span><span id="__span-0-265"><a id="__codelineno-0-265" name="__codelineno-0-265"></a>        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
 </span><span id="__span-0-266"><a id="__codelineno-0-266" name="__codelineno-0-266"></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;odin control version </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">__version__</span><span class="p">))</span>
 </span><span id="__span-0-267"><a id="__codelineno-0-267" name="__codelineno-0-267"></a>            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 </span><span id="__span-0-268"><a id="__codelineno-0-268" name="__codelineno-0-268"></a>
-</span><span id="__span-0-269"><a id="__codelineno-0-269" name="__codelineno-0-269"></a>    <span class="k">def</span> <span class="nf">resolve_adapters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adapter_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="__span-0-269"><a id="__codelineno-0-269" name="__codelineno-0-269"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">resolve_adapters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adapter_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="__span-0-270"><a id="__codelineno-0-270" name="__codelineno-0-270"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resolve any adapter sections present in the configuration file.</span>
 </span><span id="__span-0-271"><a id="__codelineno-0-271" name="__codelineno-0-271"></a>
 </span><span id="__span-0-272"><a id="__codelineno-0-272" name="__codelineno-0-272"></a><span class="sd">        This method resovles adapter sections preent in the configuration file into a usable</span>
@@ -3874,14 +3906,14 @@ resolve_adapters() method can be used to extract adapter-specific options from a
 </span><span id="__span-0-325"><a id="__codelineno-0-325" name="__codelineno-0-325"></a>
 </span><span id="__span-0-326"><a id="__codelineno-0-326" name="__codelineno-0-326"></a>        <span class="k">return</span> <span class="n">resolved_adapters</span>
 </span><span id="__span-0-327"><a id="__codelineno-0-327" name="__codelineno-0-327"></a>
-</span><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a>    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+</span><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
 </span><span id="__span-0-329"><a id="__codelineno-0-329" name="__codelineno-0-329"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Containment check operator - allows ``in`` to check for presence of option.</span>
 </span><span id="__span-0-330"><a id="__codelineno-0-330" name="__codelineno-0-330"></a>
 </span><span id="__span-0-331"><a id="__codelineno-0-331" name="__codelineno-0-331"></a><span class="sd">        :param item: item to check for presence</span>
 </span><span id="__span-0-332"><a id="__codelineno-0-332" name="__codelineno-0-332"></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="__span-0-333"><a id="__codelineno-0-333" name="__codelineno-0-333"></a>        <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
 </span><span id="__span-0-334"><a id="__codelineno-0-334" name="__codelineno-0-334"></a>
-</span><span id="__span-0-335"><a id="__codelineno-0-335" name="__codelineno-0-335"></a>    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-0-335"><a id="__codelineno-0-335" name="__codelineno-0-335"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="__span-0-336"><a id="__codelineno-0-336" name="__codelineno-0-336"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return an iterator object over the options specified in the current instance.&quot;&quot;&quot;</span>
 </span><span id="__span-0-337"><a id="__codelineno-0-337" name="__codelineno-0-337"></a>        <span class="k">return</span> <span class="p">(</span><span class="n">name</span> <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_options</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_options</span><span class="p">[</span><span class="n">section</span><span class="p">])</span>
 </span></code></pre></div></td></tr></table></div>
@@ -3951,7 +3983,7 @@ resolve_adapters() method can be used to extract adapter-specific options from a
 <span class="normal"><a href="#__codelineno-0-330">330</a></span>
 <span class="normal"><a href="#__codelineno-0-331">331</a></span>
 <span class="normal"><a href="#__codelineno-0-332">332</a></span>
-<span class="normal"><a href="#__codelineno-0-333">333</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a><span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-333">333</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a><span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
 </span><span id="__span-0-329"><a id="__codelineno-0-329" name="__codelineno-0-329"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Containment check operator - allows ``in`` to check for presence of option.</span>
 </span><span id="__span-0-330"><a id="__codelineno-0-330" name="__codelineno-0-330"></a>
 </span><span id="__span-0-331"><a id="__codelineno-0-331" name="__codelineno-0-331"></a><span class="sd">    :param item: item to check for presence</span>
@@ -4038,7 +4070,7 @@ resolve_adapters() method can be used to extract adapter-specific options from a
 <span class="normal"><a href="#__codelineno-0-70">70</a></span>
 <span class="normal"><a href="#__codelineno-0-71">71</a></span>
 <span class="normal"><a href="#__codelineno-0-72">72</a></span>
-<span class="normal"><a href="#__codelineno-0-73">73</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">has_adapters</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-73">73</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">has_adapters</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 </span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialise the configuration parser.</span>
 </span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a>
 </span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="sd">    :param has_adapters: if True, automatically define an --adapters option in the parser</span>
@@ -4092,7 +4124,7 @@ resolve_adapters() method can be used to extract adapter-specific options from a
               <summary>Source code in <code>src/odin_control/config/parser.py</code></summary>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-335">335</a></span>
 <span class="normal"><a href="#__codelineno-0-336">336</a></span>
-<span class="normal"><a href="#__codelineno-0-337">337</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-335"><a id="__codelineno-0-335" name="__codelineno-0-335"></a><span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-337">337</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-335"><a id="__codelineno-0-335" name="__codelineno-0-335"></a><span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="__span-0-336"><a id="__codelineno-0-336" name="__codelineno-0-336"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return an iterator object over the options specified in the current instance.&quot;&quot;&quot;</span>
 </span><span id="__span-0-337"><a id="__codelineno-0-337" name="__codelineno-0-337"></a>    <span class="k">return</span> <span class="p">(</span><span class="n">name</span> <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_options</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_options</span><span class="p">[</span><span class="n">section</span><span class="p">])</span>
 </span></code></pre></div></td></tr></table></div>
@@ -4337,7 +4369,7 @@ flag to allow comma-delimited multiple values to be specified.</p>
 <span class="normal"><a href="#__codelineno-0-130">130</a></span>
 <span class="normal"><a href="#__codelineno-0-131">131</a></span>
 <span class="normal"><a href="#__codelineno-0-132">132</a></span>
-<span class="normal"><a href="#__codelineno-0-133">133</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75"></a><span class="k">def</span> <span class="nf">define</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">option_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">option_help</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="normal"><a href="#__codelineno-0-133">133</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75"></a><span class="k">def</span><span class="w"> </span><span class="nf">define</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">option_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">option_help</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76"></a>           <span class="n">multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Define an option to be parsed from the command-line and/or a configuration file.</span>
 </span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78"></a>
@@ -4535,7 +4567,7 @@ to replicate the desired behaviour.</p>
 <span class="normal"><a href="#__codelineno-0-188">188</a></span>
 <span class="normal"><a href="#__codelineno-0-189">189</a></span>
 <span class="normal"><a href="#__codelineno-0-190">190</a></span>
-<span class="normal"><a href="#__codelineno-0-191">191</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-135"><a id="__codelineno-0-135" name="__codelineno-0-135"></a><span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-191">191</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-135"><a id="__codelineno-0-135" name="__codelineno-0-135"></a><span class="k">def</span><span class="w"> </span><span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="__span-0-136"><a id="__codelineno-0-136" name="__codelineno-0-136"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse command-line and file configuration options.</span>
 </span><span id="__span-0-137"><a id="__codelineno-0-137" name="__codelineno-0-137"></a>
 </span><span id="__span-0-138"><a id="__codelineno-0-138" name="__codelineno-0-138"></a><span class="sd">    This method parses command-line and file (if specified a ``--config`` argument)</span>
@@ -4633,7 +4665,8 @@ list of adapters to be loaded and configured by the server.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>a list of adapter names to resolve. If not set, the parsers adapters attribute will be substituted</p>
+                <p>a list of adapter names to resolve. If not set, the
+parsers adapters attribute will be substituted</p>
               </div>
             </td>
             <td>
@@ -4725,7 +4758,7 @@ list of adapters to be loaded and configured by the server.</p>
 <span class="normal"><a href="#__codelineno-0-323">323</a></span>
 <span class="normal"><a href="#__codelineno-0-324">324</a></span>
 <span class="normal"><a href="#__codelineno-0-325">325</a></span>
-<span class="normal"><a href="#__codelineno-0-326">326</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-269"><a id="__codelineno-0-269" name="__codelineno-0-269"></a><span class="k">def</span> <span class="nf">resolve_adapters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adapter_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-326">326</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-269"><a id="__codelineno-0-269" name="__codelineno-0-269"></a><span class="k">def</span><span class="w"> </span><span class="nf">resolve_adapters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adapter_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="__span-0-270"><a id="__codelineno-0-270" name="__codelineno-0-270"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Resolve any adapter sections present in the configuration file.</span>
 </span><span id="__span-0-271"><a id="__codelineno-0-271" name="__codelineno-0-271"></a>
 </span><span id="__span-0-272"><a id="__codelineno-0-272" name="__codelineno-0-272"></a><span class="sd">    This method resovles adapter sections preent in the configuration file into a usable</span>
@@ -4810,13 +4843,6 @@ list of adapters to be loaded and configured by the server.</p>
 
 
 
-
-
-
-
-
-
-
                 
               </article>
             </div>
@@ -4824,7 +4850,29 @@ list of adapters to be loaded and configured by the server.</p>
           
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
-        
+          <div class="md-top" data-md-component="top" hidden>
+  <div class="md-top__center">
+    <button type="button" class="md-top__button md-top__button--main" data-md-action="top">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+      <span>Back to top</span>
+    </button>
+    
+      
+      
+      <label class="md-top__button md-top__side md-top__side--nav" for="__drawer" >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 14H9V6h11Z"/></svg>
+      </label>
+    
+    
+      
+      
+      <label class="md-top__button md-top__side md-top__side--toc" for="__toc" >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m-5 14H4V6h11Z"/></svg>
+      </label>
+    
+  </div>
+</div>
       </main>
       
         <footer class="md-footer">
@@ -4835,8 +4883,8 @@ list of adapters to be loaded and configured by the server.</p>
   
   
     Made with
-    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
-      Material for MkDocs
+    <a href="https://jaywhj.github.io/mkdocs-materialx/" target="_blank" rel="noopener">
+      MaterialX for MkDocs
     </a>
   
 </div>
@@ -4854,10 +4902,10 @@ list of adapters to be loaded and configured by the server.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../../assets/javascripts/bundle.de0c63e3.min.js"></script>
       
     
   </body>

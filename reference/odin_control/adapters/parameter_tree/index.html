@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-ProperDocs 1.6.7, mkdocs-materialx-10.1.0">
     
     
       
@@ -29,10 +29,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.e08026d9.min.css">
       
         
-        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.204eaadb.min.css">
       
       
 
@@ -53,6 +53,8 @@
     
       <link rel="stylesheet" href="../../../../assets/_mkdocstrings.css">
     
+      <link rel="stylesheet" href="../../../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -62,6 +64,8 @@
   </head>
   
   
+  
+  
     
     
       
@@ -69,12 +73,14 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" data-mx-topbar="primary">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="toc" type="checkbox" id="__toc" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
+    <label class="md-overlay" for="__toc"></label>
     <div data-md-component="skip">
       
         
@@ -124,7 +130,31 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
     
   
 </form>
@@ -136,10 +166,12 @@
     
     
       
+        
+      
       
         <label class="md-header__button md-icon" for="__search">
           
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.25 2a8.25 8.25 0 0 1 6.34 13.53l5.69 5.69a.749.749 0 0 1-.326 1.275.75.75 0 0 1-.734-.215l-5.69-5.69A8.25 8.25 0 1 1 10.25 2M3.5 10.25a6.75 6.75 0 1 0 13.5 0 6.75 6.75 0 0 0-13.5 0"/></svg>
         </label>
         <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
@@ -148,7 +180,7 @@
       <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.25 2a8.25 8.25 0 0 1 6.34 13.53l5.69 5.69a.749.749 0 0 1-.326 1.275.75.75 0 0 1-.734-.215l-5.69-5.69A8.25 8.25 0 1 1 10.25 2M3.5 10.25a6.75 6.75 0 1 0 13.5 0 6.75 6.75 0 0 0-13.5 0"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
@@ -162,7 +194,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0">
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -360,7 +392,7 @@
 </a>
     </div>
   
-  <ul class="md-nav__list" data-md-scrollfix>
+  <ul class="md-nav__list">
     
       
       
@@ -473,7 +505,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -655,7 +687,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -719,7 +751,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -864,7 +896,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -1178,7 +1210,7 @@
       <span class="md-nav__icon md-icon"></span>
       Table of contents
     </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+    <ul class="md-nav__list" data-md-component="toc">
       
         <li class="md-nav__item">
   <a href="#odin_control.adapters.parameter_tree" class="md-nav__link">
@@ -1528,7 +1560,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -1587,7 +1619,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -1738,7 +1770,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -1876,7 +1908,7 @@
       <span class="md-nav__icon md-icon"></span>
       Table of contents
     </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+    <ul class="md-nav__list" data-md-component="toc">
       
         <li class="md-nav__item">
   <a href="#odin_control.adapters.parameter_tree" class="md-nav__link">
@@ -2069,7 +2101,7 @@ metadata fields are implemented.</p>
 <span class="normal"><a href="#__codelineno-0-41">41</a></span>
 <span class="normal"><a href="#__codelineno-0-42">42</a></span>
 <span class="normal"><a href="#__codelineno-0-43">43</a></span>
-<span class="normal"><a href="#__codelineno-0-44">44</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="k">class</span> <span class="nc">ParameterAccessor</span><span class="p">(</span><span class="n">BaseParameterAccessor</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-44">44</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="k">class</span><span class="w"> </span><span class="nc">ParameterAccessor</span><span class="p">(</span><span class="n">BaseParameterAccessor</span><span class="p">):</span>
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Synchronous container class representing accessor methods for a parameter.</span>
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18"></a>
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="sd">    This class extends the base parameter accessor class to support synchronous set and get</span>
@@ -2077,7 +2109,7 @@ metadata fields are implemented.</p>
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21"></a><span class="sd">    metadata fields are implemented.</span>
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23"></a>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">getter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">setter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">getter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">setter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 </span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialise the ParameterAccessor instance.</span>
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26"></a>
 </span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="sd">        This constructor initialises the ParameterAccessor instance, storing the path of the</span>
@@ -2195,7 +2227,8 @@ keyword arguments.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>keyword argument list for metadata fields to be set; these must be from the allow list specified in BaseParameterAccessor.allowed_metadata</p>
+                <p>keyword argument list for metadata fields to be set; these must be from
+the allow list specified in BaseParameterAccessor.allowed_metadata</p>
               </div>
             </td>
             <td>
@@ -2228,7 +2261,7 @@ keyword arguments.</p>
 <span class="normal"><a href="#__codelineno-0-41">41</a></span>
 <span class="normal"><a href="#__codelineno-0-42">42</a></span>
 <span class="normal"><a href="#__codelineno-0-43">43</a></span>
-<span class="normal"><a href="#__codelineno-0-44">44</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">getter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">setter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-44">44</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">getter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">setter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 </span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialise the ParameterAccessor instance.</span>
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26"></a>
 </span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="sd">    This constructor initialises the ParameterAccessor instance, storing the path of the</span>
@@ -2314,14 +2347,14 @@ and the appropriate accessor methods that are used to read and write those param
 <span class="normal"><a href="#__codelineno-0-65">65</a></span>
 <span class="normal"><a href="#__codelineno-0-66">66</a></span>
 <span class="normal"><a href="#__codelineno-0-67">67</a></span>
-<span class="normal"><a href="#__codelineno-0-68">68</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="k">class</span> <span class="nc">ParameterTree</span><span class="p">(</span><span class="n">BaseParameterTree</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-68">68</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="k">class</span><span class="w"> </span><span class="nc">ParameterTree</span><span class="p">(</span><span class="n">BaseParameterTree</span><span class="p">):</span>
 </span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class implementing a synchronous tree of parameters and their accessors.</span>
 </span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a>
 </span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a><span class="sd">    This lass implements an arbitrarily-structured, recursively-managed tree of parameters</span>
 </span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a><span class="sd">    and the appropriate accessor methods that are used to read and write those parameters.</span>
 </span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53"></a>
-</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialise the ParameterTree object.</span>
 </span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56"></a>
 </span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="sd">        This constructor recursively initialises the ParameterTree object based on the specified</span>
@@ -2430,7 +2463,7 @@ implementation.</p>
 <span class="normal"><a href="#__codelineno-0-65">65</a></span>
 <span class="normal"><a href="#__codelineno-0-66">66</a></span>
 <span class="normal"><a href="#__codelineno-0-67">67</a></span>
-<span class="normal"><a href="#__codelineno-0-68">68</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54"></a><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-68">68</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54"></a><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialise the ParameterTree object.</span>
 </span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56"></a>
 </span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="sd">    This constructor recursively initialises the ParameterTree object based on the specified</span>
@@ -2490,7 +2523,7 @@ implementation.</p>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-13">13</a></span>
 <span class="normal"><a href="#__codelineno-0-14">14</a></span>
 <span class="normal"><a href="#__codelineno-0-15">15</a></span>
-<span class="normal"><a href="#__codelineno-0-16">16</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="k">class</span> <span class="nc">ParameterTreeError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-16">16</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="k">class</span><span class="w"> </span><span class="nc">ParameterTreeError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple error class for raising parameter tree parameter tree exceptions.&quot;&quot;&quot;</span>
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15"></a>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a>    <span class="k">pass</span>
@@ -2514,13 +2547,6 @@ implementation.</p>
 
 
 
-
-
-
-
-
-
-
                 
               </article>
             </div>
@@ -2528,7 +2554,29 @@ implementation.</p>
           
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
-        
+          <div class="md-top" data-md-component="top" hidden>
+  <div class="md-top__center">
+    <button type="button" class="md-top__button md-top__button--main" data-md-action="top">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+      <span>Back to top</span>
+    </button>
+    
+      
+      
+      <label class="md-top__button md-top__side md-top__side--nav" for="__drawer" >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 14H9V6h11Z"/></svg>
+      </label>
+    
+    
+      
+      
+      <label class="md-top__button md-top__side md-top__side--toc" for="__toc" >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m-5 14H4V6h11Z"/></svg>
+      </label>
+    
+  </div>
+</div>
       </main>
       
         <footer class="md-footer">
@@ -2539,8 +2587,8 @@ implementation.</p>
   
   
     Made with
-    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
-      Material for MkDocs
+    <a href="https://jaywhj.github.io/mkdocs-materialx/" target="_blank" rel="noopener">
+      MaterialX for MkDocs
     </a>
   
 </div>
@@ -2558,10 +2606,10 @@ implementation.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../../assets/javascripts/bundle.de0c63e3.min.js"></script>
       
     
   </body>

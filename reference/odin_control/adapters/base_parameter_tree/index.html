@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-ProperDocs 1.6.7, mkdocs-materialx-10.1.0">
     
     
       
@@ -29,10 +29,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.e08026d9.min.css">
       
         
-        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.204eaadb.min.css">
       
       
 
@@ -53,6 +53,8 @@
     
       <link rel="stylesheet" href="../../../../assets/_mkdocstrings.css">
     
+      <link rel="stylesheet" href="../../../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -62,6 +64,8 @@
   </head>
   
   
+  
+  
     
     
       
@@ -69,12 +73,14 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" data-mx-topbar="primary">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="toc" type="checkbox" id="__toc" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
+    <label class="md-overlay" for="__toc"></label>
     <div data-md-component="skip">
       
         
@@ -124,7 +130,31 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
     
   
 </form>
@@ -136,10 +166,12 @@
     
     
       
+        
+      
       
         <label class="md-header__button md-icon" for="__search">
           
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.25 2a8.25 8.25 0 0 1 6.34 13.53l5.69 5.69a.749.749 0 0 1-.326 1.275.75.75 0 0 1-.734-.215l-5.69-5.69A8.25 8.25 0 1 1 10.25 2M3.5 10.25a6.75 6.75 0 1 0 13.5 0 6.75 6.75 0 0 0-13.5 0"/></svg>
         </label>
         <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
@@ -148,7 +180,7 @@
       <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.25 2a8.25 8.25 0 0 1 6.34 13.53l5.69 5.69a.749.749 0 0 1-.326 1.275.75.75 0 0 1-.734-.215l-5.69-5.69A8.25 8.25 0 1 1 10.25 2M3.5 10.25a6.75 6.75 0 1 0 13.5 0 6.75 6.75 0 0 0-13.5 0"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
@@ -162,7 +194,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0">
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -360,7 +392,7 @@
 </a>
     </div>
   
-  <ul class="md-nav__list" data-md-scrollfix>
+  <ul class="md-nav__list">
     
       
       
@@ -473,7 +505,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -655,7 +687,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -719,7 +751,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -864,7 +896,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -1094,7 +1126,7 @@
       <span class="md-nav__icon md-icon"></span>
       Table of contents
     </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+    <ul class="md-nav__list" data-md-component="toc">
       
         <li class="md-nav__item">
   <a href="#odin_control.adapters.base_parameter_tree" class="md-nav__link">
@@ -1605,7 +1637,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -1664,7 +1696,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -1815,7 +1847,7 @@
   
 
           </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+          <ul class="md-nav__list">
             
               
                 
@@ -1953,7 +1985,7 @@
       <span class="md-nav__icon md-icon"></span>
       Table of contents
     </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+    <ul class="md-nav__list" data-md-component="toc">
       
         <li class="md-nav__item">
   <a href="#odin_control.adapters.base_parameter_tree" class="md-nav__link">
@@ -2351,7 +2383,7 @@ writeable: is the parameter writable</p>
 <span class="normal"><a href="#__codelineno-0-158">158</a></span>
 <span class="normal"><a href="#__codelineno-0-159">159</a></span>
 <span class="normal"><a href="#__codelineno-0-160">160</a></span>
-<span class="normal"><a href="#__codelineno-0-161">161</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="k">class</span> <span class="nc">BaseParameterAccessor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-161">161</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19"></a><span class="k">class</span><span class="w"> </span><span class="nc">BaseParameterAccessor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base container class representing accessor methods for a parameter.</span>
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21"></a>
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22"></a><span class="sd">    This base class implements a parameter accessor, provding set and get methods</span>
@@ -2381,7 +2413,7 @@ writeable: is the parameter writable</p>
 </span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a>    <span class="c1"># writeable status depending on specified accessors</span>
 </span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a>    <span class="n">AUTO_METADATA_FIELDS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;writeable&quot;</span><span class="p">)</span>
 </span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a>
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">getter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">setter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">getter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">setter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 </span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialise the BaseParameterAccessor instance.</span>
 </span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a>
 </span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="sd">        This constructor initialises the BaseParameterAccessor instance, storing</span>
@@ -2413,7 +2445,7 @@ writeable: is the parameter writable</p>
 </span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78"></a>        <span class="c1"># Set the writeable metadata field if the setter is callable</span>
 </span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;writeable&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">callable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set</span><span class="p">)</span>
 </span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80"></a>
-</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the value of the parameter.</span>
 </span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83"></a>
 </span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84"></a><span class="sd">        This method returns the value of the parameter, or the value returned</span>
@@ -2439,7 +2471,7 @@ writeable: is the parameter writable</p>
 </span><span id="__span-0-104"><a id="__codelineno-0-104" name="__codelineno-0-104"></a>
 </span><span id="__span-0-105"><a id="__codelineno-0-105" name="__codelineno-0-105"></a>        <span class="k">return</span> <span class="n">value</span>
 </span><span id="__span-0-106"><a id="__codelineno-0-106" name="__codelineno-0-106"></a>
-</span><span id="__span-0-107"><a id="__codelineno-0-107" name="__codelineno-0-107"></a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="__span-0-107"><a id="__codelineno-0-107" name="__codelineno-0-107"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="__span-0-108"><a id="__codelineno-0-108" name="__codelineno-0-108"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the value of the parameter.</span>
 </span><span id="__span-0-109"><a id="__codelineno-0-109" name="__codelineno-0-109"></a>
 </span><span id="__span-0-110"><a id="__codelineno-0-110" name="__codelineno-0-110"></a><span class="sd">        This method sets the value of the parameter by calling the set accessor</span>
@@ -2591,7 +2623,8 @@ on the the specified keyword arguments</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>keyword argument list for metadata fields to be set; these must be from the allow list specified in ParameterAccessor.allowed_metadata</p>
+                <p>keyword argument list for metadata fields to be set; these must be from
+the allow list specified in ParameterAccessor.allowed_metadata</p>
               </div>
             </td>
             <td>
@@ -2634,7 +2667,7 @@ on the the specified keyword arguments</p>
 <span class="normal"><a href="#__codelineno-0-76">76</a></span>
 <span class="normal"><a href="#__codelineno-0-77">77</a></span>
 <span class="normal"><a href="#__codelineno-0-78">78</a></span>
-<span class="normal"><a href="#__codelineno-0-79">79</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">getter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">setter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-79">79</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">getter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">setter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 </span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialise the BaseParameterAccessor instance.</span>
 </span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a>
 </span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="sd">    This constructor initialises the BaseParameterAccessor instance, storing</span>
@@ -2767,7 +2800,7 @@ parameter.</p>
 <span class="normal"><a href="#__codelineno-0-102">102</a></span>
 <span class="normal"><a href="#__codelineno-0-103">103</a></span>
 <span class="normal"><a href="#__codelineno-0-104">104</a></span>
-<span class="normal"><a href="#__codelineno-0-105">105</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a><span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-105">105</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a><span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the value of the parameter.</span>
 </span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83"></a>
 </span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84"></a><span class="sd">    This method returns the value of the parameter, or the value returned</span>
@@ -2900,7 +2933,7 @@ if defined and callable, otherwise raising an exception.</p>
 <span class="normal"><a href="#__codelineno-0-158">158</a></span>
 <span class="normal"><a href="#__codelineno-0-159">159</a></span>
 <span class="normal"><a href="#__codelineno-0-160">160</a></span>
-<span class="normal"><a href="#__codelineno-0-161">161</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-107"><a id="__codelineno-0-107" name="__codelineno-0-107"></a><span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-161">161</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-107"><a id="__codelineno-0-107" name="__codelineno-0-107"></a><span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="__span-0-108"><a id="__codelineno-0-108" name="__codelineno-0-108"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Set the value of the parameter.</span>
 </span><span id="__span-0-109"><a id="__codelineno-0-109" name="__codelineno-0-109"></a>
 </span><span id="__span-0-110"><a id="__codelineno-0-110" name="__codelineno-0-110"></a><span class="sd">    This method sets the value of the parameter by calling the set accessor</span>
@@ -3350,7 +3383,7 @@ interfacing of those to the underlying device or object.</p>
 <span class="normal"><a href="#__codelineno-0-510">510</a></span>
 <span class="normal"><a href="#__codelineno-0-511">511</a></span>
 <span class="normal"><a href="#__codelineno-0-512">512</a></span>
-<span class="normal"><a href="#__codelineno-0-513">513</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-164"><a id="__codelineno-0-164" name="__codelineno-0-164"></a><span class="k">class</span> <span class="nc">BaseParameterTree</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-513">513</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-164"><a id="__codelineno-0-164" name="__codelineno-0-164"></a><span class="k">class</span><span class="w"> </span><span class="nc">BaseParameterTree</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 </span><span id="__span-0-165"><a id="__codelineno-0-165" name="__codelineno-0-165"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class implementing a tree of parameters and their accessors.</span>
 </span><span id="__span-0-166"><a id="__codelineno-0-166" name="__codelineno-0-166"></a>
 </span><span id="__span-0-167"><a id="__codelineno-0-167" name="__codelineno-0-167"></a><span class="sd">    This base class implements an arbitrarily-structured, recursively-managed tree of parameters and</span>
@@ -3359,7 +3392,7 @@ interfacing of those to the underlying device or object.</p>
 </span><span id="__span-0-170"><a id="__codelineno-0-170" name="__codelineno-0-170"></a><span class="sd">    interfacing of those to the underlying device or object.</span>
 </span><span id="__span-0-171"><a id="__codelineno-0-171" name="__codelineno-0-171"></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="__span-0-172"><a id="__codelineno-0-172" name="__codelineno-0-172"></a>
-</span><span id="__span-0-173"><a id="__codelineno-0-173" name="__codelineno-0-173"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-0-173"><a id="__codelineno-0-173" name="__codelineno-0-173"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="__span-0-174"><a id="__codelineno-0-174" name="__codelineno-0-174"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialise the BaseParameterTree object.</span>
 </span><span id="__span-0-175"><a id="__codelineno-0-175" name="__codelineno-0-175"></a>
 </span><span id="__span-0-176"><a id="__codelineno-0-176" name="__codelineno-0-176"></a><span class="sd">        This constructor recursively initialises the BaseParameterTree object, based on the</span>
@@ -3398,14 +3431,14 @@ interfacing of those to the underlying device or object.</p>
 </span><span id="__span-0-209"><a id="__codelineno-0-209" name="__codelineno-0-209"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_tree</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
 </span><span id="__span-0-210"><a id="__codelineno-0-210" name="__codelineno-0-210"></a>
 </span><span id="__span-0-211"><a id="__codelineno-0-211" name="__codelineno-0-211"></a>    <span class="nd">@property</span>
-</span><span id="__span-0-212"><a id="__codelineno-0-212" name="__codelineno-0-212"></a>    <span class="k">def</span> <span class="nf">tree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-0-212"><a id="__codelineno-0-212" name="__codelineno-0-212"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">tree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="__span-0-213"><a id="__codelineno-0-213" name="__codelineno-0-213"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return tree object for this parameter tree node.</span>
 </span><span id="__span-0-214"><a id="__codelineno-0-214" name="__codelineno-0-214"></a>
 </span><span id="__span-0-215"><a id="__codelineno-0-215" name="__codelineno-0-215"></a><span class="sd">        Used internally for recursive descent of parameter trees.</span>
 </span><span id="__span-0-216"><a id="__codelineno-0-216" name="__codelineno-0-216"></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="__span-0-217"><a id="__codelineno-0-217" name="__codelineno-0-217"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tree</span>
 </span><span id="__span-0-218"><a id="__codelineno-0-218" name="__codelineno-0-218"></a>
-</span><span id="__span-0-219"><a id="__codelineno-0-219" name="__codelineno-0-219"></a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">with_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-0-219"><a id="__codelineno-0-219" name="__codelineno-0-219"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">with_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="__span-0-220"><a id="__codelineno-0-220" name="__codelineno-0-220"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the values of parameters in a tree.</span>
 </span><span id="__span-0-221"><a id="__codelineno-0-221" name="__codelineno-0-221"></a>
 </span><span id="__span-0-222"><a id="__codelineno-0-222" name="__codelineno-0-222"></a><span class="sd">        This method returns the values at and below a specified path in the parameter tree.</span>
@@ -3447,7 +3480,7 @@ interfacing of those to the underlying device or object.</p>
 </span><span id="__span-0-258"><a id="__codelineno-0-258" name="__codelineno-0-258"></a>
 </span><span id="__span-0-259"><a id="__codelineno-0-259" name="__codelineno-0-259"></a>        <span class="k">return</span> <span class="n">values</span>
 </span><span id="__span-0-260"><a id="__codelineno-0-260" name="__codelineno-0-260"></a>
-</span><span id="__span-0-261"><a id="__codelineno-0-261" name="__codelineno-0-261"></a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-0-261"><a id="__codelineno-0-261" name="__codelineno-0-261"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="__span-0-262"><a id="__codelineno-0-262" name="__codelineno-0-262"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the values of the parameters in a tree.</span>
 </span><span id="__span-0-263"><a id="__codelineno-0-263" name="__codelineno-0-263"></a>
 </span><span id="__span-0-264"><a id="__codelineno-0-264" name="__codelineno-0-264"></a><span class="sd">        This method sets the values of parameters in a tree, based on the data passed to it</span>
@@ -3502,7 +3535,7 @@ interfacing of those to the underlying device or object.</p>
 </span><span id="__span-0-313"><a id="__codelineno-0-313" name="__codelineno-0-313"></a>        <span class="k">else</span><span class="p">:</span>
 </span><span id="__span-0-314"><a id="__codelineno-0-314" name="__codelineno-0-314"></a>            <span class="n">merge_parent</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">levels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span> <span class="o">=</span> <span class="n">merged</span>
 </span><span id="__span-0-315"><a id="__codelineno-0-315" name="__codelineno-0-315"></a>
-</span><span id="__span-0-316"><a id="__codelineno-0-316" name="__codelineno-0-316"></a>    <span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+</span><span id="__span-0-316"><a id="__codelineno-0-316" name="__codelineno-0-316"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 </span><span id="__span-0-317"><a id="__codelineno-0-317" name="__codelineno-0-317"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Replaces a branch of parameters in a tree.</span>
 </span><span id="__span-0-318"><a id="__codelineno-0-318" name="__codelineno-0-318"></a>
 </span><span id="__span-0-319"><a id="__codelineno-0-319" name="__codelineno-0-319"></a><span class="sd">        This method sets the values of parameters in a tree, based on the data passed to it</span>
@@ -3514,7 +3547,7 @@ interfacing of those to the underlying device or object.</p>
 </span><span id="__span-0-325"><a id="__codelineno-0-325" name="__codelineno-0-325"></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="__span-0-326"><a id="__codelineno-0-326" name="__codelineno-0-326"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="__span-0-327"><a id="__codelineno-0-327" name="__codelineno-0-327"></a>
-</span><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+</span><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
 </span><span id="__span-0-329"><a id="__codelineno-0-329" name="__codelineno-0-329"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete parameters from a mutable tree.</span>
 </span><span id="__span-0-330"><a id="__codelineno-0-330" name="__codelineno-0-330"></a>
 </span><span id="__span-0-331"><a id="__codelineno-0-331" name="__codelineno-0-331"></a><span class="sd">        This method deletes selected parameters from a tree, if that tree has been flagged as</span>
@@ -3554,7 +3587,7 @@ interfacing of those to the underlying device or object.</p>
 </span><span id="__span-0-365"><a id="__codelineno-0-365" name="__codelineno-0-365"></a>        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">):</span>
 </span><span id="__span-0-366"><a id="__codelineno-0-366" name="__codelineno-0-366"></a>            <span class="k">raise</span> <span class="n">ParameterTreeError</span><span class="p">(</span><span class="s2">&quot;Invalid path: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
 </span><span id="__span-0-367"><a id="__codelineno-0-367" name="__codelineno-0-367"></a>
-</span><span id="__span-0-368"><a id="__codelineno-0-368" name="__codelineno-0-368"></a>    <span class="k">def</span> <span class="nf">_build_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+</span><span id="__span-0-368"><a id="__codelineno-0-368" name="__codelineno-0-368"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_build_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
 </span><span id="__span-0-369"><a id="__codelineno-0-369" name="__codelineno-0-369"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively build and expand out a tree or node.</span>
 </span><span id="__span-0-370"><a id="__codelineno-0-370" name="__codelineno-0-370"></a>
 </span><span id="__span-0-371"><a id="__codelineno-0-371" name="__codelineno-0-371"></a><span class="sd">        This internal method is used to recursively build and expand a tree or node,</span>
@@ -3606,7 +3639,7 @@ interfacing of those to the underlying device or object.</p>
 </span><span id="__span-0-417"><a id="__codelineno-0-417" name="__codelineno-0-417"></a>
 </span><span id="__span-0-418"><a id="__codelineno-0-418" name="__codelineno-0-418"></a>        <span class="k">return</span> <span class="n">node</span>
 </span><span id="__span-0-419"><a id="__codelineno-0-419" name="__codelineno-0-419"></a>
-</span><span id="__span-0-420"><a id="__codelineno-0-420" name="__codelineno-0-420"></a>    <span class="k">def</span> <span class="nf">_populate_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">with_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-0-420"><a id="__codelineno-0-420" name="__codelineno-0-420"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_populate_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">with_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="__span-0-421"><a id="__codelineno-0-421" name="__codelineno-0-421"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively populate a tree with values.</span>
 </span><span id="__span-0-422"><a id="__codelineno-0-422" name="__codelineno-0-422"></a>
 </span><span id="__span-0-423"><a id="__codelineno-0-423" name="__codelineno-0-423"></a><span class="sd">        This internal method recursively populates the tree with parameter values, or</span>
@@ -3631,7 +3664,7 @@ interfacing of those to the underlying device or object.</p>
 </span><span id="__span-0-442"><a id="__codelineno-0-442" name="__codelineno-0-442"></a>
 </span><span id="__span-0-443"><a id="__codelineno-0-443" name="__codelineno-0-443"></a>        <span class="k">return</span> <span class="n">node</span>
 </span><span id="__span-0-444"><a id="__codelineno-0-444" name="__codelineno-0-444"></a>
-</span><span id="__span-0-445"><a id="__codelineno-0-445" name="__codelineno-0-445"></a>    <span class="k">def</span> <span class="nf">_merge_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">new_data</span><span class="p">,</span> <span class="n">cur_path</span><span class="p">):</span>
+</span><span id="__span-0-445"><a id="__codelineno-0-445" name="__codelineno-0-445"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_merge_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">new_data</span><span class="p">,</span> <span class="n">cur_path</span><span class="p">):</span>
 </span><span id="__span-0-446"><a id="__codelineno-0-446" name="__codelineno-0-446"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively merge a tree with new values.</span>
 </span><span id="__span-0-447"><a id="__codelineno-0-447" name="__codelineno-0-447"></a>
 </span><span id="__span-0-448"><a id="__codelineno-0-448" name="__codelineno-0-448"></a><span class="sd">        This internal method recursively merges a tree with new values. Called by the set()</span>
@@ -3690,7 +3723,7 @@ interfacing of those to the underlying device or object.</p>
 </span><span id="__span-0-501"><a id="__codelineno-0-501" name="__codelineno-0-501"></a>
 </span><span id="__span-0-502"><a id="__codelineno-0-502" name="__codelineno-0-502"></a>        <span class="k">return</span> <span class="n">node</span>
 </span><span id="__span-0-503"><a id="__codelineno-0-503" name="__codelineno-0-503"></a>
-</span><span id="__span-0-504"><a id="__codelineno-0-504" name="__codelineno-0-504"></a>    <span class="k">def</span> <span class="nf">_set_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+</span><span id="__span-0-504"><a id="__codelineno-0-504" name="__codelineno-0-504"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_set_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 </span><span id="__span-0-505"><a id="__codelineno-0-505" name="__codelineno-0-505"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the value of a node to the specified data.</span>
 </span><span id="__span-0-506"><a id="__codelineno-0-506" name="__codelineno-0-506"></a>
 </span><span id="__span-0-507"><a id="__codelineno-0-507" name="__codelineno-0-507"></a><span class="sd">        This method trivially sets a specified node to the data supplied. It is exposed as a method</span>
@@ -3852,7 +3885,7 @@ dictionaries/lists e.g.</p>
 <span class="normal"><a href="#__codelineno-0-206">206</a></span>
 <span class="normal"><a href="#__codelineno-0-207">207</a></span>
 <span class="normal"><a href="#__codelineno-0-208">208</a></span>
-<span class="normal"><a href="#__codelineno-0-209">209</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-173"><a id="__codelineno-0-173" name="__codelineno-0-173"></a><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-209">209</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-173"><a id="__codelineno-0-173" name="__codelineno-0-173"></a><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="__span-0-174"><a id="__codelineno-0-174" name="__codelineno-0-174"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialise the BaseParameterTree object.</span>
 </span><span id="__span-0-175"><a id="__codelineno-0-175" name="__codelineno-0-175"></a>
 </span><span id="__span-0-176"><a id="__codelineno-0-176" name="__codelineno-0-176"></a><span class="sd">    This constructor recursively initialises the BaseParameterTree object, based on the</span>
@@ -3981,7 +4014,7 @@ Mutable. Deletion of Branch Nodes means all child nodes of that Branch Node are 
 <span class="normal"><a href="#__codelineno-0-363">363</a></span>
 <span class="normal"><a href="#__codelineno-0-364">364</a></span>
 <span class="normal"><a href="#__codelineno-0-365">365</a></span>
-<span class="normal"><a href="#__codelineno-0-366">366</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a><span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-366">366</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a><span class="k">def</span><span class="w"> </span><span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
 </span><span id="__span-0-329"><a id="__codelineno-0-329" name="__codelineno-0-329"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Delete parameters from a mutable tree.</span>
 </span><span id="__span-0-330"><a id="__codelineno-0-330" name="__codelineno-0-330"></a>
 </span><span id="__span-0-331"><a id="__codelineno-0-331" name="__codelineno-0-331"></a><span class="sd">    This method deletes selected parameters from a tree, if that tree has been flagged as</span>
@@ -4152,7 +4185,7 @@ returning the result as a dictionary.</p>
 <span class="normal"><a href="#__codelineno-0-256">256</a></span>
 <span class="normal"><a href="#__codelineno-0-257">257</a></span>
 <span class="normal"><a href="#__codelineno-0-258">258</a></span>
-<span class="normal"><a href="#__codelineno-0-259">259</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-219"><a id="__codelineno-0-219" name="__codelineno-0-219"></a><span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">with_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-259">259</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-219"><a id="__codelineno-0-219" name="__codelineno-0-219"></a><span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">with_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="__span-0-220"><a id="__codelineno-0-220" name="__codelineno-0-220"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the values of parameters in a tree.</span>
 </span><span id="__span-0-221"><a id="__codelineno-0-221" name="__codelineno-0-221"></a>
 </span><span id="__span-0-222"><a id="__codelineno-0-222" name="__codelineno-0-222"></a><span class="sd">    This method returns the values at and below a specified path in the parameter tree.</span>
@@ -4273,7 +4306,7 @@ point in the exising tree is replaced with this new structure.</p>
 <span class="normal"><a href="#__codelineno-0-323">323</a></span>
 <span class="normal"><a href="#__codelineno-0-324">324</a></span>
 <span class="normal"><a href="#__codelineno-0-325">325</a></span>
-<span class="normal"><a href="#__codelineno-0-326">326</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-316"><a id="__codelineno-0-316" name="__codelineno-0-316"></a><span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-326">326</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-316"><a id="__codelineno-0-316" name="__codelineno-0-316"></a><span class="k">def</span><span class="w"> </span><span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 </span><span id="__span-0-317"><a id="__codelineno-0-317" name="__codelineno-0-317"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Replaces a branch of parameters in a tree.</span>
 </span><span id="__span-0-318"><a id="__codelineno-0-318" name="__codelineno-0-318"></a>
 </span><span id="__span-0-319"><a id="__codelineno-0-319" name="__codelineno-0-319"></a><span class="sd">    This method sets the values of parameters in a tree, based on the data passed to it</span>
@@ -4422,7 +4455,7 @@ into the existing tree recursively.</p>
 <span class="normal"><a href="#__codelineno-0-311">311</a></span>
 <span class="normal"><a href="#__codelineno-0-312">312</a></span>
 <span class="normal"><a href="#__codelineno-0-313">313</a></span>
-<span class="normal"><a href="#__codelineno-0-314">314</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-261"><a id="__codelineno-0-261" name="__codelineno-0-261"></a><span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-314">314</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-261"><a id="__codelineno-0-261" name="__codelineno-0-261"></a><span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="__span-0-262"><a id="__codelineno-0-262" name="__codelineno-0-262"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Set the values of the parameters in a tree.</span>
 </span><span id="__span-0-263"><a id="__codelineno-0-263" name="__codelineno-0-263"></a>
 </span><span id="__span-0-264"><a id="__codelineno-0-264" name="__codelineno-0-264"></a><span class="sd">    This method sets the values of parameters in a tree, based on the data passed to it</span>
@@ -4521,7 +4554,7 @@ into the existing tree recursively.</p>
                 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-13">13</a></span>
 <span class="normal"><a href="#__codelineno-0-14">14</a></span>
 <span class="normal"><a href="#__codelineno-0-15">15</a></span>
-<span class="normal"><a href="#__codelineno-0-16">16</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="k">class</span> <span class="nc">ParameterTreeError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="normal"><a href="#__codelineno-0-16">16</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="k">class</span><span class="w"> </span><span class="nc">ParameterTreeError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple error class for raising parameter tree parameter tree exceptions.&quot;&quot;&quot;</span>
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15"></a>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a>    <span class="k">pass</span>
@@ -4545,13 +4578,6 @@ into the existing tree recursively.</p>
 
 
 
-
-
-
-
-
-
-
                 
               </article>
             </div>
@@ -4559,7 +4585,29 @@ into the existing tree recursively.</p>
           
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
-        
+          <div class="md-top" data-md-component="top" hidden>
+  <div class="md-top__center">
+    <button type="button" class="md-top__button md-top__button--main" data-md-action="top">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+      <span>Back to top</span>
+    </button>
+    
+      
+      
+      <label class="md-top__button md-top__side md-top__side--nav" for="__drawer" >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 14H9V6h11Z"/></svg>
+      </label>
+    
+    
+      
+      
+      <label class="md-top__button md-top__side md-top__side--toc" for="__toc" >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m-5 14H4V6h11Z"/></svg>
+      </label>
+    
+  </div>
+</div>
       </main>
       
         <footer class="md-footer">
@@ -4570,8 +4618,8 @@ into the existing tree recursively.</p>
   
   
     Made with
-    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
-      Material for MkDocs
+    <a href="https://jaywhj.github.io/mkdocs-materialx/" target="_blank" rel="noopener">
+      MaterialX for MkDocs
     </a>
   
 </div>
@@ -4589,10 +4637,10 @@ into the existing tree recursively.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../../assets/javascripts/bundle.de0c63e3.min.js"></script>
       
     
   </body>
