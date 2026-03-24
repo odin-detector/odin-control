@@ -2,154 +2,154 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://odin-detector.github.io/odin-control/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/getting-started/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/developer-guide/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/_version/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/logconfig/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/main/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/util/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/adapter/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/async_adapter/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/async_base_controller/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/async_dummy/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/async_parameter_tree/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/async_proxy/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/base_controller/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/base_parameter_tree/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/base_proxy/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/dummy/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/parameter_tree/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/proxy/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/request/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/response/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/system_info/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/system_status/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/adapters/util/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/config/parser/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/http/server/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/http/handlers/api/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/http/handlers/api_adapter_info/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/http/handlers/api_version/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/http/handlers/cors_request/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/http/routes/api/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/http/routes/default/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/reference/odin_control/http/routes/route/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/user-guide/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/user-guide/configuration/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/user-guide/installation/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
     <url>
          <loc>https://odin-detector.github.io/odin-control/user-guide/key-concepts/</loc>
-         <lastmod>2026-03-17</lastmod>
+         <lastmod>2026-03-24</lastmod>
     </url>
 </urlset>
