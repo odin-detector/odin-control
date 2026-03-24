@@ -8,7 +8,7 @@
 Source          | <https://github.com/odin-detector/odin-control>
 :---:           | :---:
 PyPI            | `pip install odin-control`
-Documentation   | <https://odin-detector.github.io/odin-control/docs/index.html>
+Documentation   | <https://odin-detector.github.io/odin-control/>
 Releases        | <https://github.com/odin-detector/odin-control/releases>
 
 odin-control is a Python web application framework designed to support integration of the control
