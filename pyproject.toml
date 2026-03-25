@@ -60,8 +60,15 @@ GitHub = "https://github.com/odin-detector/odin-control"
 [tool.setuptools_scm]
 version_file = "src/odin_control/_version.py"
 
+[tool.coverage.run]
+omit = ["*/_version.py"]
+
 [tool.coverage.paths]
 source = ["src", "**/site-packages/"]
+
+[tool.coverage.report]
+omit = ["*/_version.py"]
+show_missing = true
 
 [tool.pytest.ini_options]
 addopts = "-vv --cov=odin_control --cov-report=term-missing --asyncio-mode=strict"
