@@ -87,7 +87,7 @@ class BaseParameterAccessor(object):
         parameter.
 
         :param with_metadata: include metadata in the response when set to True
-        :returns value of the parameter
+        :returns: value of the parameter
         """
         # Determine the value of the parameter by calling the getter or simply from the stored
         # value

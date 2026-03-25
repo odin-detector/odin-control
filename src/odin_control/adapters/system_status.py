@@ -146,7 +146,7 @@ class SystemStatusController(BaseController):
     def add_disks(self, disks):
         """Add disks to monitor.
 
-        :param disks the disk mount points to monitor
+        :param disks: the disk mount points to monitor
         """
         for disk in disks:
             disk = disk.strip()
@@ -163,7 +163,7 @@ class SystemStatusController(BaseController):
     def add_interfaces(self, interfaces):
         """Add a new network interface to monitor.
 
-        :param interface the name of the network interface to monitor
+        :param interfaces: list of network interfaces to monitor
         """
         available_interfaces = list(psutil.net_io_counters(pernic=True))
 
@@ -179,7 +179,7 @@ class SystemStatusController(BaseController):
     def add_processes(self, processes):
         """Add a new process to monitor.
 
-        :param process_name the name of the process to monitor
+        :param processes: list of process names to monitor
         """
         for process_name in processes:
             process_name = process_name.strip()

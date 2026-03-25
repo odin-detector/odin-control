@@ -343,8 +343,8 @@ class BaseProxyAdapter(object):
         This method sets data on one or more specified targets and returns the responses.
 
         :param path: path to data on remote targets
-        :param data to set on targets
-        :return: list of target responses
+        :param data: data to set on targets
+        :returns: list of target responses
         """
         # Resolve the path element and target path
         path_elem, target_path = self._resolve_path(path)
