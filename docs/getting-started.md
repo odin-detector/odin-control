@@ -232,7 +232,7 @@ pip install .
     by using the `-e` command option.
 
 The repository also contains an
-[example configuration file](https://github.com/stfc-aeg/odin-workshop/blob/master/python/test/config/workshop.cfg),
+[example configuration file](https://github.com/stfc-aeg/odin-workshop/blob/main/python/test/config/workshop.cfg),
 or you can create it yourself:
 
 
