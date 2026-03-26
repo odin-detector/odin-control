@@ -1,15 +1,10 @@
-import sys
-
 import pytest
 
-from odin.adapters.dummy import DummyAdapter, IacDummyAdapter
-from odin.adapters.adapter import (ApiAdapter, ApiAdapterRequest,
+from odin_control.adapters.dummy import DummyAdapter, IacDummyAdapter
+from odin_control.adapters.adapter import (ApiAdapter, ApiAdapterRequest,
                                    ApiAdapterResponse, request_types, response_types)
 
-if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest.mock import Mock
-else:                         # pragma: no cover
-    from mock import Mock
+from unittest.mock import Mock
 
 
 class DummyAdapterTestFixture(object):
@@ -35,7 +30,7 @@ class TestDummyAdapter():
         expected_response = {
             'response': 'DummyAdapter: GET on path {}'.format(test_dummy_adapter.path)
             }
-        response = test_dummy_adapter.adapter.get(test_dummy_adapter.path, 
+        response = test_dummy_adapter.adapter.get(test_dummy_adapter.path,
             test_dummy_adapter.request)
         assert response.data == expected_response
         assert response.status_code == 200
@@ -52,7 +47,7 @@ class TestDummyAdapter():
 
     def test_adapter_delete(self, test_dummy_adapter):
         """Test that a call to the DELETE method of the dummy adapter returns the correct response."""
-        response = test_dummy_adapter.adapter.delete(test_dummy_adapter.path, 
+        response = test_dummy_adapter.adapter.delete(test_dummy_adapter.path,
             test_dummy_adapter.request)
         assert response.data == 'DummyAdapter: DELETE on path {}'.format(test_dummy_adapter.path)
         assert response.status_code == 200

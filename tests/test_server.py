@@ -4,13 +4,10 @@ import requests
 import sys
 
 import pytest
-if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest import mock
-else:                         # pragma: no cover
-    import mock
+from unittest import mock
 
-from odin.http.server import HttpServer
-from odin import main
+from odin_control.http.server import HttpServer
+from odin_control import main
 
 from tests.utils import OdinTestServer, log_message_seen
 from tests.ssl_utils import SslTestCert
@@ -20,7 +17,7 @@ def odin_test_server():
     """Test fixture for starting an odin test server instance with a dummy adapter loaded."""
     adapter_config = {
         'dummy': {
-            'module': 'odin.adapters.dummy.DummyAdapter',
+            'module': 'odin_control.adapters.dummy.DummyAdapter',
             'background_task_enable': 1,
             'background_task_interval': 0.1,
         }
@@ -28,7 +25,7 @@ def odin_test_server():
     access_logging='debug'
 
     test_server = OdinTestServer(
-        adapter_config=adapter_config, access_logging=access_logging
+        adapter_config=adapter_config, access_logging=access_logging, server_api_version=0.1
     )
     yield test_server
     test_server.stop()
@@ -91,7 +88,7 @@ class TestOdinServer(object):
             headers=headers
         )
         assert result.status_code == 200
-        assert result.json()['api'] == odin_test_server.server_api_version
+        assert result.json()['version'] == odin_test_server.server_api_version
 
     def test_api_version_bad_accept(self, odin_test_server):
         """Test that bad accept heeader content type returns an error and message."""
@@ -108,7 +105,7 @@ class TestOdinServer(object):
         headers = {'Accept': 'application/json'}
         result = requests.get(odin_test_server.build_url('adapters/'), headers=headers)
         assert result.status_code == 200
-        assert result.json()['adapters'] == ['dummy']
+        assert 'dummy' in result.json()['adapters']
 
     def test_api_adapter_list_bad_version(self, odin_test_server):
         """Test that the API route rejects an adapter list GET with a bad API version."""
@@ -199,6 +196,7 @@ class ServerConfig():
         self.access_logging = None
         self.enable_cors = True
         self.cors_origin = "*"
+        self.api_version = "0.1"
 
     def resolve_adapters(self):
         return []
@@ -365,8 +363,8 @@ class TestOdinHttpsServer():
     def test_https_valid_config(self, server_config, ssl_test_cert, caplog):
 
         server_config.enable_https = True
-        server_config.ssl_cert_file = ssl_test_cert.cert_file 
-        server_config.ssl_key_file = ssl_test_cert.key_file 
+        server_config.ssl_cert_file = ssl_test_cert.cert_file
+        server_config.ssl_key_file = ssl_test_cert.key_file
         server = HttpServer(server_config)
         server.stop()
 

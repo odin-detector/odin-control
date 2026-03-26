@@ -12,6 +12,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 description = "ODIN detector control system"
 dynamic = ["version"]
@@ -22,18 +24,25 @@ authors = [
 ]
 
 dependencies = [
-    "tornado>=4.3",
-    "future",
-    "pyzmq>=17.1.0",
+    "tornado>=6.0",
     "psutil>=5.0"
 ]
 
 [project.optional-dependencies]
 dev = [
-    "requests",
-    "tox",
-    "pytest-asyncio<0.23",
+    "properdocs",
+    "mkdocs-materialx",
+    "mkdocs-gen-files",
+    "mkdocs-literate-nav",
+    "mkdocs-section-index",
+    "mkdocstrings",
+    "mkdocstrings-python",
+    "pytest",
+    "pytest-asyncio",
     "pytest-cov",
+    "requests",
+    "ruff",
+    "tox",
 ]
 sync_proxy = [
     "requests"
@@ -43,27 +52,33 @@ graylog = [
 ]
 
 [project.scripts]
-odin_control = "odin.main:main"
-odin_server = "odin.main:main_deprecate"
+odin_control = "odin_control.main:main"
 
 [project.urls]
 GitHub = "https://github.com/odin-detector/odin-control"
 
 [tool.setuptools_scm]
-version_file = "src/odin/_version.py"
+version_file = "src/odin_control/_version.py"
+
+[tool.coverage.run]
+omit = ["*/_version.py"]
 
 [tool.coverage.paths]
 source = ["src", "**/site-packages/"]
 
+[tool.coverage.report]
+omit = ["*/_version.py"]
+show_missing = true
+
 [tool.pytest.ini_options]
-addopts = "-vv --cov=odin --cov-report=term-missing --asyncio-mode=strict"
+addopts = "-vv --cov=odin_control --cov-report=term-missing --asyncio-mode=strict"
 
 [tool.tox]
 legacy_tox_ini = """
 # tox test configuration for odin-control
 
 [tox]
-envlist = clean,py{38,39,310,311,312},py{38}-pygelf,report
+envlist = clean,py{38,39,310,311,312,313,314},py{38}-pygelf,report
 
 [gh-actions]
 python =
@@ -72,21 +87,24 @@ python =
     3.10: py310
     3.11: py311
     3.12: py312
+    3.13: py313
+    3.14: py314
 
 [testenv]
 deps =
     pytest
     pytest-cov
-    pytest-asyncio<0.23
+    py{38,38-pygelf}: pytest-asyncio<0.23
+    py{39,310,311,312,313,314}: pytest-asyncio
     requests
     py38: pygelf
 setenv =
-    py{38,39,310,311,312}: COVERAGE_FILE=.coverage.{envname}
+    py{38,39,310,311,312,313,314}: COVERAGE_FILE=.coverage.{envname}
 commands =
-    pytest --cov=odin --cov-report=term-missing --asyncio-mode=strict {posargs:-vv}
+    pytest --cov=odin_control --cov-report=term-missing --asyncio-mode=strict {posargs:-vv}
 depends =
-    py{38,39,310,311,312}: clean
-    report: py{38,39,310,311,312}
+    py{38,39,310,311,312,313,314}: clean
+    report: py{38,39,310,311,312,313,314}
 
 [testenv:clean]
 skip_install = true
@@ -100,3 +118,20 @@ commands =
     coverage combine
     coverage report -m
 """
+
+[tool.ruff]
+src = ["src", "tests"]
+line-length = 100
+lint.select = [
+    "D",    # docstrings
+    "D401", # docstrings require imperative mood
+    "C4",   # flake8-comprehensions - https://beta.ruff.rs/docs/rules/#flake8-comprehensions-c4
+    "E",    # pycodestyle errors - https://beta.ruff.rs/docs/rules/#error-e
+    "F",    # pyflakes rules - https://beta.ruff.rs/docs/rules/#pyflakes-f
+    "F401",
+    "W",    # pycodestyle warnings - https://beta.ruff.rs/docs/rules/#warning-w
+    "I001", # isort
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

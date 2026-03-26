@@ -8,7 +8,6 @@ import builtins
 import threading
 import logging
 import time
-from io import StringIO
 
 import pytest
 
@@ -16,22 +15,17 @@ import requests
 
 from tornado.testing import bind_unused_port
 from tornado.ioloop import IOLoop
-from tornado.httpclient import HTTPResponse
 from tornado.web import Application, RequestHandler
 from tornado.httpserver import HTTPServer
 import tornado.gen
 
-from odin.adapters.proxy import ProxyTarget, ProxyAdapter
-from odin.adapters.parameter_tree import ParameterTree, ParameterTreeError
-from odin.adapters.adapter import wants_metadata
-from odin.util import convert_unicode_to_string
+from odin_control.adapters.proxy import ProxyTarget, ProxyAdapter
+from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeError
+from odin_control.adapters.adapter import wants_metadata
 from tests.utils import log_message_seen
 
-if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest.mock import Mock, patch
-    import asyncio
-else:                         # pragma: no cover
-    from mock import Mock, patch
+from unittest.mock import Mock, patch
+import asyncio
 
 
 class ProxyTestHandler(RequestHandler):
@@ -71,11 +65,10 @@ class ProxyTestHandler(RequestHandler):
 
     def put(self, path):
         """Handle PUT requests to the test server."""
-        response_body = convert_unicode_to_string(tornado.escape.json_decode(self.request.body))
+        response_body = tornado.escape.json_decode(self.request.body)
         try:
             self.param_tree.set(path, response_body)
             data_ref = self.param_tree.get(path)
-
             self.write(data_ref)
         except ParameterTreeError:
             self.set_status(404)
@@ -98,8 +91,7 @@ class ProxyTestServer(object):
 
     def _run_server(self):
 
-        if sys.version_info[0] == 3:
-            asyncio.set_event_loop(asyncio.new_event_loop())
+        asyncio.set_event_loop(asyncio.new_event_loop())
 
         self.server_event_loop = IOLoop()
 
@@ -318,11 +310,11 @@ class TestProxyAdapter():
         requests package is not installed.
         """
         monkeypatch.delitem(sys.modules, 'requests', raising=False)
-        monkeypatch.delitem(sys.modules, 'odin.adapters.proxy')
+        monkeypatch.delitem(sys.modules, 'odin_control.adapters.proxy')
         monkeypatch.setattr(builtins, '__import__', monkey_import_importerror)
 
         with pytest.raises(ImportError) as excinfo:
-            from odin.adapters.proxy import ProxyAdapter
+            from odin_control.adapters.proxy import ProxyAdapter
 
         assert("requests package not installed" in str(excinfo.value))
 
@@ -383,7 +375,7 @@ class TestProxyAdapter():
         for tgt in range(proxy_adapter_test.num_targets):
             node_str = 'node_{}'.format(tgt)
             assert node_str in response.data
-            assert convert_unicode_to_string(response.data[node_str]) == ProxyTestHandler.param_tree.get("")
+            assert response.data[node_str] == ProxyTestHandler.param_tree.get("")
 
     def test_adapter_get_proxy_path(self, proxy_adapter_test):
         """Test that a GET to a sub-path within a targer succeeds and return the correct data."""
@@ -392,7 +384,7 @@ class TestProxyAdapter():
         response = proxy_adapter_test.adapter.get(
             "{}/{}".format(node, path), proxy_adapter_test.request)
 
-        assert response.data["even_more"] == ProxyTestHandler.data["more"]["even_more"]
+        assert response.data == ProxyTestHandler.data["more"]["even_more"]
         assert proxy_adapter_test.adapter.param_tree.get('')['status'][node]['status_code'] == 200
 
     def test_adapter_get_proxy_path_trailing_slash(self, proxy_adapter_test):
@@ -405,7 +397,7 @@ class TestProxyAdapter():
         response = proxy_adapter_test.adapter.get(
             "{}/{}".format(node, path), proxy_adapter_test.request)
 
-        assert response.data["even_more"] == ProxyTestHandler.data["more"]["even_more"]
+        assert response.data == ProxyTestHandler.data["more"]["even_more"]
         assert proxy_adapter_test.adapter.param_tree.get('')['status'][node]['status_code'] == 200
 
     def test_adapter_put_proxy_path(self, proxy_adapter_test):
@@ -419,9 +411,8 @@ class TestProxyAdapter():
         response = proxy_adapter_test.adapter.put(
             "{}/{}".format(node, path), proxy_adapter_test.request)
 
-        logging.debug("Response: %s", response.data)
         assert proxy_adapter_test.adapter.param_tree.get('')['status'][node]['status_code'] == 200
-        assert convert_unicode_to_string(response.data["more"]["replace"]) == "been replaced"
+        assert response.data["replace"] == "been replaced"
 
     def test_adapter_get_bad_path(self, proxy_adapter_test):
         """Test that a GET to a bad path within a target returns the appropriate error."""
@@ -500,5 +491,5 @@ class TestProxyAdapter():
         response = proxy_adapter_test.adapter.get(path, proxy_adapter_test.request)
         access_counts = [server.get_access_count() for server in proxy_adapter_test.test_servers]
 
-        assert path in response.data
+        assert all(key in response.data for key in ProxyTestHandler.data.keys())
         assert sum(access_counts) == 1

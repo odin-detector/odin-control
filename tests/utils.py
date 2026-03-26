@@ -4,23 +4,18 @@ Utility classes to support testing the ODIN framework
 Tim Nicholls, STFC Application Engineering Group
 """
 
-import sys
 import time
 import threading
-import logging
 import os
 
 from tempfile import NamedTemporaryFile
 
-if sys.version_info[0] == 3:  # pragma: no cover
-    from configparser import ConfigParser
-    import asyncio
-else:                         # pragma: no cover
-    from ConfigParser import SafeConfigParser as ConfigParser
+from configparser import ConfigParser
+import asyncio
 
 from tornado.ioloop import IOLoop
 
-from odin import main
+from odin_control import main
 
 def log_message_seen(caplog, level, message, when="call"):
 
@@ -35,7 +30,7 @@ class OdinTestServer(object):
 
     server_port = 8888
     server_addr = '127.0.0.1'
-    server_api_version = 0.1
+    server_api_version = '0.1'
 
     def __init__(
         self,
@@ -44,6 +39,7 @@ class OdinTestServer(object):
         access_logging=None,
         graylog_server=None,
         graylog_static_fields=None,
+        server_api_version=server_api_version,
     ):
 
         self.server_thread = None
@@ -62,9 +58,10 @@ class OdinTestServer(object):
         parser.set('server', 'http_addr', self.server_addr)
         parser.set('server', 'enable_https', 'false')
         parser.set('server', 'static_path', static_path)
+        parser.set('server', 'api_version', str(server_api_version))
 
         if adapter_config is not None:
-            adapters = ', '.join([adapter for adapter in adapter_config])
+            adapters = ', '.join(list(adapter_config))
             parser.set('server', 'adapters', adapters)
 
         if access_logging is not None:
@@ -98,8 +95,7 @@ class OdinTestServer(object):
         self.stop()
 
     def _run_server(self, server_args):
-        if sys.version_info[0] == 3:  # pragma: no cover
-            asyncio.set_event_loop(asyncio.new_event_loop())
+        asyncio.set_event_loop(asyncio.new_event_loop())
 
         self.server_event_loop = IOLoop.current()
         main.main(server_args)

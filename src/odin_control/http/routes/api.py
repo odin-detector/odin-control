@@ -1,0 +1,154 @@
+"""API route implementation for odin-control.
+
+This module implements an API route object used by odin-control to handle API-related requests.
+
+Tim Nicholls, STFC Application Engineering Group
+"""
+
+import importlib
+import logging
+
+from odin_control.http.handlers.api import ApiError, ApiHandler
+from odin_control.http.handlers.api_adapter_info import ApiAdapterInfoHandler
+from odin_control.http.handlers.api_version import ApiVersionHandler
+from odin_control.http.routes.route import Route
+from odin_control.util import run_async
+
+
+class ApiRoute(Route):
+    """ApiRoute - API route object used to map handlers onto adapter for API calls."""
+
+    def __init__(self, enable_cors=False, cors_origin="*", api_version=None):
+        """Initialize the ApiRoute object.
+
+        This constructor initialises the API route object, defining handlers for version, adapter
+        list and adapter API calls.
+
+        :param enable_cors: flag to enable CORS request support
+        :param cors_origin: CORS allowed origins
+        :param api_version: API version string
+        """
+        super(ApiRoute, self).__init__()
+
+        # Store the API version string so it can be used by handlers
+        self.api_version = api_version
+
+        # Build a dict of params to be passed to API handler initialisation calls
+        handler_params = {
+            "route": self, "enable_cors": enable_cors, "cors_origin": cors_origin
+        }
+
+        # Define a default handler which can return the supported API version
+        self.add_handler((r"/api/?", ApiVersionHandler, handler_params))
+
+        # Define the API handler URL specs depending on whether versioning is enabled
+        if self.api_version:
+            adapter_info_spec = r"/api/(.*?)/adapters/?"
+            api_specs = [r"/api/(.*?)/(.*?)/(.*)", r"/api/(.*?)/(.*?)/?"]
+        else:
+            adapter_info_spec = r"/api/adapters/?"
+            api_specs = [r"/api/(.*?)/(.*)", r"/api/(.*?)/?"]
+
+        # Define a handler which can return a list of loaded adapters
+        self.add_handler((adapter_info_spec, ApiAdapterInfoHandler, handler_params))
+
+        # Define the handler for API calls. The expected URI syntax, which is enforced by the
+        # validate_api_request decorator, is the following:
+        #
+        #    /api/<version>/<subsystem>/<action>....
+        #
+        # where the <version> part is optional depending on whether API versioning is enabled or
+        # not. The second pattern allows an API adapter to be accessed with or without a trailing
+        # slash for maximum compatibility
+        for api_spec in api_specs:
+            self.add_handler((api_spec, ApiHandler, handler_params))
+
+        self.adapters = {}
+
+    def register_adapter(self, adapter_config, fail_ok=True):
+        """Register an API adapter with the APIRoute object.
+
+        Based on the adapter_config object passed in as an argument, this method attempts to
+        load the specified module and create an instance of the adapter class to be used
+        to handle requests to the API route on the appropriate path.
+
+        :param adapter_config: AdapterConfig object for the adapter
+        :param fail_ok: Allow the adapter import and registration to fail without raising an error
+        """
+        # Resolve the adapter module and class name from the dotted module path in the config object
+        (module_name, class_name) = adapter_config.module.rsplit(".", 1)
+
+        # Try to import the module, resolve the class in the module and create an instance of it
+        try:
+            adapter_module = importlib.import_module(module_name)
+            adapter_class = getattr(adapter_module, class_name)
+            if adapter_class.is_async:
+                adapter = run_async(adapter_class, **adapter_config.options())
+            else:
+                adapter = adapter_class(**adapter_config.options())
+            self.adapters[adapter_config.name] = adapter
+
+        except (ImportError, AttributeError) as e:
+            logging.error(
+                "Failed to register API adapter %s for path %s with dispatcher: %s",
+                adapter_config.module,
+                adapter_config.name,
+                e,
+            )
+            if not fail_ok:
+                raise ApiError(e)
+        else:
+            logging.debug(
+                "Registered API adapter class %s from module %s for path %s",
+                class_name,
+                module_name,
+                adapter_config.name,
+            )
+
+    def has_adapter(self, subsystem):
+        """Determine if ApiRoute object has adapter for subsystem.
+
+        :param subsystem: subsystem to check for adapter
+        :return: True of adapter present for subsystem
+        """
+        return subsystem in self.adapters
+
+    def adapter(self, subsystem):
+        """Return adapter for subsystem.
+
+        :param subsystem: subsystem to return adapter for
+        :return: adapter for subsystem
+        """
+        return self.adapters[subsystem]
+
+    def cleanup_adapters(self):
+        """Clean up state of registered adapters.
+
+        This calls the cleanup method present in any registered adapters, allowing them to
+        clean up their state (e.g. connected hardware) in a controlled fashion at shutdown.
+        """
+        for adapter_name, adapter in self.adapters.items():
+            try:
+                cleanup_method = getattr(adapter, "cleanup")
+                if adapter.is_async:
+                    run_async(cleanup_method)
+                else:
+                    cleanup_method()
+            except AttributeError:
+                logging.debug("Adapter %s has no cleanup method", adapter_name)
+
+    def initialize_adapters(self):
+        """Initialize all the adapters after they have been registered by the route.
+
+        This calls the initialize method present in any registered adapters, passing
+        the dictionary of listed adapters to each, for inter adapter communication.
+        """
+        for adapter_name, adapter in self.adapters.items():
+            try:
+                initialize_method = getattr(adapter, "initialize")
+                if adapter.is_async:
+                    run_async(initialize_method, self.adapters)
+                else:
+                    initialize_method(self.adapters)
+            except AttributeError:
+                logging.debug("Adapter %s has no initialize method", adapter_name)

@@ -3,20 +3,16 @@
 Tim Nicholls, STFC Application Engineering Group.
 """
 
-import sys
 import platform
 import psutil
 import logging
 
 import pytest
 
-if sys.version_info[0] == 3:  # pragma: no cover
-    from unittest.mock import Mock, patch
-else:                         # pragma: no cover
-    from mock import Mock, patch
+from unittest.mock import Mock, patch
 
-from odin.adapters.system_status import SystemStatusAdapter, SystemStatus, Singleton
-from odin.adapters.parameter_tree import ParameterTreeError
+from odin_control.adapters.system_status import SystemStatusAdapter, SystemStatusController
+from odin_control.adapters.parameter_tree import ParameterTreeError
 
 from tests.utils import log_message_seen
 
@@ -78,8 +74,13 @@ class SystemStatusTestFixture():
 
         scoped_patcher.setattr(psutil, "process_iter", mock_process_iter)
 
-        self.system_status = SystemStatus(
-            interfaces=self.interfaces, disks=self.disks, processes=self.processes, rate=self.rate)
+        options = {
+            'interfaces': self.interfaces,
+            'disks': self.disks,
+            'processes': self.processes,
+            'rate': self.rate,
+        }
+        self.system_status = SystemStatusController(options=options)
 
 
 #@pytest.fixture(scope="class")
@@ -101,11 +102,6 @@ def test_system_status():
 class TestSystemStatus():
     """Test cases for the SystemStatus class."""
 
-    def test_system_status_single_instance(self, test_system_status):
-        """Test that the SystemStatus class exhibits singleton behaviour."""
-        new_instance = SystemStatus()
-        assert test_system_status.system_status == new_instance
-
     def test_system_status_rate(self, test_system_status):
         """Test that the status update interval is calculated from the rate correctly. """
         update_interval = 1.0 / test_system_status.rate
@@ -118,7 +114,7 @@ class TestSystemStatus():
 
     def test_system_status_add_processes(self, test_system_status):
         """Test that adding a process to SystemStatus works correctly."""
-        test_system_status.system_status.add_processes('proc1')
+        test_system_status.system_status.add_processes(['proc1'])
         assert 'proc1' in test_system_status.system_status._processes
 
     def test_system_status_check_bad_nic(self, test_system_status):
@@ -132,19 +128,19 @@ class TestSystemStatus():
         """Test that getting the status of a network interface returns a dict."""
         test_system_status.system_status.monitor_network()
         result = test_system_status.system_status.get(
-            'status/network/{}'.format(test_system_status.lo_iface))
+            'network/{}'.format(test_system_status.lo_iface))
         assert type(result) is dict
 
     def test_system_status_monitor_disks(self, test_system_status):
         """Test that getting the status of a system disk returns a dict."""
         test_system_status.system_status.monitor_disks()
-        result = test_system_status.system_status.get('status/disk/_')
+        result = test_system_status.system_status.get('disk/_')
         assert type(result) is dict
 
     def test_system_status_monitor_processes(self, test_system_status):
         """Test that getting the status of a process returns a dict."""
         test_system_status.system_status.monitor_processes()
-        result = test_system_status.system_status.get('status/process/proc2')
+        result = test_system_status.system_status.get('process/proc2')
         assert type(result) is dict
 
     def test_system_status_monitor(self, test_system_status):
@@ -154,7 +150,7 @@ class TestSystemStatus():
 
     def test_bad_disk_exception(self, test_system_status):
         """Test that trying to monitor a bad disk does not raise an exception."""
-        test_system_status.system_status._disks.append("rubbish")
+        test_system_status.system_status._disks["rubbish"] = "rubbish"
         # Any exceptions caught whilst monitoring will be handled within the class
         test_system_status.system_status.monitor_disks()
 
@@ -188,16 +184,13 @@ class TestSystemStatus():
 
     def test_default_rate_argument(self, test_system_status):
         """Test that that the default monitoring rate argument is applied correctly."""
-        stash_singleton = dict(Singleton._instances)
-        Singleton._instances = {}
-        temp_system_status = SystemStatus(
-            interfaces=test_system_status.interfaces,
-            disks=test_system_status.disks,
-            processes=test_system_status.processes,
-        )
+        options = {
+            'interfaces': test_system_status.interfaces,
+            'disks': test_system_status.disks,
+            'processes': test_system_status.processes,
+        }
+        temp_system_status = SystemStatusController(options=options)
         assert pytest.approx(1.0) == temp_system_status._update_interval
-        Singleton._instances = {}
-        Singleton._instances = dict(stash_singleton)
 
     def test_num_processes_change(self, test_system_status, caplog):
         """Test that monitoring processes correctly detects a change in the number of processes."""
@@ -232,10 +225,10 @@ class TestSystemStatus():
         """Test that monitoring processes reports CPU affinity where implemented."""
 
         test_system_status.system_status.monitor_processes()
-        cpu_affinity_vals = [status['cpu_affinity'] for status in
-            test_system_status.system_status._process_status[
+        cpu_affinity_vals = [status.get('cpu_affinity')['value'] for status in
+            test_system_status.system_status._process_tree.get(
                 test_system_status.mocked_proc_name
-            ].values()
+            ).values()
         ]
         assert test_system_status.cpu_affinity_vals in cpu_affinity_vals
 
@@ -248,10 +241,10 @@ class TestSystemStatus():
         test_system_status.system_status.monitor_processes()
 
         test_system_status.system_status.monitor_processes()
-        cpu_affinity_vals = [status['cpu_affinity'] for status in
-            test_system_status.system_status._process_status[
+        cpu_affinity_vals = [status.get('cpu_affinity')['value'] for status in
+            test_system_status.system_status._process_tree.get(
                 test_system_status.mocked_proc_name
-            ].values()
+            ).values()
         ]
         assert None in cpu_affinity_vals
 
@@ -298,6 +291,7 @@ class SystemStatusAdapterTestFixture():
         self.path = ''
         self.request = Mock()
         self.request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
+        self.request.body = b'{}'
 
 
 @pytest.fixture(scope="class")
@@ -315,8 +309,8 @@ class TestSystemStatusAdapter():
         response = test_sysstatus_adapter.adapter.get(
             test_sysstatus_adapter.path, test_sysstatus_adapter.request)
 
-        assert type(response.data) == dict
-        assert 'status' in response.data
+        assert isinstance(response.data, dict)
+        assert all(key in response.data for key in ['disk', 'network', 'process'])
         assert response.status_code == 200
 
     def test_adapter_get_bad_path(self, test_sysstatus_adapter):
@@ -332,23 +326,38 @@ class TestSystemStatusAdapter():
     def test_adapter_put(self, test_sysstatus_adapter):
         """Test that a PUT call to the adapter returns the appropriate response."""
         expected_response = {
-            'response': 'SystemStatusAdapter: PUT on path {}'.format(test_sysstatus_adapter.path)
+            'error': 'SystemStatusAdapter does not support PUT requests'
         }
 
         response = test_sysstatus_adapter.adapter.put(
             test_sysstatus_adapter.path, test_sysstatus_adapter.request)
 
         assert response.data == expected_response
-        assert response.status_code == 200
+        assert response.status_code == 405
+
+    def test_adapter_post(self, test_sysstatus_adapter):
+        """Test that a PUT call to the adapter returns the appropriate response."""
+        expected_response = {
+            'error': 'SystemStatusAdapter does not support POST requests'
+        }
+
+        response = test_sysstatus_adapter.adapter.post(
+            test_sysstatus_adapter.path, test_sysstatus_adapter.request)
+
+        assert response.data == expected_response
+        assert response.status_code == 405
 
     def test_adapter_delete(self, test_sysstatus_adapter):
         """Test that a DELETE call to the adapter returns the appropriate response."""
+        expected_response = {
+            'error': 'SystemStatusAdapter does not support DELETE requests'
+        }
+
         response = test_sysstatus_adapter.adapter.delete(
             test_sysstatus_adapter.path, test_sysstatus_adapter.request)
 
-        assert response.data == 'SystemStatusAdapter: DELETE on path {}'.format(
-            test_sysstatus_adapter.path)
-        assert response.status_code == 200
+        assert response.data == expected_response
+        assert response.status_code == 405
 
     def test_adapter_put_bad_content_type(self, test_sysstatus_adapter):
         """Test that a PUT call with a bad content type returns the appropriate 415 error."""

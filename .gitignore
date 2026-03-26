@@ -23,7 +23,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
-src/odin/_version.py
+src/odin_control/_version.py
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -103,3 +103,6 @@ tags
 
 # Visual studio code metadata
 .vscode/
+
+# Ignore mkdocs site generation output
+site/
