@@ -53,6 +53,31 @@ class ParameterAccessorTestFixture(object):
             **self.md_minmax_metadata
         )
 
+        self.static_list_value = [0, 1, 2, 3, 4]
+        self.static_list_path = 'static_list'
+        self.static_list_accessor = ParameterAccessor(
+            self.static_list_path + '/', self.static_list_value)
+
+        self.callable_rw_list_value = [10, 11, 12, 13, 14]
+        self.callable_rw_list_path = 'callable_rw_list'
+        self.callable_rw_list_accessor = ParameterAccessor(
+            self.callable_rw_list_path + '/', self.callable_rw_list_get, self.callable_rw_list_set)
+
+        self.indexable_rw_list_value = [20, 21, 22, 23, 24]
+        self.indexable_rw_list_path = 'indexable_rw_list'
+        self.indexable_rw_list_accessor = ParameterAccessor(
+            self.indexable_rw_list_path + '/', self.indexable_rw_list_get, self.indexable_rw_list_set)
+
+        self.callable_dict_value = {'a': 1, 'b': 2, 'c': 3}
+        self.callable_dict_path = 'callable_dict'
+        self.callable_dict_accessor = ParameterAccessor(
+            self.callable_dict_path + '/', self.callable_dict_get, self.callable_dict_set)
+
+        self.indexable_dict_value = {'a': 10, 'b': 20, 'c': 30}
+        self.indexable_dict_path = 'indexable_dict'
+        self.indexable_dict_accessor = ParameterAccessor(
+            self.indexable_dict_path + '/', self.indexable_dict_get, self.indexable_dict_set)
+
     def callable_ro_get(self):
         return self.callable_ro_value
 
@@ -74,6 +99,34 @@ class ParameterAccessorTestFixture(object):
     def md_minmax_set(self, value):
         self.md_minmax_val = value
 
+    def callable_rw_list_get(self):
+        return self.callable_rw_list_value
+
+    def callable_rw_list_set(self, value):
+        self.callable_rw_list_value = value
+
+    def indexable_rw_list_get(self, element_idx=None):
+        if element_idx is not None:
+            return self.indexable_rw_list_value[element_idx]
+        return self.indexable_rw_list_value
+
+    def indexable_rw_list_set(self, value, element_idx=None):
+        if element_idx is not None:
+            self.indexable_rw_list_value[element_idx] = value
+        else:
+            self.indexable_rw_list_value = value
+
+    def callable_dict_get(self):
+        return self.callable_dict_value
+
+    def callable_dict_set(self, value):
+        self.callable_dict_value = value
+
+    def indexable_dict_get(self):
+        return self.indexable_dict_value
+
+    def indexable_dict_set(self, value):
+        self.indexable_dict_value = value
 
 @pytest.fixture(scope="class")
 def test_param_accessor():
@@ -209,7 +262,7 @@ class TestParameterAccessor():
             test_param_accessor.md_minmax_accessor.set(bad_value)
 
         assert "{} is below the minimum value {} for {}".format(
-                bad_value, test_param_accessor.md_minmax_metadata['min'], 
+                bad_value, test_param_accessor.md_minmax_metadata['min'],
                 test_param_accessor.md_minmax_path
             ) in str(excinfo.value)
 
@@ -223,10 +276,186 @@ class TestParameterAccessor():
             test_param_accessor.md_minmax_accessor.set(bad_value)
 
         assert "{} is above the maximum value {} for {}".format(
-                bad_value, test_param_accessor.md_minmax_metadata['max'], 
+                bad_value, test_param_accessor.md_minmax_metadata['max'],
                 test_param_accessor.md_minmax_path
             ) in str(excinfo.value)
 
+    def test_static_list_accessor_get(self, test_param_accessor):
+        """Test that a static list accessor get call returns the correct value."""
+        assert test_param_accessor.static_list_accessor.get() == \
+            test_param_accessor.static_list_value
+
+    def test_static_list_accessor_set(self, test_param_accessor):
+        """Test that a static list accessor set call raises an error."""
+        new_val = [1, 2, 3]
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_param_accessor.static_list_accessor.set(new_val)
+
+        assert "Parameter {} is read-only".format(test_param_accessor.static_list_path) \
+            in str(excinfo.value)
+
+    def test_static_list_accessor_get_element(self, test_param_accessor):
+        """Test that a static list accessor get call with an element index returns the correct value."""
+        for idx, val in enumerate(test_param_accessor.static_list_value):
+            assert test_param_accessor.static_list_accessor.get(element_idx=idx) == val
+
+    def test_callable_rw_list_accessor_get(self, test_param_accessor):
+        """Test that a callable RW list accessor returns the correct value."""
+        assert test_param_accessor.callable_rw_list_accessor.get() == \
+            test_param_accessor.callable_rw_list_value
+
+    def test_callable_rw_list_accessor_set(self, test_param_accessor):
+        """Test that a callable RW list accessor set call sets the correct value."""
+        old_val = test_param_accessor.callable_rw_list_value
+        new_val = [val * 2 for val in old_val]
+        test_param_accessor.callable_rw_list_accessor.set(new_val)
+        assert test_param_accessor.callable_rw_list_accessor.get() == new_val
+
+        test_param_accessor.callable_rw_list_accessor.set(old_val)
+
+    def test_callable_rw_list_accessor_get_element(self, test_param_accessor):
+        """Test that a callable RW list accessor get call returns the correct element value."""
+        for idx, val in enumerate(test_param_accessor.callable_rw_list_value):
+            assert test_param_accessor.callable_rw_list_accessor.get(element_idx=idx) == val
+
+    def test_callable_rw_list_accessor_set_element(self, test_param_accessor):
+        """Test that a callable RW list accessor set call sets the correct element value."""
+        old_val = test_param_accessor.callable_rw_list_value[2]
+        new_val = 999
+        element_idx = 2
+        test_param_accessor.callable_rw_list_accessor.set(new_val, element_idx=element_idx)
+        assert test_param_accessor.callable_rw_list_accessor.get()[element_idx] == new_val
+
+        test_param_accessor.callable_rw_list_accessor.set(old_val, element_idx=element_idx)
+
+    def test_indexable_rw_list_accessor_get(self, test_param_accessor):
+        """Test that an indexable RW list accessor get call returns the correct value."""
+        assert test_param_accessor.indexable_rw_list_accessor.get() == \
+            test_param_accessor.indexable_rw_list_value
+
+    def test_indexable_rw_list_accessor_set(self, test_param_accessor):
+        """Test that an indexable RW list accessor set call sets the correct value."""
+        old_val = test_param_accessor.indexable_rw_list_value
+        new_val = [val * 2 for val in old_val]
+        test_param_accessor.indexable_rw_list_accessor.set(new_val)
+        assert test_param_accessor.indexable_rw_list_accessor.get() == new_val
+
+        test_param_accessor.indexable_rw_list_accessor.set(old_val)
+
+    def test_indexable_rw_list_accessor_get_element(self, test_param_accessor):
+        """Test that an indexable RW list accessor get call returns the correct element value."""
+        for idx, val in enumerate(test_param_accessor.indexable_rw_list_value):
+            assert test_param_accessor.indexable_rw_list_accessor.get(element_idx=idx) == val
+
+    def test_indexable_rw_list_accessor_set_element(self, test_param_accessor):
+        """Test that an indexable RW list accessor set call sets the correct element value."""
+        old_val = test_param_accessor.indexable_rw_list_value[3]
+        new_val = 888
+        element_idx = 3
+        test_param_accessor.indexable_rw_list_accessor.set(new_val, element_idx=element_idx)
+        assert test_param_accessor.indexable_rw_list_accessor.get()[element_idx] == new_val
+
+        test_param_accessor.indexable_rw_list_accessor.set(old_val, element_idx=element_idx)
+
+
+    def test_indexable_rw_list_accessor_get_element_out_of_range(self, test_param_accessor):
+        """Test that an indexable RW list accessor get call with an out-of-range index raises an error."""
+        element_idx = 10
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_param_accessor.indexable_rw_list_accessor.get(element_idx=element_idx)
+
+        assert "Index error getting parameter {} at index {}".format(
+                test_param_accessor.indexable_rw_list_path, element_idx
+            ) in str(excinfo.value)
+
+    def test_indexable_rw_list_accessor_set_element_out_of_range(self, test_param_accessor):
+        """Test that an indexable RW list accessor set call with an out-of-range index raises an error."""
+        new_val = 777
+        element_idx = 10
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_param_accessor.indexable_rw_list_accessor.set(new_val, element_idx=element_idx)
+
+        assert "Index error setting parameter {} at index {}".format(
+                test_param_accessor.indexable_rw_list_path, element_idx
+            ) in str(excinfo.value)
+
+    def test_callable_dict_accessor_get(self, test_param_accessor):
+        """Test that a callable dict accessor get call returns the correct value."""
+        assert test_param_accessor.callable_dict_accessor.get() == \
+            test_param_accessor.callable_dict_value
+
+    def test_callable_dict_accessor_set(self, test_param_accessor):
+        """Test that a callable dict accessor set call sets the correct value."""
+        old_val = test_param_accessor.callable_dict_value
+        new_val = {'a': 10, 'b': 20, 'c': 30}
+        test_param_accessor.callable_dict_accessor.set(new_val)
+        assert test_param_accessor.callable_dict_accessor.get() == new_val
+
+        test_param_accessor.callable_dict_accessor.set(old_val)
+
+    def test_callable_dict_accessor_get_element(self, test_param_accessor):
+        """Test that a callable dict accessor get call returns the correct element value."""
+        for key, val in test_param_accessor.callable_dict_value.items():
+            assert test_param_accessor.callable_dict_accessor.get(element_idx=key) == val
+
+    def test_callable_dict_accessor_set_element(self, test_param_accessor):
+        """Test that a callable dict accessor set call sets the correct element value."""
+        old_val = test_param_accessor.callable_dict_value['b']
+        new_val = 999
+        element_idx = 'b'
+        test_param_accessor.callable_dict_accessor.set(new_val, element_idx=element_idx)
+        assert test_param_accessor.callable_dict_accessor.get()[element_idx] == new_val
+
+        test_param_accessor.callable_dict_accessor.set(old_val, element_idx=element_idx)
+
+    def test_callable_dict_accessor_get_element_bad_key(self, test_param_accessor):
+        """Test that a callable dict accessor get call with a bad key raises an error."""
+        bad_key = 'z'
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_param_accessor.callable_dict_accessor.get(element_idx=bad_key)
+
+        assert "Index error getting parameter {} at index {}".format(
+                test_param_accessor.callable_dict_path, bad_key
+            ) in str(excinfo.value)
+
+    def test_indexable_dict_accessor_get(self, test_param_accessor):
+        """Test that an indexable dict accessor get call returns the correct value."""
+        assert test_param_accessor.indexable_dict_accessor.get() == \
+            test_param_accessor.indexable_dict_value
+
+    def test_indexable_dict_accessor_set(self, test_param_accessor):
+        """Test that an indexable dict accessor set call sets the correct value."""
+        old_val = test_param_accessor.indexable_dict_value
+        new_val = {'a': 100, 'b': 200, 'c': 300}
+        test_param_accessor.indexable_dict_accessor.set(new_val)
+        assert test_param_accessor.indexable_dict_accessor.get() == new_val
+
+        test_param_accessor.indexable_dict_accessor.set(old_val)
+
+    def test_indexable_dict_accessor_get_element(self, test_param_accessor):
+        """Test that an indexable dict accessor get call returns the correct element value."""
+        for key, val in test_param_accessor.indexable_dict_value.items():
+            assert test_param_accessor.indexable_dict_accessor.get(element_idx=key) == val
+
+    def test_indexable_dict_accessor_set_element(self, test_param_accessor):
+        """Test that an indexable dict accessor set call sets the correct element value."""
+        old_val = test_param_accessor.indexable_dict_value['c']
+        new_val = 888
+        element_idx = 'c'
+        test_param_accessor.indexable_dict_accessor.set(new_val, element_idx=element_idx)
+        assert test_param_accessor.indexable_dict_accessor.get()[element_idx] == new_val
+
+        test_param_accessor.indexable_dict_accessor.set(old_val, element_idx=element_idx)
+
+    def test_indexable_dict_accessor_get_element_bad_key(self, test_param_accessor):
+        """Test that an indexable dict accessor get call with a bad key raises an error."""
+        bad_key = 'z'
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_param_accessor.indexable_dict_accessor.get(element_idx=bad_key)
+
+        assert "Index error getting parameter {} at index {}".format(
+                test_param_accessor.indexable_dict_path, bad_key
+            ) in str(excinfo.value)
 class ParameterTreeTestFixture(object):
     """Container class for use in fixtures testing ParameterTree."""
 
@@ -680,6 +909,15 @@ class ParameterTreeMetadataTestFixture():
             "description": "A callable integer RW parameter"
         }
 
+        self.list_rw_param = [1, 2, 3, 4, 5]
+        self.list_rw_param_metadata = {
+            'allowed_values': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        }
+        self.list_rw_param_minmax_metadata = {
+            'min': 1,
+            'max': 10,
+        }
+
         self.metadata_tree_dict = {
             'name': 'Metadata Tree',
             'description': 'A paramter tree to test metadata',
@@ -693,7 +931,14 @@ class ParameterTreeMetadataTestFixture():
                 {"allowed_values": self.int_enum_param_allowed_values}
             ),
             'valueParam': (24601,),
-            'minNoMaxParam': (self.minNoMaxParamGet, self.minNoMaxParamSet, {'min': 0})
+            'minNoMaxParam': (self.minNoMaxParamGet, self.minNoMaxParamSet, {'min': 0}),
+            'listCallableRwParam': (
+                self.listCallableRwParamGet, self.listCallableRwParamSet, self.list_rw_param_metadata
+            ),
+            'listCallableRwParamMinMax': (
+                self.listCallableRwParamGet, self.listCallableRwParamSet,
+                self.list_rw_param_minmax_metadata
+            )
         }
         self.metadata_tree = ParameterTree(self.metadata_tree_dict)
 
@@ -720,6 +965,17 @@ class ParameterTreeMetadataTestFixture():
 
     def minNoMaxParamSet(self, value):
         self.min_no_max_param = value
+
+    def listCallableRwParamGet(self, element_idx=None):
+        if element_idx is not None:
+            return self.list_rw_param[element_idx]
+        return list(self.list_rw_param)
+
+    def listCallableRwParamSet(self, value, element_idx=None):
+        if element_idx is not None:
+            self.list_rw_param[element_idx] = value
+        else:
+            self.list_rw_param = value
 
 @pytest.fixture(scope="class")
 def test_tree_metadata():
@@ -816,6 +1072,290 @@ class TestParameterTreeMetadata():
         assert "{} is above the maximum value {} for {}".format(
                 high_value, test_tree_metadata.int_rw_param_metadata["max"],
                 "intCallableRwParam") in str(excinfo.value)
+
+    def test_list_rw_param_indexed_get(self, test_tree_metadata):
+        """Test that getting a list RW parameter by index returns the correct value."""
+        for idx, val in enumerate(test_tree_metadata.list_rw_param):
+            list_param_elem = test_tree_metadata.metadata_tree.get(
+                "listCallableRwParam/{}".format(idx))
+            assert list_param_elem["value"] == val
+
+    def test_list_rw_param_indexed_set(self, test_tree_metadata):
+        """Test that setting a list RW parameter by index sets the correct value."""
+        old_list_values = test_tree_metadata.metadata_tree.get("listCallableRwParam")["value"]
+        for idx, val in enumerate(old_list_values):
+            new_val = val * 2
+            test_tree_metadata.metadata_tree.set(
+                "listCallableRwParam/{}".format(idx), new_val)
+            list_param_elem = test_tree_metadata.metadata_tree.get(
+                "listCallableRwParam/{}".format(idx))
+            assert list_param_elem["value"] == new_val
+
+        test_tree_metadata.metadata_tree.set("listCallableRwParam", old_list_values)
+
+    def test_list_rw_param_set_indexed_out_of_range(self, test_tree_metadata):
+        """Test that setting a list RW parameter by an index out of range raises an error."""
+        old_list_values = test_tree_metadata.metadata_tree.get("listCallableRwParam")["value"]
+        bad_idx = len(old_list_values) + 1
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_tree_metadata.metadata_tree.set(
+                "listCallableRwParam/{}".format(bad_idx), old_list_values[0])
+
+        print(str(excinfo.value))
+        assert "Index error setting parameter listCallableRwParam at index {}".format(
+            bad_idx) in str(excinfo.value)
+
+    def test_list_rw_param_allowed_values(self, test_tree_metadata):
+        """Test that setting a list RW parameter with allowed values works as expected."""
+        old_list_values = test_tree_metadata.metadata_tree.get("listCallableRwParam")["value"]
+        new_list_values = [val * 2 for val in old_list_values]
+
+        test_tree_metadata.metadata_tree.set("listCallableRwParam", new_list_values)
+
+        set_param = test_tree_metadata.metadata_tree.get(
+            "listCallableRwParam", with_metadata=True)
+        assert set_param["value"] == new_list_values
+
+        test_tree_metadata.metadata_tree.set("listCallableRwParam", old_list_values)
+
+    def test_list_rw_param_disallowed_value(self, test_tree_metadata):
+        """Test that setting a list RW parameter with a disallowed value raises an error."""
+        old_list_values = test_tree_metadata.metadata_tree.get("listCallableRwParam")["value"]
+        new_list_values = [val * 2 for val in old_list_values]
+        new_list_values[0] = 100
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_tree_metadata.metadata_tree.set("listCallableRwParam", new_list_values)
+
+        assert "{} is not an allowed value for {}".format(
+                new_list_values[0], "listCallableRwParam") in str(excinfo.value)
+
+    def test_list_rw_param_below_min_value(self, test_tree_metadata):
+        """Test that setting a list RW parameter with a value below the minimum raises an error."""
+        old_list_values = test_tree_metadata.metadata_tree.get("listCallableRwParamMinMax")["value"]
+        new_list_values = [val * 2 for val in old_list_values]
+        new_list_values[0] = -1
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_tree_metadata.metadata_tree.set("listCallableRwParamMinMax", new_list_values)
+
+        assert "{} is below the minimum value {} for {}".format(
+                new_list_values[0], test_tree_metadata.list_rw_param_minmax_metadata["min"],
+                "listCallableRwParamMinMax") in str(excinfo.value)
+
+    def test_list_rw_param_above_max_value(self, test_tree_metadata):
+        """Test that setting a list RW parameter with a value above the maximum raises an error."""
+        old_list_values = test_tree_metadata.metadata_tree.get("listCallableRwParamMinMax")["value"]
+        new_list_values = [val * 2 for val in old_list_values]
+        new_list_values[0] = 1000
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_tree_metadata.metadata_tree.set("listCallableRwParamMinMax", new_list_values)
+
+        assert "{} is above the maximum value {} for {}".format(
+                new_list_values[0], test_tree_metadata.list_rw_param_minmax_metadata["max"],
+                "listCallableRwParamMinMax") in str(excinfo.value)
+
+
+class ListParameterTreeFixture:
+
+    def __init__(self):
+        self.list_param = [10, 11, 12, 13]
+        self.static_list = [val + 0.5 for val in self.list_param]
+
+        self.tree = ParameterTree({
+            'list_param': (
+                lambda: self.list_param,
+                self.set_list_param,
+                {
+                    'min': 0,
+                    'max': 100,
+                    'allowed_values': [10, 11, 12, 13, 14, 15, 20, 22, 24, 26, 28, 30],
+                }
+            ),
+            'list_static': self.static_list,
+            'list_indexable': (
+                self.get_list_indexable,
+                self.set_list_indexable,
+            ),
+        })
+
+    def set_list_param(self, values):
+        self.list_param = values
+
+    def get_list_indexable(self, element_index=None):
+
+        if element_index is not None:
+            return self.list_param[element_index]
+        else:
+            return self.list_param
+
+    def set_list_indexable(self, values, element_index=None):
+        if element_index is not None:
+            self.list_param[element_index] = values
+        else:
+            self.list_param = values
+
+@pytest.fixture
+def list_parameter_tree_fixture():
+    fixture = ListParameterTreeFixture()
+    yield fixture
+
+class TestListParameterTree:
+
+    def test_get_static_list_param(self, list_parameter_tree_fixture):
+        """Test getting a static list parameter."""
+        tree = list_parameter_tree_fixture.tree
+        expected = list_parameter_tree_fixture.static_list
+        result = tree.get("list_static")['value']
+        assert result == expected
+
+    def test_set_static_list_param(self, list_parameter_tree_fixture):
+        """Test setting a static list parameter."""
+        tree = list_parameter_tree_fixture.tree
+        new_values = [val * 2 for val in list_parameter_tree_fixture.static_list]
+        tree.set("list_static", new_values)
+
+        result = tree.get("list_static")['value']
+        assert result == new_values
+
+    def test_get_static_list_param_element(self, list_parameter_tree_fixture):
+        """Test getting an element of a static list parameter."""
+        index = 2
+        tree = list_parameter_tree_fixture.tree
+        expected = list_parameter_tree_fixture.static_list[index]
+        result = tree.get(f"list_static/{index}")['value']
+
+        assert result == expected
+
+    def test_set_static_list_param_element(self, list_parameter_tree_fixture):
+        """Test setting an element of a static list parameter."""
+        index = 2
+        new_value = 30.5
+        tree = list_parameter_tree_fixture.tree
+
+        old_values = list(list_parameter_tree_fixture.static_list)
+
+        tree.set(f"list_static/{index}", new_value)
+        result = tree.get(f"list_static/{index}")['value']
+
+        assert result == new_value
+
+        new_values = list(old_values)
+        new_values[index] = new_value
+
+        result = tree.get("list_static")['value']
+        assert result == new_values
+
+    def test_get_list_param(self, list_parameter_tree_fixture):
+        """Test getting a non-indexable list parameter."""
+        tree = list_parameter_tree_fixture.tree
+        expected = list_parameter_tree_fixture.list_param
+        result = tree.get("list_param")['value']
+        assert result == expected
+
+    def test_set_list_param(self, list_parameter_tree_fixture):
+        """Test setting a non-indexable list parameter."""
+        tree = list_parameter_tree_fixture.tree
+        new_values = [val * 2 for val in list_parameter_tree_fixture.list_param]
+        tree.set("list_param", new_values)
+        result = tree.get("list_param")['value']
+        assert result == new_values
+
+    def test_get_list_param_element(self, list_parameter_tree_fixture):
+        """Test getting an element of a non-indexable list parameter."""
+        index = 2
+        tree = list_parameter_tree_fixture.tree
+        expected = list_parameter_tree_fixture.list_param[index]
+        result = tree.get(f"list_param/{index}")['value']
+
+        assert result == expected
+
+    def test_set_list_param_element(self, list_parameter_tree_fixture):
+        """Test setting an element of a non-indexable list parameter."""
+        index = 2
+        new_value = 30
+        tree = list_parameter_tree_fixture.tree
+        tree.set(f"list_param/{index}", new_value)
+        result = tree.get(f"list_param/{index}")['value']
+
+        assert result == new_value
+
+    def test_get_list_param_element_out_of_bounds(self, list_parameter_tree_fixture):
+        """Test getting an element of a non-indexable list parameter with an out-of-bounds index."""
+        index = 10
+        tree = list_parameter_tree_fixture.tree
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            tree.get(f"list_param/{index}")
+
+        assert f"Index error getting parameter list_param at index {index}" in str(excinfo.value)
+
+    def test_set_list_param_element_out_of_bounds(self, list_parameter_tree_fixture):
+        """Test setting an element of a non-indexable list parameter with an out-of-bounds index."""
+        index = 10
+        new_value = 30
+        tree = list_parameter_tree_fixture.tree
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            tree.set(f"list_param/{index}", new_value)
+
+        assert f"Index error setting parameter list_param at index {index}" in str(excinfo.value)
+
+    def test_get_list_indexable_param(self, list_parameter_tree_fixture):
+        """Test getting an entire indexable list parameter."""
+        tree = list_parameter_tree_fixture.tree
+        expected = list_parameter_tree_fixture.list_param
+        result = tree.get("list_indexable")['value']
+        assert result == expected
+
+    def test_set_list_indexable_param(self, list_parameter_tree_fixture):
+        """Test setting an entire indexable list parameter."""
+        tree = list_parameter_tree_fixture.tree
+        new_values = [val * 2 for val in list_parameter_tree_fixture.list_param]
+        tree.set("list_indexable", new_values)
+        result = tree.get("list_indexable")['value']
+        assert result == new_values
+
+    def test_get_list_indexable_param_element(self, list_parameter_tree_fixture):
+        """Test getting an element of an indexable list parameter."""
+        index = 2
+        tree = list_parameter_tree_fixture.tree
+        expected = list_parameter_tree_fixture.list_param[index]
+        result = tree.get(f"list_indexable/{index}")['value']
+
+        assert result == expected
+
+    def test_set_list_indexable_param_element(self, list_parameter_tree_fixture):
+        """Test setting an element of an indexable list parameter."""
+        index = 2
+        new_value = 30
+        tree = list_parameter_tree_fixture.tree
+        tree.set(f"list_indexable/{index}", new_value)
+        result = tree.get(f"list_indexable/{index}")['value']
+
+        assert result == new_value
+
+    def test_get_list_indexable_param_element_out_of_bounds(self, list_parameter_tree_fixture):
+        """Test getting an element of an indexable list parameter with an out-of-bounds index."""
+        index = 10
+        tree = list_parameter_tree_fixture.tree
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            tree.get(f"list_indexable/{index}")
+
+        assert f"Index error getting parameter list_indexable at index {index}" in str(excinfo.value)
+
+    def test_set_list_indexable_param_element_out_of_bounds(self, list_parameter_tree_fixture):
+        """Test setting an element of an indexable list parameter with an out-of-bounds index."""
+        index = 10
+        new_value = 30
+        tree = list_parameter_tree_fixture.tree
+
+        with pytest.raises(ParameterTreeError) as excinfo:
+            tree.set(f"list_indexable/{index}", new_value)
+
+        assert f"Index error setting parameter list_indexable at index {index}" in str(excinfo.value)
 
 
 class ParameterTreeMutableTestFixture():
