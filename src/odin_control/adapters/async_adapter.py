@@ -11,12 +11,12 @@ from odin_control.adapters.adapter import (
     ApiAdapter,
     ApiAdapterRequest,  # noqa: F401
     ApiAdapterResponse,
-    json_decode,
     request_types,
     require_controller,
     response_types,
     wants_metadata,
 )
+from odin_control.util import decode_request_body
 
 
 class AsyncApiAdapter(ApiAdapter):
@@ -24,9 +24,9 @@ class AsyncApiAdapter(ApiAdapter):
 
     This class defines the basis for all async API adapters and provides default methods for
     supported HTTP verbs and for lifecycle management. Derived adapters can override these
-    methods explicitly to provide custom behavior. Through the parent ApiAdapter class, this
+    methods explicitly to provide custom behaviour. Through the parent ApiAdapter class, this
     class also supports the adapter-controller pattern; the controller class should be derived from
-    AsyncBaseController to provide async behavior during controller initialization.
+    AsyncBaseController to provide async behaviour during controller initialization.
     """
 
     # Set flag to indicate that this is an async adapter
@@ -76,7 +76,7 @@ class AsyncApiAdapter(ApiAdapter):
         else:
             logging.warning("%s has no controller configured", self.name)
 
-    @response_types("application/json", default="application/json")
+    @response_types("application/json", "application/vnd.odin-native", default="application/json")
     @require_controller
     async def get(self, path, request):
         """Handle an HTTP GET request.
@@ -89,7 +89,7 @@ class AsyncApiAdapter(ApiAdapter):
         :param request: HTTP request object passed from handler
         :return: ApiAdapterResponse container of data, content-type and status_code
         """
-        content_type = "application/json"
+        content_type = request.headers["Accept"]
 
         try:
             response = await self.controller.get(path, wants_metadata(request))
@@ -101,7 +101,7 @@ class AsyncApiAdapter(ApiAdapter):
         return ApiAdapterResponse(response, content_type=content_type, status_code=status_code)
 
     @request_types("application/json", "application/vnd.odin-native")
-    @response_types("application/json", default="application/json")
+    @response_types("application/json", "application/vnd.odin-native", default="application/json")
     @require_controller
     async def put(self, path, request):
         """Handle an HTTP PUT request.
@@ -115,10 +115,10 @@ class AsyncApiAdapter(ApiAdapter):
         :param request: HTTP request object passed from handler
         :return: ApiAdapterResponse container of data, content-type and status_code
         """
-        content_type = "application/json"
+        content_type = request.headers["Accept"]
 
         try:
-            data = json_decode(request.body)
+            data = decode_request_body(request)
             await self.controller.set(path, data)
             response = await self.controller.get(path)
             status_code = 200
@@ -137,7 +137,7 @@ class AsyncApiAdapter(ApiAdapter):
         return ApiAdapterResponse(response, content_type=content_type, status_code=status_code)
 
     @request_types("application/json", "application/vnd.odin-native")
-    @response_types("application/json", default="application/json")
+    @response_types("application/json", "application/vnd.odin-native", default="application/json")
     @require_controller
     async def post(self, path, request):
         """Handle an HTTP POST request.
@@ -150,10 +150,10 @@ class AsyncApiAdapter(ApiAdapter):
         :param request: HTTP request object passed from handler
         :return: ApiAdapterResponse container of data, content-type and status_code
         """
-        content_type = "application/json"
+        content_type = request.headers["Accept"]
 
         try:
-            data = json_decode(request.body)
+            data = decode_request_body(request)
             response = await self.controller.create(path, data)
             status_code = 200
         except self.error_cls as error:
@@ -170,7 +170,7 @@ class AsyncApiAdapter(ApiAdapter):
 
         return ApiAdapterResponse(response, content_type=content_type, status_code=status_code)
 
-    @response_types("application/json", default="application/json")
+    @response_types("application/json", "application/vnd.odin-native", default="application/json")
     @require_controller
     async def delete(self, path, request):
         """Handle an HTTP DELETE request.
@@ -183,7 +183,7 @@ class AsyncApiAdapter(ApiAdapter):
         :param request: HTTP request object passed from handler
         :return: ApiAdapterResponse container of data, content-type and status_code
         """
-        content_type = "application/json"
+        content_type = request.headers["Accept"]
 
         try:
             response = await self.controller.delete(path)
