@@ -16,6 +16,7 @@ from odin_control.adapters.util import (
     response_types,
     wants_metadata,
 )
+from odin_control.util import decode_request_body
 
 
 class ApiAdapter():
@@ -127,7 +128,7 @@ class ApiAdapter():
         content_type = "application/json"
 
         try:
-            data = json_decode(request.body)
+            data = decode_request_body(request)
             self.controller.set(path, data)
             response = self.controller.get(path)
             status_code = 200
@@ -163,7 +164,7 @@ class ApiAdapter():
         content_type = "application/json"
 
         try:
-            data = json_decode(request.body)
+            data = decode_request_body(request)
             response = self.controller.create(path, data)
             status_code = 200
         except self.error_cls as error:
