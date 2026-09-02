@@ -5,8 +5,6 @@ Tim Nicholls, STFC Detector System Software Group
 
 import logging
 
-from tornado.escape import json_decode
-
 from odin_control.adapters.base_controller import BaseError
 from odin_control.adapters.request import ApiAdapterRequest  # noqa: F401
 from odin_control.adapters.response import ApiAdapterResponse
@@ -23,9 +21,9 @@ class ApiAdapter():
     """API adapter base class.
 
     This class defines the basis for all API adapters and provides default methods for supported
-    HTTP verbs and for lifecycle management. Dervied adapters can either override these methods
-    explciitly to provide custom behavior, or adopt the adapter-controller pattern by specifying
-    controller and error clases, and allowing default methods in this class to interface requests
+    HTTP verbs and for lifecycle management. Derived adapters can either override these methods
+    explicitly to provide custom behaviour, or adopt the adapter-controller pattern by specifying
+    controller and error classes, and allowing default methods in this class to interface requests
     to the controller.
     """
 
@@ -86,7 +84,7 @@ class ApiAdapter():
             logging.warning("%s has no controller configured", self.name)
 
 
-    @response_types("application/json", default="application/json")
+    @response_types("application/json", "application/vnd.odin-native", default="application/json")
     @require_controller
     def get(self, path, request):
         """Handle an HTTP GET request.
@@ -99,7 +97,7 @@ class ApiAdapter():
         :param request: HTTP request object passed from handler
         :return: ApiAdapterResponse container of data, content-type and status_code
         """
-        content_type = "application/json"
+        content_type = request.headers["Accept"]
 
         try:
             response = self.controller.get(path, wants_metadata(request))
@@ -111,7 +109,7 @@ class ApiAdapter():
         return ApiAdapterResponse(response, content_type=content_type, status_code=status_code)
 
     @request_types("application/json", "application/vnd.odin-native")
-    @response_types("application/json", default="application/json")
+    @response_types("application/json", "application/vnd.odin-native", default="application/json")
     @require_controller
     def put(self, path, request):
         """Handle an HTTP PUT request.
@@ -125,7 +123,7 @@ class ApiAdapter():
         :param request: HTTP request object passed from handler
         :return: ApiAdapterResponse container of data, content-type and status_code
         """
-        content_type = "application/json"
+        content_type = request.headers["Accept"]
 
         try:
             data = decode_request_body(request)
@@ -148,7 +146,7 @@ class ApiAdapter():
 
 
     @request_types("application/json", "application/vnd.odin-native")
-    @response_types("application/json", default="application/json")
+    @response_types("application/json", "application/vnd.odin-native", default="application/json")
     @require_controller
     def post(self, path, request):
         """Handle an HTTP POST request.
@@ -161,7 +159,7 @@ class ApiAdapter():
         :param request: HTTP request object passed from handler
         :return: ApiAdapterResponse container of data, content-type and status_code
         """
-        content_type = "application/json"
+        content_type = request.headers["Accept"]
 
         try:
             data = decode_request_body(request)
@@ -181,7 +179,7 @@ class ApiAdapter():
 
         return ApiAdapterResponse(response, content_type=content_type, status_code=status_code)
 
-    @response_types("application/json", default="application/json")
+    @response_types("application/json", "application/vnd.odin-native", default="application/json")
     @require_controller
     def delete(self, path, request):
         """Handle an HTTP DELETE request.
@@ -194,7 +192,7 @@ class ApiAdapter():
         :param request: HTTP request object passed from handler
         :return: ApiAdapterResponse container of data, content-type and status_code
         """
-        content_type = "application/json"
+        content_type = request.headers["Accept"]
 
         try:
             response = self.controller.delete(path)
