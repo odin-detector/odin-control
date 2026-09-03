@@ -6,7 +6,7 @@ allowing CORS requests to be made to API handlers.
 Tim Nicholls, STFC Detector Systems Software Group.
 """
 from tornado.web import RequestHandler
-
+from odin_control._version import __version__
 
 class CorsRequestHandler(RequestHandler):
     """Handler to respond to CORS requests.
@@ -48,3 +48,16 @@ class CorsRequestHandler(RequestHandler):
         """
         # Set status to indicate successful request with no content returned
         self.set_status(204)
+
+    def set_default_headers(self):
+        """Set the default headers for the response.
+
+        This method sets the default headers for the response, specifically the Server header, which
+        identifies odin-control and its version. If the Server header is already set (i.e. by
+        Tornado itself), append that value to the OdinControl version string.
+        """
+        server_header_str = f"OdinControl/{__version__}"
+        if 'Server' in self._headers:
+            server_header_str += f" {self._headers['Server']}"
+
+        self.set_header("Server", server_header_str)
