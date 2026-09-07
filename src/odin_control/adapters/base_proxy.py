@@ -1,8 +1,7 @@
-"""
-Base class implementations for the synchronous and asynchronous proxy adapter implemntations.
+"""Base class implementation for the synchronous and asynchronous proxy adapters.
 
 This module contains classes that provide the common behaviour for the implementations of the
-proxy target and adaprers.
+proxy target and adapters.
 
 Tim Nicholls, Ashley Neaves STFC Detector Systems Software Group.
 """
@@ -12,7 +11,6 @@ import time
 from dataclasses import dataclass
 
 import tornado
-import tornado.httpclient
 from tornado.escape import json_decode, json_encode
 
 from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeError
@@ -20,8 +18,7 @@ from odin_control.adapters.parameter_tree import ParameterTree, ParameterTreeErr
 
 @dataclass
 class ProxyRequest:
-    """
-    Proxy request dataclass.
+    """Proxy request dataclass.
 
     This dataclass defines a proxy request that can be passed to the target implementation.
     """
@@ -35,8 +32,7 @@ class ProxyRequest:
 
 @dataclass
 class ProxyResponse:
-    """
-    Proxy response dataclass.
+    """Proxy response dataclass.
 
     This dataclass defines a proxy response object that is passed back from the underlying
     target implementation for processing.
@@ -48,8 +44,7 @@ class ProxyResponse:
 
 @dataclass
 class ProxyError:
-    """
-    Proxy error dataclass.
+    """Proxy error dataclass.
 
     This dataclass defines a proxy error object that is passed back from the underlying target
     implementation in the event that there was a problem with the request.
@@ -60,16 +55,14 @@ class ProxyError:
 
 
 class BaseProxyTarget(object):
-    """
-    Proxy target base class.
+    """Proxy target base class.
 
     This base class provides the core functionality needed for the concrete synchronous and
     asynchronous implementations. It is not intended to be instantiated directly.
     """
 
     def __init__(self, name, url, request_timeout):
-        """
-        Initialise the BaseProxyTarget object.
+        """Initialise the BaseProxyTarget object.
 
         Sets up the default state of the base target object, builds the appropriate parameter tree
         to be handled by the containing adapter and sets up the HTTP client for making requests
@@ -112,8 +105,7 @@ class BaseProxyTarget(object):
         }
 
     def remote_get(self, path="", get_metadata=False):
-        """
-        Get data from the remote target.
+        """Get data from the remote target.
 
         This method requests data from the remote target by issuing a GET request to the target
         URL, and then updates the local proxy target data and status information according to the
@@ -139,8 +131,7 @@ class BaseProxyTarget(object):
         return self._send_request(request, path, get_metadata)
 
     def remote_set(self, path, data):
-        """
-        Set data on the remote target.
+        """Set data on the remote target.
 
          his method sends data to the remote target by issuing a PUT request to the target
         URL, and then updates the local proxy target data and status information according to the
@@ -167,8 +158,7 @@ class BaseProxyTarget(object):
         return self._send_request(request, path)
 
     def _process_response(self, response, path, get_metadata):
-        """
-        Process a response from the remote target.
+        """Process a response from the remote target.
 
         This method processes the response of a remote target to a request. The response is used to
         update the local proxy target data metadata and status as appropriate. If the request failed
@@ -184,7 +174,7 @@ class BaseProxyTarget(object):
         # If an proxy response was received, handle accordingly
         if isinstance(response, ProxyResponse):
 
-            # Decode the reponse body, handling errors by re-processing the repsonse as a proxy
+            # Decode the response body, handling errors by re-processing the response as a proxy
             # error. Otherwise, update the target data and status based on the response.
             try:
                 response_body = json_decode(response.body)
@@ -199,7 +189,7 @@ class BaseProxyTarget(object):
                 )
             else:
 
-                # Update status code, errror string and data accordingly
+                # Update status code, error string and data accordingly
                 self.status_code = response.status_code
                 self.error_string = "OK"
 
@@ -209,8 +199,15 @@ class BaseProxyTarget(object):
                 else:
                     data_ref = self.data
 
+                is_leaf_response = (
+                    not get_metadata
+                    and isinstance(response_body, dict)
+                    and set(response_body) == {"value"}
+                )
+                leaf_elem = None
+
                 # If a path was specified, parse it and descend to the appropriate location in the
-                # data struture
+                # data structure
                 if path:
                     path_elems = path.split("/")
 
@@ -218,14 +215,21 @@ class BaseProxyTarget(object):
                     if path_elems[-1] == "":
                         del path_elems[-1]
 
+                    # For a leaf response, remove and retain the last element from the path as it
+                    # corresponds to the value key
+                    if is_leaf_response:
+                        leaf_elem = path_elems.pop(-1)
+
                     # Traverse down the data tree for each element
                     for elem in path_elems:
                         data_ref = data_ref[elem]
 
                 # Update the data or metadata with the body of the response
                 for key in response_body:
-                    new_elem = response_body[key]
-                    data_ref[key] = new_elem
+                    value = response_body[key]
+                    if is_leaf_response:
+                        key = leaf_elem
+                    data_ref[key] = value
 
         elif isinstance(response, ProxyError):
 
@@ -241,8 +245,7 @@ class BaseProxyTarget(object):
 
 
 class BaseProxyAdapter(object):
-    """
-    Proxy adapter base mixin class.
+    """Proxy adapter base mixin class.
 
     This mixin class implements the core functionality required by all concrete proxy adapter
     implementations.
@@ -252,8 +255,7 @@ class BaseProxyAdapter(object):
     TARGET_CONFIG_NAME = "targets"
 
     def initialise_proxy(self, proxy_target_cls):
-        """
-        Initialise the proxy.
+        """Initialise the proxy.
 
         This method initialises the proxy. The adapter options are parsed to determine the list
         of proxy targets and request timeout, then a proxy target of the specified class is created
@@ -316,8 +318,7 @@ class BaseProxyAdapter(object):
         self.meta_param_tree = ParameterTree(meta_tree)
 
     def proxy_get(self, path, get_metadata):
-        """
-        Get data from the proxy targets.
+        """Get data from the proxy targets.
 
         This method gets data from one or more specified targets and returns the responses.
 
@@ -337,8 +338,7 @@ class BaseProxyAdapter(object):
         return target_responses
 
     def proxy_set(self, path, data):
-        """
-        Set data on the proxy targets.
+        """Set data on the proxy targets.
 
         This method sets data on one or more specified targets and returns the responses.
 
@@ -358,8 +358,7 @@ class BaseProxyAdapter(object):
         return target_responses
 
     def _resolve_response(self, path, get_metadata=False):
-        """
-        Resolve the response to a proxy target get or set request.
+        """Resolve the response to a proxy target get or set request.
 
         This method resolves the appropriate response to a proxy target get or set request. Data
         or metadata from the specified path is returned, along with an appropriate HTTP status code.
@@ -390,8 +389,7 @@ class BaseProxyAdapter(object):
 
     @staticmethod
     def _resolve_path(path):
-        """
-        Resolve the specified path into a path element and target.
+        """Resolve the specified path into a path element and target.
 
         This method resolves the specified path into a path element and target path.
 
