@@ -133,7 +133,7 @@ class BaseProxyTarget(object):
     def remote_set(self, path, data):
         """Set data on the remote target.
 
-         his method sends data to the remote target by issuing a PUT request to the target
+        This method sends data to the remote target by issuing a PUT request to the target
         URL, and then updates the local proxy target data and status information according to the
         response. The request is sent to the target by the implementation-specific _send_request
         method.
