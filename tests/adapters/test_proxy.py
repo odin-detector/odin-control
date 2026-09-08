@@ -266,9 +266,6 @@ class ProxyAdapterTestFixture():
         self.adapter = ProxyAdapter(**self.adapter_kwargs)
 
         self.path = ''
-        self.request = Mock()
-        self.request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
-        self.request.body = '{"pi":2.56}'
 
     def __del__(self):
         """Ensure the test servers are stopped on deletion."""
@@ -292,6 +289,13 @@ def proxy_adapter_test():
     yield proxy_adapter_test
 
     proxy_adapter_test.stop()
+
+@pytest.fixture()
+def proxy_adapter_request():
+    request = Mock()
+    request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
+    request.body = '{"pi":2.56}'
+    return request
 
 
 real_import = builtins.__import__
@@ -322,13 +326,13 @@ class TestProxyAdapter():
         """Test that the proxy adapter is loaded and configured correctly."""
         assert len(proxy_adapter_test.adapter.targets) == proxy_adapter_test.num_targets
 
-    def test_adapter_get(self, proxy_adapter_test):
+    def test_adapter_get(self, proxy_adapter_test, proxy_adapter_request):
         """
         Test that a GET request to the proxy adapter returns the appropriate data for all
         defined proxied targets.
         """
         response = proxy_adapter_test.adapter.get(
-            proxy_adapter_test.path, proxy_adapter_test.request)
+            proxy_adapter_test.path, proxy_adapter_request)
 
         assert 'status' in response.data
 
@@ -339,8 +343,8 @@ class TestProxyAdapter():
             assert node_str in response.data
             assert response.data[node_str], ProxyTestHandler.data
 
-    def test_adapter_get_metadata(self, proxy_adapter_test):
-        request = proxy_adapter_test.request
+    def test_adapter_get_metadata(self, proxy_adapter_test, proxy_adapter_request):
+        request = proxy_adapter_request
         request.headers['Accept'] = "{};{}".format(request.headers['Accept'], "metadata=True")
         response = proxy_adapter_test.adapter.get(proxy_adapter_test.path, request)
 
@@ -351,8 +355,8 @@ class TestProxyAdapter():
             assert "one" in response.data[node_str]
             assert "type" in response.data[node_str]['one']
 
-    def test_adapter_get_status_metadata(self, proxy_adapter_test):
-        request = proxy_adapter_test.request
+    def test_adapter_get_status_metadata(self, proxy_adapter_test, proxy_adapter_request):
+        request = proxy_adapter_request
         request.headers['Accept'] = "{};{}".format(request.headers['Accept'], "metadata=True")
         response = proxy_adapter_test.adapter.get(proxy_adapter_test.path, request)
 
@@ -360,13 +364,13 @@ class TestProxyAdapter():
         assert 'node_0' in response.data['status']
         assert 'type' in response.data['status']['node_0']['error']
 
-    def test_adapter_put(self, proxy_adapter_test):
+    def test_adapter_put(self, proxy_adapter_test, proxy_adapter_request):
         """
         Test that a PUT request to the proxy adapter returns the appropriate data for all
         defined proxied targets.
         """
         response = proxy_adapter_test.adapter.put(
-            proxy_adapter_test.path, proxy_adapter_test.request)
+            proxy_adapter_test.path, proxy_adapter_request)
 
         assert 'status' in response.data
 
@@ -377,64 +381,74 @@ class TestProxyAdapter():
             assert node_str in response.data
             assert response.data[node_str] == ProxyTestHandler.param_tree.get("")
 
-    def test_adapter_get_proxy_path(self, proxy_adapter_test):
-        """Test that a GET to a sub-path within a targer succeeds and return the correct data."""
+    def test_adapter_get_proxy_path(self, proxy_adapter_test, proxy_adapter_request):
+        """Test that a GET to a sub-path within a target succeeds and returns the correct data."""
         node = proxy_adapter_test.adapter.targets[0].name
-        path = "more/even_more"
+        path ="more/even_more"
         response = proxy_adapter_test.adapter.get(
-            "{}/{}".format(node, path), proxy_adapter_test.request)
+            "{}/{}".format(node, path), proxy_adapter_request)
 
         assert response.data == ProxyTestHandler.data["more"]["even_more"]
         assert proxy_adapter_test.adapter.param_tree.get('')['status'][node]['status_code'] == 200
 
-    def test_adapter_get_proxy_path_trailing_slash(self, proxy_adapter_test):
+    def test_adapter_get_proxy_path_leaf(self, proxy_adapter_test, proxy_adapter_request):
+        """Test that a GET to a leaf node within a target succeeds and returns the correct data."""
+        node = proxy_adapter_test.adapter.targets[0].name
+        path ="more/even_more/extra_val"
+        response = proxy_adapter_test.adapter.get(
+            "{}/{}".format(node, path), proxy_adapter_request)
+
+        assert response.data["value"] == ProxyTestHandler.data["more"]["even_more"]["extra_val"]
+        assert proxy_adapter_test.adapter.param_tree.get('')['status'][node]['status_code'] == 200
+
+    def test_adapter_get_proxy_path_trailing_slash(self, proxy_adapter_test, proxy_adapter_request):
         """
-        Test that a PUT to a sub-path with a trailing slash in the URL within a targer succeeds
+        Test that a GET to a sub-path with a trailing slash in the URL within a target succeeds
         and returns the correct data.
         """
         node = proxy_adapter_test.adapter.targets[0].name
         path = "more/even_more/"
         response = proxy_adapter_test.adapter.get(
-            "{}/{}".format(node, path), proxy_adapter_test.request)
+            "{}/{}".format(node, path), proxy_adapter_request)
 
         assert response.data == ProxyTestHandler.data["more"]["even_more"]
         assert proxy_adapter_test.adapter.param_tree.get('')['status'][node]['status_code'] == 200
 
-    def test_adapter_put_proxy_path(self, proxy_adapter_test):
+    def test_adapter_put_proxy_path(self, proxy_adapter_test, proxy_adapter_request):
         """
-        Test that a PUT to a sub-path without a trailing slash in the URL within a targer succeeds
+        Test that a PUT to a sub-path without a trailing slash in the URL within a target succeeds
         and returns the correct data.
         """
         node = proxy_adapter_test.adapter.targets[0].name
         path = "more"
-        proxy_adapter_test.request.body = '{"replace": "been replaced"}'
+        proxy_adapter_request.body = '{"replace": "been replaced"}'
         response = proxy_adapter_test.adapter.put(
-            "{}/{}".format(node, path), proxy_adapter_test.request)
+            "{}/{}".format(node, path), proxy_adapter_request)
 
         assert proxy_adapter_test.adapter.param_tree.get('')['status'][node]['status_code'] == 200
         assert response.data["replace"] == "been replaced"
 
-    def test_adapter_get_bad_path(self, proxy_adapter_test):
+    def test_adapter_get_bad_path(self, proxy_adapter_test, proxy_adapter_request):
         """Test that a GET to a bad path within a target returns the appropriate error."""
         missing_path = 'missing/path'
-        response = proxy_adapter_test.adapter.get(missing_path, proxy_adapter_test.request)
+        response = proxy_adapter_test.adapter.get(missing_path, proxy_adapter_request)
 
         assert 'error' in response.data
         assert 'Invalid path: {}'.format(missing_path) == response.data['error']
 
-    def test_adapter_put_bad_path(self, proxy_adapter_test):
+    def test_adapter_put_bad_path(self, proxy_adapter_test, proxy_adapter_request):
         """Test that a PUT to a bad path within a target returns the appropriate error."""
         missing_path = 'missing/path'
-        response = proxy_adapter_test.adapter.put(missing_path, proxy_adapter_test.request)
+        response = proxy_adapter_test.adapter.put(missing_path, proxy_adapter_request)
 
         assert 'error' in response.data
         assert 'Invalid path: {}'.format(missing_path) == response.data['error']
 
-    def test_adapter_put_bad_type(self, proxy_adapter_test):
+    def test_adapter_put_bad_type(self, proxy_adapter_test, proxy_adapter_request):
         """Test that a PUT request with an inappropriate type returns the appropriate error."""
-        proxy_adapter_test.request.body = "bad_body"
+        proxy_adapter_request.body = "bad_body"
         response = proxy_adapter_test.adapter.put(
-            proxy_adapter_test.path, proxy_adapter_test.request)
+            proxy_adapter_test.path, proxy_adapter_request)
 
         assert 'error' in response.data
         assert 'Failed to decode PUT request body:' in response.data['error']
@@ -468,19 +482,19 @@ class TestProxyAdapter():
         assert log_message_seen(caplog, logging.ERROR,
             "Failed to resolve targets for proxy adapter")
 
-    def test_adapter_get_access_count(self, proxy_adapter_test):
+    def test_adapter_get_access_count(self, proxy_adapter_test, proxy_adapter_request):
         """
         Test that requests via the proxy adapter correctly increment the access counters in the
         target test servers.
         """
         proxy_adapter_test.clear_access_counts()
 
-        _ = proxy_adapter_test.adapter.get(proxy_adapter_test.path, proxy_adapter_test.request)
+        _ = proxy_adapter_test.adapter.get(proxy_adapter_test.path, proxy_adapter_request)
 
         access_counts = [server.get_access_count() for server in proxy_adapter_test.test_servers]
         assert access_counts == [1]*proxy_adapter_test.num_targets
 
-    def test_adapter_counter_get_single_node(self, proxy_adapter_test):
+    def test_adapter_counter_get_single_node(self, proxy_adapter_test, proxy_adapter_request):
         """
         Test that a requested to a single target in the proxy adapter only accesses that target,
         increasing the access count appropriately.
@@ -488,7 +502,7 @@ class TestProxyAdapter():
         path = proxy_adapter_test.path + 'node_{}'.format(proxy_adapter_test.num_targets-1)
 
         proxy_adapter_test.clear_access_counts()
-        response = proxy_adapter_test.adapter.get(path, proxy_adapter_test.request)
+        response = proxy_adapter_test.adapter.get(path, proxy_adapter_request)
         access_counts = [server.get_access_count() for server in proxy_adapter_test.test_servers]
 
         assert all(key in response.data for key in ProxyTestHandler.data.keys())
