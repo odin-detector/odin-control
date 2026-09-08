@@ -21,14 +21,14 @@ class ParameterTreeError(Exception):
 class BaseParameterAccessor(object):
     """Base container class representing accessor methods for a parameter.
 
-    This base class implements a parameter accessor, provding set and get methods
+    This base class implements a parameter accessor, providing set and get methods
     for parameters requiring calls to access them, or simply returning the
     appropriate value if the parameter is a read-only constant. Parameter accessors also
     contain metadata fields controlling access to and providing information about the parameter.
 
     Valid specifiable metadata fields are:
     min : minimum allowed value for parameter
-    max : maxmium allowed value for parameter
+    max : maximum allowed value for parameter
     allowed_values: list of allowed values for parameter
     name : readable parameter name
     description: longer description of parameter
@@ -183,10 +183,9 @@ class BaseParameterAccessor(object):
         # Loop over the value(s) to be set, checking the type and any metadata constraints
         for val in values:
 
-            # Raise an error of the value to be set is not of the same type as the parameter. If
-            # the required type is not set, i.e. None, allow any type to be set, or if the value
-            # is integer and the parameter is float, also allow as JSON does not differentiate
-            # numerics in all cases
+            # Raise an error if the value to be set is not of the same type as the parameter. If
+            # the required type is None, allow any type to be set. If the value is integer and the
+            # parameter is float, also allow, as JSON does not differentiate numerics in all cases
             if required_type is not type(None) and not isinstance(val, required_type):
                 if not (isinstance(val, int) and required_type is float):
                     raise ParameterTreeError(
@@ -202,7 +201,7 @@ class BaseParameterAccessor(object):
                     "{} is not an allowed value for {}".format(val, self.path)
                 )
 
-            # Raise an error if the parameter has a mininum value specified in metadata and the
+            # Raise an error if the parameter has a minimum value specified in metadata and the
             # value to set is below this
             if "min" in self.metadata and val < self.metadata["min"]:
                 raise ParameterTreeError(
@@ -221,8 +220,8 @@ class BaseParameterAccessor(object):
                 )
 
         # Set the new parameter value by calling the setter. If an element index is specified, set
-        # the sepcific value, either by calling and indexable setter or by doing a read-modify-write
-        # of the wholeparameter value.
+        # the specific value, either by calling and indexable setter or by doing a read-modify-write
+        # of the whole parameter value.
         response = None
         try:
             if element_idx is not None and self._type is list:
@@ -391,7 +390,7 @@ class BaseParameterTree(object):
         if levels[-1] == '':
             del levels[-1]
 
-        # Initalise variables used during descent of the tree
+        # Initialise variables used during descent of the tree
         merge_parent = self._tree
         merge_child = self._tree
         element_idx = None
@@ -440,7 +439,7 @@ class BaseParameterTree(object):
 
         This method sets the values of parameters in a tree, based on the data passed to it
         as a nested dictionary of parameter and value pairs. Any structure below the insertion
-        point in the exising tree is replaced with this new structure.
+        point in the existing tree is replaced with this new structure.
 
         :param path: path to set parameters for in the tree
         :param data: nested dictionary representing structure to replace at the path
