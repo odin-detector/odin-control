@@ -9,6 +9,8 @@ used directly, but form the basis for concrete synchronous and asynchronous impl
 James Hogge, Tim Nicholls, STFC Application Engineering Group.
 """
 
+import inspect
+
 
 class ParameterTreeError(Exception):
     """Simple error class for raising parameter tree parameter tree exceptions."""
@@ -19,14 +21,14 @@ class ParameterTreeError(Exception):
 class BaseParameterAccessor(object):
     """Base container class representing accessor methods for a parameter.
 
-    This base class implements a parameter accessor, provding set and get methods
+    This base class implements a parameter accessor, providing set and get methods
     for parameters requiring calls to access them, or simply returning the
     appropriate value if the parameter is a read-only constant. Parameter accessors also
     contain metadata fields controlling access to and providing information about the parameter.
 
     Valid specifiable metadata fields are:
     min : minimum allowed value for parameter
-    max : maxmium allowed value for parameter
+    max : maximum allowed value for parameter
     allowed_values: list of allowed values for parameter
     name : readable parameter name
     description: longer description of parameter
@@ -35,6 +37,7 @@ class BaseParameterAccessor(object):
 
     The class also maintains the following automatically-populated metadata fields:
     type: parameter type
+    element_type: for list parameters, the type of the elements in the list
     writeable: is the parameter writable
     """
 
@@ -43,8 +46,9 @@ class BaseParameterAccessor(object):
         "min", "max", "allowed_values", "name", "description", "units", "display_precision"
     )
     # Automatically-populated metadata fields based on inferred type of the parameter and
-    # writeable status depending on specified accessors
-    AUTO_METADATA_FIELDS = ("type", "writeable")
+    # writeable status depending on specified accessors. For list parameters, the element type is
+    # also inferred and stored in the metadata.
+    AUTO_METADATA_FIELDS = ("type", "element_type", "writeable")
 
     def __init__(self, path, getter=None, setter=None, **kwargs):
         """Initialise the BaseParameterAccessor instance.
@@ -75,10 +79,32 @@ class BaseParameterAccessor(object):
         # Update metadata keywords from arguments
         self.metadata.update(kwargs)
 
-        # Set the writeable metadata field if the setter is callable
-        self.metadata["writeable"] = callable(self._set)
+        # If the getter is callable, inspect its signature to determine whether it is indexable
+        # (i.e. takes an optional element index as its argument).
+        if callable(self._get):
+            getter_params = list(inspect.signature(self._get).parameters.values())
+            self.getter_indexable = (
+                len(getter_params) == 1
+                and getter_params[-1].default is not inspect.Parameter.empty
+            )
+        else:
+            self.getter_indexable = False
 
-    def get(self, with_metadata=False):
+        # If the setter is callable, set the writeable metadata field and determine from the
+        # signature of the setter whether it is indexable (i.e. takes an element index as a second
+        # argument).
+        if callable(self._set):
+            self.metadata["writeable"] = True
+            setter_params = list(inspect.signature(self._set).parameters.values())
+            self.setter_indexable = (
+                len(setter_params) == 2
+                and setter_params[-1].default is not inspect.Parameter.empty
+            )
+        else:
+            self.metadata["writeable"] = False
+            self.setter_indexable = False
+
+    def get(self, element_idx=None, with_metadata=False):
         """Get the value of the parameter.
 
         This method returns the value of the parameter, or the value returned
@@ -86,15 +112,37 @@ class BaseParameterAccessor(object):
         is true, the value is returned in a dictionary including all metadata for the
         parameter.
 
+        :param element_idx: index of element to get for list parameters, if applicable
         :param with_metadata: include metadata in the response when set to True
         :returns: value of the parameter
         """
         # Determine the value of the parameter by calling the getter or simply from the stored
         # value
-        if callable(self._get):
-            value = self._get()
-        else:
-            value = self._get
+        try:
+            # For list parameters, convert the element index to an integer if specified
+            if element_idx is not None and self._type is list:
+                element_idx = int(element_idx)
+
+            # Get the value of the parameter by calling the getter if it is callable, otherwise
+            # return the stored value. If an element index is specified, return the indexed value
+            # where appropriate, either via the indexable getter or by resolving the value directly.
+            if callable(self._get):
+                if self.getter_indexable:
+                    value = self._get(element_idx)
+                else:
+                    value = self._get()
+                    if element_idx is not None:
+                        value = value[element_idx]
+            else:
+                value = self._get
+                if element_idx is not None:
+                    value = value[element_idx]
+        except (TypeError, IndexError, KeyError) as e:
+            raise ParameterTreeError(
+                "Index error getting parameter {} at index {}: {}".format(
+                    self.path, element_idx, str(e)
+                )
+            )
 
         # If metadata is requested, replace the value with a dict containing the value itself
         # plus metadata fields
@@ -104,62 +152,127 @@ class BaseParameterAccessor(object):
 
         return value
 
-    def set(self, value):
+    def set(self, value, element_idx=None):
         """Set the value of the parameter.
 
         This method sets the value of the parameter by calling the set accessor
         if defined and callable, otherwise raising an exception.
 
         :param value: value to set
+        :param element_idx: index of element to set for list parameters, if applicable
+        :raises: ParameterTreeError if the parameter is not writeable, if the value is of the wrong
+        type, or if a metadata constraint is violated
         """
         # Raise an error if this parameter is not writeable
         if not self.metadata["writeable"]:
             raise ParameterTreeError("Parameter {} is read-only".format(self.path))
 
-        # Raise an error of the value to be set is not of the same type as the parameter. If
-        # the metadata type field is set to None, allow any type to be set, or if the value
-        # is integer and the parameter is float, also allow as JSON does not differentiate
-        # numerics in all cases
-        if self.metadata["type"] != "NoneType" and not isinstance(value, self._type):
-            if not (isinstance(value, int) and self.metadata["type"] == "float"):
+        # If the parameter is a list, check the type of each value against the resolved element
+        # type. If the parameter is a dict, allow any type to be set as a dict can be heterogeneous,
+        # otherwise check against the parameter type.
+        if self._type is list:
+            required_type = self._element_type
+            values = [value] if element_idx is not None else value
+        elif self._type is dict:
+            required_type = type(None)
+            values = [value]
+        else:
+            required_type = self._type
+            values = [value]
+
+        # Loop over the value(s) to be set, checking the type and any metadata constraints
+        for val in values:
+
+            # Raise an error if the value to be set is not of the same type as the parameter. If
+            # the required type is None, allow any type to be set. If the value is integer and the
+            # parameter is float, also allow, as JSON does not differentiate numerics in all cases
+            if required_type is not type(None) and not isinstance(val, required_type):
+                if not (isinstance(val, int) and required_type is float):
+                    raise ParameterTreeError(
+                        "Type mismatch setting {}: got {} expected {}".format(
+                            self.path, type(val).__name__, required_type.__name__
+                        )
+                    )
+
+            # Raise an error if the parameter has a list of allowed values specified in metadata
+            # and the value to set is not one of them
+            if "allowed_values" in self.metadata and val not in self.metadata["allowed_values"]:
                 raise ParameterTreeError(
-                    "Type mismatch setting {}: got {} expected {}".format(
-                        self.path, type(value).__name__, self.metadata["type"]
+                    "{} is not an allowed value for {}".format(val, self.path)
+                )
+
+            # Raise an error if the parameter has a minimum value specified in metadata and the
+            # value to set is below this
+            if "min" in self.metadata and val < self.metadata["min"]:
+                raise ParameterTreeError(
+                    "{} is below the minimum value {} for {}".format(
+                        val, self.metadata["min"], self.path
                     )
                 )
 
-        # Raise an error if allowed_values has been set for this parameter and the value to
-        # set is not one of them
-        if "allowed_values" in self.metadata and value not in self.metadata["allowed_values"]:
-            raise ParameterTreeError(
-                "{} is not an allowed value for {}".format(value, self.path)
-            )
-
-        # Raise an error if the parameter has a mininum value specified in metadata and the
-        # value to set is below this
-        if "min" in self.metadata and value < self.metadata["min"]:
-            raise ParameterTreeError(
-                "{} is below the minimum value {} for {}".format(
-                    value, self.metadata["min"], self.path
+            # Raise an error if the parameter has a maximum value specified in metadata and the
+            # value to set is above this
+            if "max" in self.metadata and val > self.metadata["max"]:
+                raise ParameterTreeError(
+                    "{} is above the maximum value {} for {}".format(
+                        val, self.metadata["max"], self.path
+                    )
                 )
-            )
 
-        # Raise an error if the parameter has a maximum value specified in metadata and the
-        # value to set is above this
-        if "max" in self.metadata and value > self.metadata["max"]:
-            raise ParameterTreeError(
-                "{} is above the maximum value {} for {}".format(
-                    value, self.metadata["max"], self.path
-                )
-            )
-
-        # Set the new parameter value by calling the setter
+        # Set the new parameter value by calling the setter. If an element index is specified, set
+        # the specific value, either by calling and indexable setter or by doing a read-modify-write
+        # of the whole parameter value.
         response = None
-        if callable(self._set):
-            response = self._set(value)
+        try:
+            if element_idx is not None and self._type is list:
+                element_idx = int(element_idx)
+            if callable(self._set):
+                if self.setter_indexable:
+                    response = self._set(value, element_idx)
+                else:
+                    if element_idx is not None:
+                        values = self.get()
+                        values[element_idx] = value
+                        response = self._set(values)
+                    else:
+                        response = self._set(value)
+        except (TypeError, IndexError) as e:
+            raise ParameterTreeError(
+                "Index error setting parameter {} at index {}: {}".format(
+                    self.path, element_idx, str(e)
+                )
+            )
 
         return response
 
+    @property
+    def type(self):
+        """Return the type of the parameter."""
+        return self._type
+
+    def _resolve_type_metadata(self, value):
+        """Resolve the type of a parameter and set the appropriate metadata fields.
+
+        This internal method resolves the type of a parameter and sets the appropriate
+        metadata fields in the accessor's metadata dictionary. It is called by the constructor
+        to set the type metadata field based on the resolved type of the parameter.
+
+        :param value: value of the parameter to resolve type for
+        """
+        # Save the type of the parameter for type checking
+        self._type = type(value)
+        self._element_type = None
+        self._setter_indexable = False
+
+        # Set the type metadata fields based on the resolved type
+        self.metadata["type"] = self._type.__name__
+
+        # If the parameter is a list, also save the type of the first element for type checking
+        if self._type is list:
+            self._element_type = type(value[0]) if len(value) > 0 else None
+            self.metadata["element_type"] = (
+                self._element_type.__name__ if self._element_type is not None else "none"
+            )
 
 class BaseParameterTree(object):
     """Base class implementing a tree of parameters and their accessors.
@@ -242,7 +355,7 @@ class BaseParameterTree(object):
                 if isinstance(subtree, dict):
                     subtree = subtree[level]
                 elif isinstance(subtree, self.accessor_cls):
-                    subtree = subtree.get(with_metadata)[level]
+                    subtree = subtree.get(element_idx=level, with_metadata=with_metadata)
                 else:
                     subtree = subtree[int(level)]
             except (KeyError, ValueError, IndexError):
@@ -277,16 +390,24 @@ class BaseParameterTree(object):
         if levels[-1] == '':
             del levels[-1]
 
-        merge_parent = None
+        # Initialise variables used during descent of the tree
+        merge_parent = self._tree
         merge_child = self._tree
+        element_idx = None
+        parent_level = -1
 
         # Descend the tree and validate each element of the path
         for level in levels:
             try:
-                merge_parent = merge_child
                 if isinstance(merge_child, dict):
+                    merge_parent = merge_child
                     merge_child = merge_child[level]
+                elif isinstance(merge_child, self.accessor_cls):
+                    if merge_child.type in (list, dict):
+                        element_idx = level
+                        parent_level = -2
                 else:
+                    merge_parent = merge_child
                     merge_child = merge_child[int(level)]
             except (KeyError, ValueError, IndexError):
                 raise ParameterTreeError("Invalid path: {}".format(path))
@@ -301,24 +422,24 @@ class BaseParameterTree(object):
                 raise ParameterTreeError("Invalid replace attempt: tree not mutable")
             merged = data
         else:
-            merged = self._merge_tree(merge_child, data, path)
+            merged = self._merge_tree(merge_child, data, path, element_idx)
 
         # Add merged part to tree, either at the top of the tree or at the
-        # appropriate level speicfied by the path
+        # appropriate level specified by the path
         if not levels:
             self._tree = merged
             return
         if isinstance(merge_parent, dict):
-            merge_parent[levels[-1]] = merged
+            merge_parent[levels[parent_level]] = merged
         else:
-            merge_parent[int(levels[-1])] = merged
+            merge_parent[int(levels[parent_level])] = merged
 
     def replace(self, path, data):
-        """Replaces a branch of parameters in a tree.
+        """Replace a branch of parameters in a tree.
 
         This method sets the values of parameters in a tree, based on the data passed to it
         as a nested dictionary of parameter and value pairs. Any structure below the insertion
-        point in the exising tree is replaced with this new structure.
+        point in the existing tree is replaced with this new structure.
 
         :param path: path to set parameters for in the tree
         :param data: nested dictionary representing structure to replace at the path
@@ -438,11 +559,11 @@ class BaseParameterTree(object):
         # If this is a leaf node, check if the leaf is a r/w tuple and substitute the
         # read element of that tuple into the node
         if isinstance(node, self.accessor_cls):
-            return node.get(with_metadata)
+            return node.get(with_metadata=with_metadata)
 
         return node
 
-    def _merge_tree(self, node, new_data, cur_path):
+    def _merge_tree(self, node, new_data, cur_path, element_idx=None):
         """Recursively merge a tree with new values.
 
         This internal method recursively merges a tree with new values. Called by the set()
@@ -453,6 +574,7 @@ class BaseParameterTree(object):
         :param node: tree node to populate and return
         :param new_data: dict of new data to be merged in at this path in the tree
         :param cur_path: current path in the tree
+        :param element_idx: index of element to set for list parameters, if applicable
         :returns: the update node at this point in the tree
         """
         # If new data is a dict with a single 'value' field, extract that value for updating
@@ -489,7 +611,7 @@ class BaseParameterTree(object):
         # Update the value of the current parameter, calling the set accessor if specified and
         # validating the type if necessary.
         if isinstance(node, self.accessor_cls):
-            self._set_node(node, new_data)
+            self._set_node(node, new_data, element_idx)
         else:
             # Validate type of new node matches existing
             if not self.mutable and type(node) is not type(new_data):
@@ -501,7 +623,7 @@ class BaseParameterTree(object):
 
         return node
 
-    def _set_node(self, node, data):
+    def _set_node(self, node, data, element_idx=None):
         """Set the value of a node to the specified data.
 
         This method trivially sets a specified node to the data supplied. It is exposed as a method
@@ -509,5 +631,6 @@ class BaseParameterTree(object):
 
         :param node: tree node to set value of
         :param data: data to node value to
+        :param element_idx: index of element to set for list parameters, if applicable
         """
-        node.set(data)
+        node.set(data, element_idx)

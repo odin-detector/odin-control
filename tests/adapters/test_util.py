@@ -1,3 +1,4 @@
+import asyncio
 from unittest.mock import Mock
 
 import pytest
@@ -28,6 +29,24 @@ class TestWrapResult():
         wrapped = wrap_result(result, True)
         assert isinstance(wrapped, Future)
         assert wrapped.result() == result
+
+    def test_wrap_result_async_without_current_loop(self):
+        """Test that wrap_result works even when no event loop is registered."""
+        try:
+            previous_loop = asyncio.get_event_loop()
+        except RuntimeError:
+            previous_loop = None
+
+        try:
+            asyncio.set_event_loop(None)
+            wrapped = wrap_result(123, True)
+            assert isinstance(wrapped, Future)
+            assert wrapped.result() == 123
+        finally:
+            if previous_loop is not None:
+                asyncio.set_event_loop(previous_loop)
+            else:
+                asyncio.set_event_loop(None)
 
     @pytest.mark.asyncio
     async def test_awaited_wrap_result(self):

@@ -10,7 +10,9 @@ Tim Nicholls, STFC Detector Systems Software Group.
 import asyncio
 
 from odin_control.adapters.base_parameter_tree import (
-    BaseParameterAccessor, BaseParameterTree, ParameterTreeError
+    BaseParameterAccessor,
+    BaseParameterTree,
+    ParameterTreeError,
 )
 
 __all__ = ['AsyncParameterAccessor', 'AsyncParameterTree', 'ParameterTreeError']
@@ -59,9 +61,8 @@ class AsyncParameterAccessor(BaseParameterAccessor):
         :returns: an awaitable future
         """
         async def closure():
-            """Resolve the parameter type in an async closure."""
-            self._type = type(await self.get())
-            self.metadata["type"] = self._type.__name__
+            """Resolve parameter type metadata in an async closure."""
+            self._resolve_type_metadata(await self.get())
             return self
 
         return closure().__await__()
@@ -81,7 +82,7 @@ class AsyncParameterAccessor(BaseParameterAccessor):
 
         return value
 
-    async def get(self, with_metadata=False):
+    async def get(self, element_idx=None, with_metadata=False):
         """Get the value of the parameter.
 
         This async method returns the value of the parameter, or the value returned by the accessor
@@ -89,11 +90,14 @@ class AsyncParameterAccessor(BaseParameterAccessor):
         resolved by awaiting the returned coroutine. If the with_metadata argument is true, the
         value is returned in a dictionary including all metadata for the parameter.
 
+        :param element_idx: index of element to get for list parameters, if applicable
         :param with_metadata: include metadata in the response when set to True
         :returns: value of the parameter
         """
         # Call the superclass get method
-        value = super(AsyncParameterAccessor, self).get(with_metadata)
+        value = super(AsyncParameterAccessor, self).get(
+            element_idx=element_idx, with_metadata=with_metadata
+        )
 
         # Resolve and await the returned value, either into the metadata-populated dict or directly
         # as the returned value
@@ -104,15 +108,16 @@ class AsyncParameterAccessor(BaseParameterAccessor):
 
         return value
 
-    async def set(self, value):
+    async def set(self, value, element_idx=None):
         """Set the value of the parameter.
 
         This async method sets the value of the parameter by calling the set accessor
         if defined and callable. The result is awaited if a coroutine is returned.
 
         :param value: value to set
+        :param element_idx: index of element to set for list parameters, if applicable
         """
-        await self.resolve_coroutine(super(AsyncParameterAccessor, self).set(value))
+        await self.resolve_coroutine(super(AsyncParameterAccessor, self).set(value, element_idx))
 
 
 class AsyncParameterTree(BaseParameterTree):
@@ -140,7 +145,7 @@ class AsyncParameterTree(BaseParameterTree):
         # Set the accessor class used by this tree to AsyncParameterAccessor
         self.accessor_cls = AsyncParameterAccessor
 
-        # Initialise the superclass with the speccified parameters
+        # Initialise the superclass with the specified parameters
         super(AsyncParameterTree, self).__init__(tree, mutable)
 
     def __await__(self):
@@ -219,15 +224,16 @@ class AsyncParameterTree(BaseParameterTree):
         # Await any async set methods in the modified parameters
         await asyncio.gather(*self.awaitable_params)
 
-    def _set_node(self, node, data):
+    def _set_node(self, node, data, element_idx=None):
         """Set the value of a node to the specified data.
 
         This method sets a specified node to the data supplied. If the setter function for the node
         is async, it is added to the list of parameters to be awaited by the set() method.
 
         :param node: tree node to set value of
-        :param data: data to node value to
+        :param data: data to set node value to
+        :param element_idx: index of element to set for list parameters, if applicable
         """
-        response = node.set(data)
+        response = node.set(data, element_idx)
         if asyncio.iscoroutine(response):
             self.awaitable_params.append(asyncio.create_task(response))

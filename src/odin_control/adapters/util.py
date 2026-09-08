@@ -5,28 +5,33 @@ type validation and controller management.
 
 Tim Nicholls, STFC Detector System Software Group
 """
-import asyncio
 
 from odin_control.adapters.response import ApiAdapterResponse
+from odin_control.util import get_async_event_loop
 
 
 def wrap_result(result, is_async=True):
-    """Conditionally wrap a result in an aysncio Future if being used in async code.
+    """Conditionally wrap a result in an asyncio Future if used in async code.
 
-    This method allows common functions for e.g. request validation, to be used in both
-    async and sync adapters.
+    This helper function allows common functions for e.g. request validation, to be used in both
+    async and sync adapters. A valid async event loop is obtained and the result wrapper in a
+    Future is created to wrap the result if required.
 
     :param result: the result to potentially wrap
     :param is_async: optional flag for if desired outcome is a result wrapped in a future
 
     :return: either the result or a Future wrapping the result
     """
-    if is_async:
-        future = asyncio.Future()
-        future.set_result(result)
-        return future
-    else:
+    if not is_async:
         return result
+
+    # Get an async event loop
+    loop = get_async_event_loop()
+
+    # Wrap the result in a Future
+    future = loop.create_future()
+    future.set_result(result)
+    return future
 
 
 def request_types(*oargs):
