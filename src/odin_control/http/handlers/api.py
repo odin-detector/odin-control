@@ -6,7 +6,7 @@ Tim Nicholls, STFC Detector Systems Software Group.
 """
 from odin_control.adapters.adapter import ApiAdapterResponse
 from odin_control.adapters.util import wrap_result
-from odin_control.http.handlers.cors_request import CorsRequestHandler
+from odin_control.http.handlers.base_route import BaseRouteHandler
 
 
 class ApiError(Exception):
@@ -46,7 +46,7 @@ def validate_api_request(func):
     return wrapper
 
 
-class ApiHandler(CorsRequestHandler):
+class ApiHandler(BaseRouteHandler):
     """API handler to transform requests into appropriate adapter calls.
 
     This handler maps incoming API requests onto the appropriate calls to methods in registered

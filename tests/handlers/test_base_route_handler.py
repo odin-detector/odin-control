@@ -1,15 +1,15 @@
-"""Tests for the CorsRequestHandler class."""
+"""Tests for the BaseRouteHandler class."""
 
 from unittest.mock import Mock
 
 import pytest
 
-from odin_control.http.handlers.cors_request import CorsRequestHandler
 from odin_control._version import __version__
+from odin_control.http.handlers.base_route import BaseRouteHandler
 
 
-class TestCorsRequestHandler:
-    """Test cases for the CorsRequestHandler class."""
+class TestBaseRouteHandler:
+    """Test cases for the BaseRouteHandler class."""
 
     @pytest.mark.parametrize("enable_cors,cors_origin", [
         (True, "*"),
@@ -27,7 +27,7 @@ class TestCorsRequestHandler:
         route = Mock()
 
         # Create handler
-        handler = CorsRequestHandler(
+        handler = BaseRouteHandler(
             app, request, route=route, enable_cors=enable_cors, cors_origin=cors_origin
         )
 
@@ -63,7 +63,7 @@ class TestCorsRequestHandler:
         route = Mock()
 
         # Create handler
-        handler = CorsRequestHandler(app, request, route=route, enable_cors=True, cors_origin="*")
+        handler = BaseRouteHandler(app, request, route=route, enable_cors=True, cors_origin="*")
 
         # Mock the set_status method to track calls
         handler.set_status = Mock()
@@ -83,8 +83,7 @@ class TestCorsRequestHandler:
         route = Mock()
 
         # Create handler (default headers are set during handler initialisation)
-        handler = CorsRequestHandler(app, request, route=route, enable_cors=False, cors_origin="*")
+        handler = BaseRouteHandler(app, request, route=route, enable_cors=False, cors_origin="*")
 
         # Check Server header includes OdinControl and version
         assert f"OdinControl/{__version__}" in handler._headers["Server"]
-

@@ -66,7 +66,11 @@ class HttpServer(object):
         handlers = self.api_route.get_handlers()
 
         # Create a default route for static content and get handlers
-        default_route = DefaultRoute(config.static_path)
+        default_route = DefaultRoute(
+            config.static_path,
+            enable_cors=config.enable_cors,
+            cors_origin=config.cors_origin,
+        )
         handlers += default_route.get_handlers()
 
         # Create the Tornado web application for these handlers
