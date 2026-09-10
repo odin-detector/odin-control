@@ -7,10 +7,10 @@ Tim Nicholls, STFC Detector Systems Software Group.
 """
 import json
 
-from odin_control.http.handlers.cors_request import CorsRequestHandler
+from odin_control.http.handlers.base_route import BaseRouteHandler
 
 
-class ApiVersionHandler(CorsRequestHandler):
+class ApiVersionHandler(BaseRouteHandler):
     """API version handler to allow client to resolve supported version.
 
     This request handler implements the GET verb to allow a call to the appropriate URI to return
