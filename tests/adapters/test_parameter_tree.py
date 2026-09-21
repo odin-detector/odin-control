@@ -775,6 +775,11 @@ class RwParameterTreeTestFixture(object):
             'intCallableRoParam': (self.intCallableRoParamGet, None),
             'intCallableWoParam': (None, self.intCallableWoParamSet),
             'intCallableRwValue': (self.int_rw_value, self.intCallableRwValueSet),
+            'defaultBoundLambdaRoParam': (lambda owner=self: owner.int_ro_param, None),
+            'defaultBoundLambdaRwParam': (
+                lambda owner=self: owner.int_rw_param,
+                lambda value, owner=self: owner.intCallableRwParamSet(value),
+            ),
             'branch': nested_tree
         })
 
@@ -820,6 +825,25 @@ class TestRwParameterTree():
 
         dt_rw_int_value = test_rw_tree.rw_callable_tree.get('intCallableRwValue')
         assert dt_rw_int_value['value'] == test_rw_tree.int_rw_value
+
+        dt_lambda_ro_param = test_rw_tree.rw_callable_tree.get('defaultBoundLambdaRoParam')
+        assert dt_lambda_ro_param['value'] == test_rw_tree.int_ro_param
+
+    def test_rw_tree_default_bound_lambda_ro_param_read_only(self, test_rw_tree):
+        """Test that a default-bound lambda RO accessor remains read-only."""
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_rw_tree.rw_callable_tree.set('defaultBoundLambdaRoParam', 0)
+
+        assert 'Parameter defaultBoundLambdaRoParam is read-only' in str(excinfo.value)
+
+    def test_rw_tree_default_bound_lambda_rw_set_value(self, test_rw_tree):
+        """Test setting through a default-bound lambda RW accessor updates the backing value."""
+        new_int_value = 4242
+        test_rw_tree.rw_callable_tree.set('defaultBoundLambdaRwParam', new_int_value)
+
+        dt_lambda_rw_param = test_rw_tree.rw_callable_tree.get('defaultBoundLambdaRwParam')
+        assert dt_lambda_rw_param['value'] == new_int_value
+        assert test_rw_tree.int_rw_param == new_int_value
 
     def test_rw_tree_simple_set_value(self, test_rw_tree):
         """Test that setting a value in a RW tree updates and returns the correct value."""

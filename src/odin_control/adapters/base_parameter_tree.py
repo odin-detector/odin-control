@@ -68,6 +68,12 @@ class BaseParameterAccessor(object):
         self._get = getter
         self._set = setter
 
+        # Initialize parameter attributes that will be resolved later
+        self._type = None
+        self._element_type = None
+        self._getter_indexable = False
+        self._setter_indexable = False
+
         # Initialize metadata dict
         self.metadata = {}
 
@@ -82,27 +88,19 @@ class BaseParameterAccessor(object):
         # If the getter is callable, inspect its signature to determine whether it is indexable
         # (i.e. takes an optional element index as its argument).
         if callable(self._get):
-            getter_params = list(inspect.signature(self._get).parameters.values())
-            self.getter_indexable = (
-                len(getter_params) == 1
-                and getter_params[-1].default is not inspect.Parameter.empty
-            )
-        else:
-            self.getter_indexable = False
+            self._getter_indexable = self._is_indexable_accessor(self._get, expected_param_count=1)
 
         # If the setter is callable, set the writeable metadata field and determine from the
         # signature of the setter whether it is indexable (i.e. takes an element index as a second
         # argument).
         if callable(self._set):
             self.metadata["writeable"] = True
-            setter_params = list(inspect.signature(self._set).parameters.values())
-            self.setter_indexable = (
-                len(setter_params) == 2
-                and setter_params[-1].default is not inspect.Parameter.empty
+            self._setter_indexable = self._is_indexable_accessor(
+                self._set, expected_param_count=2
             )
         else:
             self.metadata["writeable"] = False
-            self.setter_indexable = False
+            self._setter_indexable = False
 
     def get(self, element_idx=None, with_metadata=False):
         """Get the value of the parameter.
@@ -127,7 +125,7 @@ class BaseParameterAccessor(object):
             # return the stored value. If an element index is specified, return the indexed value
             # where appropriate, either via the indexable getter or by resolving the value directly.
             if callable(self._get):
-                if self.getter_indexable:
+                if self._getter_indexable:
                     value = self._get(element_idx)
                 else:
                     value = self._get()
@@ -227,7 +225,7 @@ class BaseParameterAccessor(object):
             if element_idx is not None and self._type is list:
                 element_idx = int(element_idx)
             if callable(self._set):
-                if self.setter_indexable:
+                if self._setter_indexable:
                     response = self._set(value, element_idx)
                 else:
                     if element_idx is not None:
@@ -250,6 +248,27 @@ class BaseParameterAccessor(object):
         """Return the type of the parameter."""
         return self._type
 
+    @staticmethod
+    def _is_indexable_accessor(accessor, expected_param_count):
+        """Determine if a parameter accessor is indexable.
+
+        This method determines if the specified parameter accessor is indexable. Indexable
+        accessors expose an optional index argument that defaults to None. The method inspects the
+        function signature to determine if it has the correct number of parameters and that the
+        final index argument has the correct default value of None. This avoids false positives for
+        callables (especially lambdas) that use default arguments only to bind context and avoid
+        late binding.
+
+        :param accessor: the accessor to inspect
+        :param expected_param_count: the expected number of parameters for the accessor
+        :return: True if the accessor is indexable, False otherwise
+        """
+        params = list(inspect.signature(accessor).parameters.values())
+        if len(params) != expected_param_count:
+            return False
+
+        return params[-1].default is None
+
     def _resolve_type_metadata(self, value):
         """Resolve the type of a parameter and set the appropriate metadata fields.
 
@@ -261,8 +280,6 @@ class BaseParameterAccessor(object):
         """
         # Save the type of the parameter for type checking
         self._type = type(value)
-        self._element_type = None
-        self._setter_indexable = False
 
         # Set the type metadata fields based on the resolved type
         self.metadata["type"] = self._type.__name__
