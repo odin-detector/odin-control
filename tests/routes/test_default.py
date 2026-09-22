@@ -1,15 +1,12 @@
-"""
-Test cases for oding.http.routes.default DefaultRoute class.
+"""Test cases for the DefaultRoute class.
 
-Tim Nicholls, STFC Application Engineering
+Tim Nicholls, STFC Detector Systems Software Group
 """
 import logging
-import re
-
-import pytest
 
 from odin_control.http.routes.default import DefaultRoute
 from tests.utils import log_message_seen
+
 
 class TestDefaultRoute():
     """Test DefaultRoute class."""
