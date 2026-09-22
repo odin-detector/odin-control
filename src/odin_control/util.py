@@ -9,12 +9,15 @@ from tornado.ioloop import IOLoop
 
 
 def decode_request_body(request):
-    """Extract the body from a request.
+    """Decode the body of an HTTP request object.
 
-    This might be decoded from json if specified by the request header.
-    Otherwise, it will return the body as-is
+    This function decodes the body of the provided request object. If the request headers indicate
+    that the request is of type "application/json", the body will be decoded from JSON. Otherwise,
+    the body will be returned as-is.
+
+    :param request: HTTP request object
+    :return: Decoded request body, either as a Python object if JSON or raw bytes otherwise
     """
-
     try:
         body_type = request.headers["Content-Type"]
         if body_type == "application/json":
