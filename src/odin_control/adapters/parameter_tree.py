@@ -7,7 +7,9 @@ is not required.
 Tim Nicholls, STFC Detector Systems Software Group.
 """
 from odin_control.adapters.base_parameter_tree import (
-    BaseParameterAccessor, BaseParameterTree, ParameterTreeError
+    BaseParameterAccessor,
+    BaseParameterTree,
+    ParameterTreeError,
 )
 
 __all__ = ['ParameterAccessor', 'ParameterTree', 'ParameterTreeError']
@@ -37,11 +39,8 @@ class ParameterAccessor(BaseParameterAccessor):
         # Initialise the superclass with the specified arguments
         super(ParameterAccessor, self).__init__(path, getter, setter, **kwargs)
 
-        # Save the type of the parameter for type checking
-        self._type = type(self.get())
-
-        # Set the type metadata fields based on the resolved tyoe
-        self.metadata["type"] = self._type.__name__
+        # Resolve type metadata for the parameter
+        self._resolve_type_metadata(self.get())
 
 
 class ParameterTree(BaseParameterTree):
@@ -64,5 +63,5 @@ class ParameterTree(BaseParameterTree):
         # Set the accessor class used by this tree to ParameterAccessor
         self.accessor_cls = ParameterAccessor
 
-        # Initialise the superclass with the speccified parameters
+        # Initialise the superclass with the specified parameters
         super(ParameterTree, self).__init__(tree, mutable)

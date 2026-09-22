@@ -22,6 +22,7 @@ Alan Greer, OSL
 import logging
 import os
 from dataclasses import dataclass, fields
+from functools import partial
 
 import psutil
 from tornado.ioloop import IOLoop
@@ -40,10 +41,14 @@ class ParameterTreeMixin:
         for field in fields(self):
             yield field.name
 
+    def _get_field_value(self, name):
+        """Get the value of a field by name."""
+        return getattr(self, name)
+
     def as_tree(self):
         """Return a ParameterTree representation of the dataclass."""
         return ParameterTree({
-            name: (lambda name=name: getattr(self, name), None) for name in self
+            name: (partial(self._get_field_value, name), None) for name in self
         })
 
 @dataclass
