@@ -257,17 +257,21 @@ class BaseParameterAccessor(object):
         function signature to determine if it has the correct number of parameters and that the
         final index argument has the correct default value of None. This avoids false positives for
         callables (especially lambdas) that use default arguments only to bind context and avoid
-        late binding.
+        late binding. Python does not implement signatures for all builtin methods (e.g. getattr),
+        so the signature inspection is wrapped in a try-except block to avoid errors.
 
         :param accessor: the accessor to inspect
         :param expected_param_count: the expected number of parameters for the accessor
         :return: True if the accessor is indexable, False otherwise
         """
-        params = list(inspect.signature(accessor).parameters.values())
-        if len(params) != expected_param_count:
-            return False
+        try:
+            params = list(inspect.signature(accessor).parameters.values())
+            if len(params) != expected_param_count:
+                return False
 
-        return params[-1].default is None
+            return params[-1].default is None
+        except (TypeError, ValueError):
+            return False
 
     def _resolve_type_metadata(self, value):
         """Resolve the type of a parameter and set the appropriate metadata fields.

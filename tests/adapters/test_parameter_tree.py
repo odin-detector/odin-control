@@ -4,6 +4,7 @@ Tim Nicholls, STFC Application Engingeering
 """
 
 from copy import deepcopy
+from functools import partial
 
 import pytest
 
@@ -780,6 +781,10 @@ class RwParameterTreeTestFixture(object):
                 lambda owner=self: owner.int_rw_param,
                 lambda value, owner=self: owner.intCallableRwParamSet(value),
             ),
+            'partialGetAttrRwParam': (
+                partial(getattr, self, 'int_rw_param'),
+                partial(setattr, self, 'int_rw_param'),
+            ),
             'branch': nested_tree
         })
 
@@ -829,6 +834,9 @@ class TestRwParameterTree():
         dt_lambda_ro_param = test_rw_tree.rw_callable_tree.get('defaultBoundLambdaRoParam')
         assert dt_lambda_ro_param['value'] == test_rw_tree.int_ro_param
 
+        dt_partial_getattr_rw_param = test_rw_tree.rw_callable_tree.get('partialGetAttrRwParam')
+        assert dt_partial_getattr_rw_param['value'] == test_rw_tree.int_rw_param
+
     def test_rw_tree_default_bound_lambda_ro_param_read_only(self, test_rw_tree):
         """Test that a default-bound lambda RO accessor remains read-only."""
         with pytest.raises(ParameterTreeError) as excinfo:
@@ -843,6 +851,15 @@ class TestRwParameterTree():
 
         dt_lambda_rw_param = test_rw_tree.rw_callable_tree.get('defaultBoundLambdaRwParam')
         assert dt_lambda_rw_param['value'] == new_int_value
+        assert test_rw_tree.int_rw_param == new_int_value
+
+    def test_rw_tree_partial_getattr_rw_set_value(self, test_rw_tree):
+        """Test setting a value through a partial getattr RW accessor updates the backing value."""
+        new_int_value = 5678
+        test_rw_tree.rw_callable_tree.set('partialGetAttrRwParam', new_int_value)
+
+        dt_partial_getattr_rw_param = test_rw_tree.rw_callable_tree.get('partialGetAttrRwParam')
+        assert dt_partial_getattr_rw_param['value'] == new_int_value
         assert test_rw_tree.int_rw_param == new_int_value
 
     def test_rw_tree_simple_set_value(self, test_rw_tree):
