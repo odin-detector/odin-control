@@ -9,8 +9,6 @@ Tim Nicholls, STFC Application Engineering
 import logging
 import ssl
 
-import tornado.gen
-import tornado.ioloop
 import tornado.web
 from tornado.log import access_log
 
@@ -81,11 +79,13 @@ class HttpServer(object):
         self.http_server = None
         if config.enable_http:
             try:
-                self.http_server = self.application.listen(config.http_port, config.http_addr)
+                self.http_server = self.application.listen(
+                    config.http_port, config.http_addr, max_body_size=config.max_body_size
+                )
                 logging.info('HTTP server listening on %s:%s', config.http_addr, config.http_port)
             except OSError as listen_err:
                 logging.error(
-                    "Failed to create HTTP server on %s:%s: %s", 
+                    "Failed to create HTTP server on %s:%s: %s",
                     config.http_addr, config.http_port, str(listen_err)
                 )
 
@@ -101,14 +101,15 @@ class HttpServer(object):
             else:
                 try:
                     self.https_server = self.application.listen(
-                        config.https_port, config.http_addr, ssl_options=ssl_ctx
+                        config.https_port, config.http_addr, ssl_options=ssl_ctx,
+                        max_body_size=config.max_body_size,
                     )
                     logging.info(
                         'HTTPS server listening on %s:%s', config.http_addr, config.https_port
                     )
                 except OSError as listen_err:
                     logging.error(
-                        "Failed to create HTTPS server on %s:%s: %s", 
+                        "Failed to create HTTPS server on %s:%s: %s",
                         config.http_addr, config.https_port, str(listen_err)
                     )
 
@@ -146,6 +147,5 @@ class HttpServer(object):
                    handler._request_summary(), request_time)
 
     def cleanup_adapters(self):
-        """Clean up state of registered adapters.
-        """
+        """Clean up state of registered adapters."""
         self.api_route.cleanup_adapters()

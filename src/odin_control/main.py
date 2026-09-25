@@ -64,6 +64,12 @@ def main(argv=None):
         default=None,
         option_help="Comma separated list of key=value pairs to add to every log message metadata",
     )
+    config.define(
+        "max_body_size",
+        default=None,
+        option_type=int,
+        option_help="Set the maximum body size for requests",
+    )
 
     # Parse configuration options and any configuration file specified
     try:
@@ -76,6 +82,9 @@ def main(argv=None):
         add_graylog_handler(
             config.graylog_server, config.graylog_logging_level, config.graylog_static_fields
         )
+
+    if config.max_body_size is not None:
+        logging.info("Setting maximum body size for requests to %s", config.max_body_size)
 
     # Get the Tornado ioloop instance
     ioloop = tornado.ioloop.IOLoop.instance()
