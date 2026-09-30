@@ -15,6 +15,7 @@ from tornado.log import access_log
 from odin_control.config.parser import ConfigError
 from odin_control.http.routes.api import ApiRoute
 from odin_control.http.routes.default import DefaultRoute
+from tests import config
 
 
 class HttpServer(object):
@@ -73,6 +74,10 @@ class HttpServer(object):
 
         # Create the Tornado web application for these handlers
         self.application = tornado.web.Application(handlers, **settings)
+
+        # If max body size is specified, log the value for information
+        if config.max_body_size is not None:
+            logging.info("Setting maximum body size for requests to %d bytes", config.max_body_size)
 
         # If HTTP is enabled, configure the application to listen on the specified address and
         # port
