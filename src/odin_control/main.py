@@ -83,9 +83,6 @@ def main(argv=None):
             config.graylog_server, config.graylog_logging_level, config.graylog_static_fields
         )
 
-    if config.max_body_size is not None:
-        logging.info("Setting maximum body size for requests to %s", config.max_body_size)
-
     # Get the Tornado ioloop instance
     ioloop = tornado.ioloop.IOLoop.instance()
 

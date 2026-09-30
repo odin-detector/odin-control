@@ -197,6 +197,7 @@ class ServerConfig():
         self.enable_cors = True
         self.cors_origin = "*"
         self.api_version = "0.1"
+        self.max_body_size = None
 
     def resolve_adapters(self):
         return []
@@ -399,3 +400,54 @@ class TestOdinHttpsServer():
                 server_config.http_addr, server_config.https_port,
             )
         )
+
+@pytest.fixture(scope='class')
+def max_body_size_server():
+    """
+    Test fixture for starting a test server with a max_body_size configuration option set.
+    """
+    adapter_config = {
+        'dummy': {
+            'module': 'odin_control.adapters.dummy.DummyAdapter',
+            'background_task_enable': 1,
+            'background_task_interval': 0.1,
+        }
+    }
+
+    test_server = OdinTestServer(adapter_config=adapter_config, max_body_size=1024)
+    yield test_server
+    test_server.stop()
+class TestOdinServerMaxBodySize():
+    """Class for testing the max_body_size configuration option."""
+
+    def test_max_body_size_is_reported(self, server_config, caplog):
+        """Test that the max_body_size configuration option is reported correctly when set."""
+        server_config.max_body_size = 1024
+
+        with caplog.at_level(logging.INFO):
+
+            http_server = HttpServer(server_config)
+            http_server.stop()
+
+            assert log_message_seen(
+                caplog, logging.INFO,
+                "Setting maximum body size for requests to {} bytes".format(server_config.max_body_size)
+            )
+
+    def test_small_body_size_succeeds(self, max_body_size_server):
+        """Test that a request smaller than the max_body_size succeeds."""
+        headers = {'Content-Type' : 'application/json'}
+        payload = {'some': 'data'}
+        result = requests.put(max_body_size_server.build_url('dummy/command/execute'),
+            data=json.dumps(payload),
+            headers=headers)
+        assert result.status_code == 200
+
+    def test_large_body_size_fails(self, max_body_size_server):
+        """Test that a request larger than the max_body_size fails."""
+        headers = {'Content-Type' : 'application/json'}
+        payload = {'some': 'data' * 1024}
+        result = requests.put(max_body_size_server.build_url('dummy/command/execute'),
+            data=json.dumps(payload),
+            headers=headers)
+        assert result.status_code == 400

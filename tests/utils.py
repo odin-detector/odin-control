@@ -40,6 +40,7 @@ class OdinTestServer(object):
         graylog_server=None,
         graylog_static_fields=None,
         server_api_version=server_api_version,
+        max_body_size=None
     ):
 
         self.server_thread = None
@@ -71,6 +72,9 @@ class OdinTestServer(object):
             parser.set("server", 'graylog_server', graylog_server)
             if graylog_static_fields is not None:
                 parser.set("server", 'graylog_static_fields', graylog_static_fields)
+
+        if max_body_size is not None:
+            parser.set("server", 'max_body_size', str(max_body_size))
 
         parser.add_section('tornado')
         parser.set('tornado', 'logging', 'debug')
