@@ -286,14 +286,24 @@ class BaseParameterAccessor(object):
         self._type = type(value)
 
         # Set the type metadata fields based on the resolved type
-        self.metadata["type"] = self._type.__name__
+        self.metadata["type"] = self._type_name(self._type)
 
         # If the parameter is a list, also save the type of the first element for type checking
         if self._type is list:
-            self._element_type = type(value[0]) if len(value) > 0 else None
-            self.metadata["element_type"] = (
-                self._element_type.__name__ if self._element_type is not None else "none"
-            )
+            self._element_type = type(value[0]) if len(value) > 0 else type(None)
+            self.metadata["element_type"] = self._type_name(self._element_type)
+
+    @staticmethod
+    def _type_name(value_type):
+        """Return the name of a type.
+
+        This static method returns the name of a type, or 'none' if the type is type(None). It is
+        used to set type metadata fields in the accessor's metadata dictionary.
+
+        :param value_type: type to get name for
+        :return: name of the type
+        """
+        return value_type.__name__ if value_type is not type(None) else "none"
 
 class BaseParameterTree(object):
     """Base class implementing a tree of parameters and their accessors.
