@@ -15,7 +15,6 @@ from tornado.log import access_log
 from odin_control.config.parser import ConfigError
 from odin_control.http.routes.api import ApiRoute
 from odin_control.http.routes.default import DefaultRoute
-from tests import config
 
 
 class HttpServer(object):
