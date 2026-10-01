@@ -438,16 +438,24 @@ class TestOdinServerMaxBodySize():
         """Test that a request smaller than the max_body_size succeeds."""
         headers = {'Content-Type' : 'application/json'}
         payload = {'some': 'data'}
-        result = requests.put(max_body_size_server.build_url('dummy/command/execute'),
-            data=json.dumps(payload),
-            headers=headers)
+        result = requests.put(
+            max_body_size_server.build_url('dummy/command/execute'),
+            headers=headers,
+            data=json.dumps(payload)
+        )
         assert result.status_code == 200
 
     def test_large_body_size_fails(self, max_body_size_server):
-        """Test that a request larger than the max_body_size fails."""
-        headers = {'Content-Type' : 'application/json'}
-        payload = {'some': 'data' * 1024}
-        result = requests.put(max_body_size_server.build_url('dummy/command/execute'),
-            data=json.dumps(payload),
-            headers=headers)
+        """Test that a request larger than the max_body_size fails.
+
+        This is done by explicitly setting the Content-Length header to a value larger than
+        max_body_size. No payload is sent to avoid race conditions on the server closing the
+        connection before the client has finished sending the payload, which can happen on slow CI
+        runners.
+        """
+        headers = {'Content-Type' : 'application/json', 'Content-Length': '4110'}
+        result = requests.put(
+            max_body_size_server.build_url('dummy/command/execute'),
+            headers=headers
+        )
         assert result.status_code == 400
