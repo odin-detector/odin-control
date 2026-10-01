@@ -43,6 +43,8 @@ class OdinTestServer(object):
         max_body_size=None
     ):
 
+        self.server_port = server_port
+
         self.server_thread = None
         self.server_event_loop = None
 
