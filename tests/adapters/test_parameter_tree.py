@@ -69,6 +69,11 @@ class ParameterAccessorTestFixture(object):
         self.indexable_rw_list_accessor = ParameterAccessor(
             self.indexable_rw_list_path + '/', self.indexable_rw_list_get, self.indexable_rw_list_set)
 
+        self.empty_rw_list_value = []
+        self.empty_rw_list_path = 'empty_rw_list'
+        self.empty_rw_list_accessor = ParameterAccessor(
+            self.empty_rw_list_path + '/', self.empty_rw_list_get, self.empty_rw_list_set)
+
         self.callable_dict_value = {'a': 1, 'b': 2, 'c': 3}
         self.callable_dict_path = 'callable_dict'
         self.callable_dict_accessor = ParameterAccessor(
@@ -105,6 +110,17 @@ class ParameterAccessorTestFixture(object):
 
     def callable_rw_list_set(self, value):
         self.callable_rw_list_value = value
+
+    def empty_rw_list_get(self, element_idx=None):
+        if element_idx is not None:
+            return self.empty_rw_list_value[element_idx]
+        return self.empty_rw_list_value
+
+    def empty_rw_list_set(self, value, element_idx=None):
+        if element_idx is not None:
+            self.empty_rw_list_value[element_idx] = value
+        else:
+            self.empty_rw_list_value = value
 
     def indexable_rw_list_get(self, element_idx=None):
         if element_idx is not None:
@@ -379,6 +395,55 @@ class TestParameterAccessor():
         assert "Index error setting parameter {} at index {}".format(
                 test_param_accessor.indexable_rw_list_path, element_idx
             ) in str(excinfo.value)
+
+    def test_empty_rw_list_accessor_get(self, test_param_accessor):
+        """Test that an empty RW list accessor get call returns the correct value."""
+        assert test_param_accessor.empty_rw_list_accessor.get() == \
+            test_param_accessor.empty_rw_list_value
+
+    def test_empty_rw_list_accessor_set(self, test_param_accessor):
+        """Test that an empty RW list accessor set call sets the correct value."""
+        old_val = test_param_accessor.empty_rw_list_value
+        new_val = [1, 2, 3]
+        test_param_accessor.empty_rw_list_accessor.set(new_val)
+        assert test_param_accessor.empty_rw_list_accessor.get() == new_val
+
+        test_param_accessor.empty_rw_list_accessor.set(old_val)
+
+    def test_empty_rw_list_accessor_get_element_out_of_range(self, test_param_accessor):
+        """Test that an empty RW list accessor get call with an out-of-range index raises an error."""
+        element_idx = 0
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_param_accessor.empty_rw_list_accessor.get(element_idx=element_idx)
+
+        assert "Index error getting parameter {} at index {}".format(
+                test_param_accessor.empty_rw_list_path, element_idx
+            ) in str(excinfo.value)
+
+    def test_empty_rw_list_accessor_set_element_out_of_range(self, test_param_accessor):
+        """Test that an empty RW list accessor set call with an out-of-range index raises an error."""
+        new_val = 1
+        element_idx = 0
+        with pytest.raises(ParameterTreeError) as excinfo:
+            test_param_accessor.empty_rw_list_accessor.set(new_val, element_idx=element_idx)
+
+        assert "Index error setting parameter {} at index {}".format(
+                test_param_accessor.empty_rw_list_path, element_idx
+            ) in str(excinfo.value)
+
+    def test_empty_rw_list_accessor_set_different_type(self, test_param_accessor):
+        """Test that an empty RW list accessor set call with a different type succeeds."""
+        old_val = test_param_accessor.empty_rw_list_value
+        new_val = [1, 2, 3]
+        test_param_accessor.empty_rw_list_accessor.set(new_val)
+        assert test_param_accessor.empty_rw_list_accessor.get() == new_val
+
+        new_val = 1.1
+        element_idx = 1
+        expected_vals = [1, 1.1, 3]
+        test_param_accessor.empty_rw_list_accessor.set(new_val, element_idx=element_idx)
+        assert test_param_accessor.empty_rw_list_accessor.get() == expected_vals
+
 
     def test_callable_dict_accessor_get(self, test_param_accessor):
         """Test that a callable dict accessor get call returns the correct value."""
