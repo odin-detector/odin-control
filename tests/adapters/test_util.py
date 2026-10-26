@@ -80,7 +80,7 @@ class ApiMethodDecoratorsTestFixture():
         else:
             self.controller = None
 
-    @request_types('application/json', 'text/plain')
+    @request_types('application/json', 'text/plain', 'multipart/form-data')
     @response_types('application/json', 'text/plain', default='application/json')
     def decorated_method(self, path, request):
         """Decorated method having defined request, response and default types."""
@@ -173,6 +173,20 @@ class TestApiMethodDecorators():
         json_request.headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
 
         response = test_api_decorator.decorated_method(test_api_decorator.path, json_request)
+        assert response.status_code == test_api_decorator.response_code
+        assert response.content_type == test_api_decorator.response_type_json
+        assert response.data == test_api_decorator.response_data_json
+
+    def test_decorated_method_multipart_with_boundary(self, test_api_decorator):
+        """Test that multipart Content-Type parameters do not prevent request type matching."""
+        request = Mock()
+        request.data = 'multipart form data'
+        request.headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'multipart/form-data; boundary=----form-boundary',
+        }
+
+        response = test_api_decorator.decorated_method(test_api_decorator.path, request)
         assert response.status_code == test_api_decorator.response_code
         assert response.content_type == test_api_decorator.response_type_json
         assert response.data == test_api_decorator.response_data_json
