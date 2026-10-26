@@ -64,6 +64,12 @@ def main(argv=None):
         default=None,
         option_help="Comma separated list of key=value pairs to add to every log message metadata",
     )
+    config.define(
+        "max_body_size",
+        default=None,
+        option_type=int,
+        option_help="Set the maximum body size for requests",
+    )
 
     # Parse configuration options and any configuration file specified
     try:
